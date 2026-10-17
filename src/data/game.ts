@@ -98,6 +98,13 @@ export const gameCases = [
 
 export type GameId = (typeof gameCases)[number]['id']
 
+/** A new selection dismisses failed attempts while keeping solved pairs. */
+export function clearIncorrectPairs(pairs: Partial<Record<GameId, GameId>>) {
+  return Object.fromEntries(
+    Object.entries(pairs).filter(([medicine, ingredient]) => medicine === ingredient),
+  ) as Partial<Record<GameId, GameId>>
+}
+
 /** An ingredient has at most one connection. Reconnecting frees the old card. */
 export function connectPair(
   pairs: Partial<Record<GameId, GameId>>,

@@ -1,6 +1,16 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { connectPair, gameCases } from '../src/data/game.ts'
+import { clearIncorrectPairs, connectPair, gameCases } from '../src/data/game.ts'
+
+test('selecting again clears failed connections and preserves solved pairs', () => {
+  const pairs = { ciclosporine: 'ciclosporine', sertraline: 'levothyroxine', digoxine: 'digoxine' }
+  assert.deepEqual(clearIncorrectPairs(pairs), {
+    ciclosporine: 'ciclosporine',
+    digoxine: 'digoxine',
+  })
+  assert.equal(pairs.sertraline, 'levothyroxine')
+  assert.deepEqual(clearIncorrectPairs({}), {})
+})
 
 test('reassigning an ingredient frees its previous medicine without mutating state', () => {
   const previous = { ciclosporine: 'warfarine', sertraline: 'sertraline' }

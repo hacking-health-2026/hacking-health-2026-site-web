@@ -15,5 +15,10 @@ incorrecte garde la même fiche sélectionnée pour réessayer. Un bon lien pass
 la prochaine fiche à résoudre. Les connexions peuvent être réattribuées, une seule
 fois par ingrédient. Recommencer efface les liens et décale l’ordre des ingrédients.
 
+Les cartes sont reliées par des courbes SVG, mesurées après chaque connexion et
+redimensionnement du plateau. Le plateau garde deux colonnes sur mobile. Toute
+nouvelle sélection efface les tentatives incorrectes et leur message ; les bons
+liens restent en place. Les couleurs sont accompagnées d’icônes et de libellés.
+
 Vérifications : `node --test scripts/game.test.mjs`, vérification TypeScript,
 build et audit des chemins. Les tests de connexion utilisent Node 24.
