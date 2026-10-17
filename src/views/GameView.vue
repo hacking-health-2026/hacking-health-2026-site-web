@@ -231,7 +231,12 @@ function restart() {
                 >
               </button>
             </div>
-            <div class="lab-bench" aria-hidden="true"><span></span><span></span><span></span></div>
+            <div class="lab-bench" aria-hidden="true">
+              <span></span><span></span><span></span>
+              <i class="table-leg table-leg-left"></i>
+              <i class="table-leg table-leg-right"></i>
+              <i class="table-brace"></i>
+            </div>
           </section>
 
           <div class="worlds-gap" aria-hidden="true">
@@ -739,15 +744,54 @@ function restart() {
   min-height: 18px;
 }
 .lab-bench {
-  height: 33px;
-  background: #cfc1e1;
-  border-top: 8px solid #a18abf;
-  border-bottom: 4px solid #e7dff0;
-  margin: 8px -8px 0;
-  border-radius: 6px;
+  position: relative;
+  z-index: 2;
+  height: 44px;
+  background: linear-gradient(90deg, #d4c8e4, #e6deef 50%, #d4c8e4);
+  border-top: 10px solid #8e77ae;
+  border-bottom: 4px solid #b7a5ca;
+  margin: 4px -8px 0;
+  border-radius: 5px 5px 3px 3px;
+  box-shadow: 0 6px 12px #6d568d18;
   display: flex;
   justify-content: space-around;
   align-items: center;
+}
+.lab-bench::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -18px;
+  height: 9px;
+  background: #f5effb;
+  border: 1px solid #c3afd9;
+  border-radius: 6px 6px 0 0;
+  transform: skewX(-10deg);
+}
+.lab-bench .table-leg {
+  position: absolute;
+  top: 30px;
+  width: 15px;
+  height: 65px;
+  background: linear-gradient(90deg, #a694bb, #d8cde4);
+  border-radius: 0 0 4px 4px;
+  border-bottom: 6px solid #80718e;
+}
+.table-leg-left {
+  left: 24px;
+}
+.table-leg-right {
+  right: 24px;
+}
+.lab-bench .table-brace {
+  position: absolute;
+  left: 36px;
+  right: 36px;
+  top: 68px;
+  height: 7px;
+  border-radius: 3px;
+  background: #c5b6d5;
 }
 .lab-bench span {
   width: 20px;
@@ -756,7 +800,7 @@ function restart() {
   background: #a18abf;
 }
 .worlds-gap {
-  height: 100px;
+  height: 125px;
   position: relative;
   display: flex;
   justify-content: center;
