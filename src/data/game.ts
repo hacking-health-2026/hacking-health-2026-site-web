@@ -1,102 +1,97 @@
-export const gameCases = [
-  {
-    id: 'ciclosporine',
-    medicine: 'Ciclosporine',
-    role: 'Traitement immunosuppresseur',
-    active: 'Ciclosporine',
-    clue: 'À relier à la plante aux fleurs jaunes, parfois utilisée pour l’humeur.',
-    ingredient: 'Millepertuis',
-    foundIn:
-      'On le trouve dans des préparations de phytothérapie à base de millepertuis, notamment des gélules et des extraits.',
-    originUrl: 'https://www.nccih.nih.gov/health/st-johns-wort',
-    ingredientNote: 'Extrait végétal · plusieurs substances actives',
-    context:
-      'Deux personnes greffées du cœur prennent ce traitement et un extrait de cette plante.',
-    risk: true,
-    explanation:
-      'Deux rejets aigus de greffe ont été rapportés après l’association de millepertuis à la ciclosporine. La baisse d’exposition à l’immunosuppresseur peut compromettre la protection du greffon.',
-    source: 'Ruschitzka et al. · The Lancet, 2000',
-    url: 'https://doi.org/10.1016/S0140-6736(99)05467-7',
-  },
-  {
-    id: 'sertraline',
-    medicine: 'Sertraline',
-    role: 'Traitement antidépresseur',
-    active: 'Sertraline',
-    clue: 'À relier au précurseur de la sérotonine, dont le nom contient « HTP ».',
-    ingredient: '5-HTP',
-    foundIn:
-      'On le trouve dans certains compléments de 5-HTP ou de Griffonia simplicifolia : ses graines sont une source de 5-HTP.',
-    originUrl: 'https://www.mskcc.org/cancer-care/integrative-medicine/herbs/5-htp-01',
-    ingredientNote: '5-hydroxytryptophane · précurseur de la sérotonine',
-    context:
-      'Un cas publié décrit la prise de cet antidépresseur avec ce complément, parmi plusieurs produits, après un effort intense.',
-    risk: true,
-    explanation:
-      'Un syndrome sérotoninergique avec complications musculaires a été rapporté. Les auteurs suspectent cette association ; les autres produits, l’effort et les doses incertaines limitent l’attribution à elle seule.',
-    source: 'Patel & Marzella · American Journal of Case Reports, 2017',
-    url: 'https://amjcaserep.com/abstract/full/idArt/904375',
-  },
-  {
-    id: 'levothyroxine',
-    medicine: 'Lévothyroxine',
-    role: 'Traitement de l’hypothyroïdie',
-    active: 'Lévothyroxine',
-    clue: 'À relier au minéral souvent utilisé pour la santé des os.',
-    ingredient: 'Calcium',
-    foundIn:
-      'On le trouve dans les compléments de calcium, certaines formules calcium + vitamine D et certains antiacides contenant du carbonate de calcium.',
-    originUrl: 'https://ods.od.nih.gov/factsheets/Calcium-Consumer/',
-    ingredientNote: 'Sous forme de carbonate de calcium dans l’étude',
-    context:
-      'Vingt patients prennent leur lévothyroxine en même temps que du carbonate de calcium pendant trois mois.',
-    risk: true,
-    explanation:
-      'L’absorption de la lévothyroxine a diminué et la TSH a augmenté. Cette association peut déséquilibrer le traitement thyroïdien : une interaction peut aussi réduire l’efficacité d’un médicament.',
-    source: 'Singh et al. · JAMA, 2000',
-    url: 'https://pubmed.ncbi.nlm.nih.gov/10838651/',
-  },
-  {
-    id: 'warfarine',
-    medicine: 'Warfarine',
-    role: 'Traitement anticoagulant',
-    active: 'Warfarine',
-    clue: 'À relier au rhizome épicé également utilisé contre les nausées.',
-    ingredient: 'Gingembre',
-    foundIn:
-      'On le trouve comme aliment et dans des compléments à base de gingembre. Les préparations concentrées ne sont pas équivalentes à son usage en cuisine.',
-    originUrl: 'https://www.nccih.nih.gov/health/ginger',
-    ingredientNote: 'Préparation végétale étudiée · plusieurs substances actives',
-    context:
-      'Essai de 2005 : douze hommes en bonne santé reçoivent une dose unique de warfarine avec une préparation de cette plante.',
-    risk: false,
-    explanation:
-      'Dans cet essai, aucun effet significatif sur l’exposition à la warfarine ou les paramètres de coagulation n’a été observé. Cela ne démontre pas l’absence de risque chez des patients anticoagulés au long cours, ni avec d’autres préparations.',
-    source: 'Jiang et al. · British Journal of Clinical Pharmacology, 2005',
-    url: 'https://pubmed.ncbi.nlm.nih.gov/15801937/',
-  },
-  {
-    id: 'digoxine',
-    medicine: 'Digoxine',
-    role: 'Traitement cardiaque',
-    active: 'Digoxine',
-    clue: 'À relier à la silymarine, ensemble de substances issues du chardon-Marie.',
-    ingredient: 'Silymarine',
-    foundIn:
-      'On la trouve dans des extraits de chardon-Marie commercialisés comme compléments alimentaires, notamment sous forme de gélules.',
-    originUrl: 'https://www.nccih.nih.gov/health/milk-thistle',
-    ingredientNote: 'Mélange de substances · extrait de chardon-Marie étudié',
-    context:
-      'Essai chez seize volontaires sains : la digoxine est évaluée avant et après quatorze jours d’un extrait de chardon-Marie.',
-    risk: false,
-    explanation:
-      'Cette formulation n’a pas modifié significativement la pharmacocinétique de la digoxine dans cet essai. Ce résultat limité à un extrait et à des volontaires sains ne garantit pas la sécurité de toutes les associations.',
-    source: 'Gurley et al. · Drug Metabolism and Disposition, 2006',
-    url: 'https://pubmed.ncbi.nlm.nih.gov/16221754/',
-  },
-] as const
+import dataset from './static-demo.json' with { type: 'json' }
 
-export type GameId = (typeof gameCases)[number]['id']
+export type GameId = string
+export interface GameCase {
+  id: GameId
+  medicineId: string
+  ruleId: string
+  medicine: string
+  active: string
+  role: string
+  ingredient: string
+  clue: string
+  foundIn: string
+  explanation: string
+  source: string
+}
+
+const normalize = (value: string) =>
+  value
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+const products = new Map(dataset.products.map((product) => [product.id, product]))
+const cases = new Map<string, GameCase>()
+for (const pair of dataset.pairs) {
+  const a = products.get(pair.product_a_id)!
+  const b = products.get(pair.product_b_id)!
+  const [medicine, supplement] = a.kind === 'medicine' ? [a, b] : [b, a]
+  for (const rule of pair.rules) {
+    const id = `${medicine.id}-${rule.id}`
+    const existing = cases.get(id)
+    if (existing) {
+      if (!existing.foundIn.split(' · ').includes(supplement.name))
+        existing.foundIn += ` · ${supplement.name}`
+      continue
+    }
+    cases.set(id, {
+      id,
+      medicineId: medicine.id,
+      ruleId: rule.id,
+      medicine: medicine.name,
+      active: medicine.active_substance || medicine.name,
+      role: medicine.drug_class || '',
+      ingredient: rule.ingredient,
+      clue: `${rule.mechanism}. Conséquence indiquée : ${rule.consequence}.`,
+      foundIn: supplement.name,
+      explanation: `${rule.mechanism}. ${rule.consequence}.`,
+      source: `Classeur · ${rule.reference.sheet}, ligne ${rule.reference.row} · ${rule.source_label} (référence du classeur non vérifiée)`,
+    })
+  }
+}
+export const gamePool: GameCase[] = [...cases.values()]
+const related = new Set(gamePool.map((item) => `${item.medicineId}|${normalize(item.ingredient)}`))
+
+export function shuffle<T>(items: readonly T[], random = Math.random): T[] {
+  const result = [...items]
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1))
+    ;[result[i], result[j]] = [result[j]!, result[i]!]
+  }
+  return result
+}
+
+/** Choose an induced matching: five distinct samples and components, no ambiguous cross-links. */
+export function createGame(previous: readonly GameCase[] = [], random = Math.random): GameCase[] {
+  const candidates = shuffle(gamePool, random)
+  const signature = (items: readonly GameCase[]) =>
+    items
+      .map((item) => item.id)
+      .sort()
+      .join('|')
+  const previousSignature = signature(previous)
+  function choose(chosen: GameCase[], start: number): GameCase[] | undefined {
+    if (chosen.length === 5) return signature(chosen) !== previousSignature ? chosen : undefined
+    for (let i = start; i < candidates.length; i++) {
+      const item = candidates[i]!
+      if (
+        chosen.some(
+          (other) =>
+            normalize(other.active) === normalize(item.active) ||
+            normalize(other.ingredient) === normalize(item.ingredient) ||
+            related.has(`${other.medicineId}|${normalize(item.ingredient)}`) ||
+            related.has(`${item.medicineId}|${normalize(other.ingredient)}`),
+        )
+      )
+        continue
+      const result = choose([...chosen, item], i + 1)
+      if (result) return result
+    }
+  }
+  const result = choose([], 0)
+  if (!result) throw new Error('Le classeur ne permet pas de créer cinq associations distinctes.')
+  return result.map((item) => ({ ...item }))
+}
 
 /** A new selection dismisses failed attempts while keeping solved pairs. */
 export function clearIncorrectPairs(pairs: Partial<Record<GameId, GameId>>) {

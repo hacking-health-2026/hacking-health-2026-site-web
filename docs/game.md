@@ -5,15 +5,14 @@ fiches à partir d’indices. Chaque tentative donne immédiatement un retour ve
 (bon lien) ou rouge (lien incorrect), une explication et les produits où trouver
 le composant naturel choisi, avec une source. Il n’y a plus de questions ni d’étape de validation.
 
-Les données et sources sont dans `src/data/game.ts`. Les plantes ne sont pas
+Les parties sont générées par `src/data/game.ts` à partir de `src/data/static-demo.json`, export du classeur. Les cinq associations fixes et leurs anciennes sources externes ont été retirées. Les plantes ne sont pas
 présentées comme des molécules isolées. Les couleurs indiquent la correspondance
-avec l’indice, jamais la sécurité médicale du duo. Les anciens contextes d’études
-restent conservés dans les données mais ne servent plus à poser des questions.
+avec l’indice, jamais la sécurité médicale du duo. Les indices, mécanismes et produits où trouver chaque composant viennent des règles du classeur. Les références du classeur restent non vérifiées.
 
 Le compteur mesure les liens corrects, jamais un risque médical. Une tentative
 incorrecte garde la même fiche sélectionnée pour réessayer. Un bon lien passe à
 la prochaine fiche à résoudre. Les connexions peuvent être réattribuées, une seule
-fois par composant. Recommencer efface les liens et décale l’ordre des composants.
+fois par composant. Recommencer efface les liens, tire cinq nouvelles associations et mélange les composants. Un tirage exclut les doublons de principes actifs et les liens croisés présents dans le dataset afin de garder une solution sans ambiguïté. Le même ensemble ne peut pas être repris immédiatement.
 
 Le plateau montre les échantillons du laboratoire en haut et les composants
 naturels comme fruits d’un arbre illustré en bas. Cette représentation est

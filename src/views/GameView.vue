@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import NexusIcon from '@/components/NexusIcon.vue'
-import { clearIncorrectPairs, connectPair, gameCases, type GameId } from '@/data/game'
+import { workbookUrl } from '@/services/api'
+import { clearIncorrectPairs, connectPair, createGame, shuffle, type GameId } from '@/data/game'
 
-const selected = ref<GameId>('ciclosporine')
+const gameCases = ref(createGame())
+const selected = ref<GameId>(gameCases.value[0]!.id)
 const errorCount = ref(0)
 const pairs = ref<Partial<Record<GameId, GameId>>>({})
-const order = ref([3, 0, 4, 1, 2])
+const order = ref(shuffle([0, 1, 2, 3, 4]))
 const lastAttempt = ref<{ medicine: GameId; ingredient: GameId }>()
 const board = ref<HTMLElement>()
 const victory = ref<HTMLDialogElement>()
@@ -14,19 +16,19 @@ const wires = ref<
   { id: GameId; path: string; x1: number; y1: number; x2: number; y2: number; correct: boolean }[]
 >([])
 let resizeObserver: ResizeObserver | undefined
-const components = computed(() => order.value.map((i) => gameCases[i]!))
-const pairCount = computed(() => gameCases.filter((c) => pairs.value[c.id] === c.id).length)
-const selectedCase = computed(() => gameCases.find((c) => c.id === selected.value)!)
+const components = computed(() => order.value.map((i) => gameCases.value[i]!))
+const pairCount = computed(() => gameCases.value.filter((c) => pairs.value[c.id] === c.id).length)
+const selectedCase = computed(() => gameCases.value.find((c) => c.id === selected.value)!)
 const feedback = computed(() => {
   if (!lastAttempt.value) return undefined
   return {
     correct: lastAttempt.value.medicine === lastAttempt.value.ingredient,
-    medicine: gameCases.find((c) => c.id === lastAttempt.value!.medicine)!,
-    component: gameCases.find((c) => c.id === lastAttempt.value!.ingredient)!,
+    medicine: gameCases.value.find((c) => c.id === lastAttempt.value!.medicine)!,
+    component: gameCases.value.find((c) => c.id === lastAttempt.value!.ingredient)!,
   }
 })
-const componentName = (id?: GameId) => gameCases.find((c) => c.id === id)?.ingredient
-const owner = (id: GameId) => gameCases.find((c) => pairs.value[c.id] === id)
+const componentName = (id?: GameId) => gameCases.value.find((c) => c.id === id)?.ingredient
+const owner = (id: GameId) => gameCases.value.find((c) => pairs.value[c.id] === id)
 const connectionState = (medicine: GameId) =>
   !pairs.value[medicine] ? '' : pairs.value[medicine] === medicine ? 'correct' : 'incorrect'
 const fruitState = (component: GameId) => {
@@ -37,7 +39,7 @@ const fruitState = (component: GameId) => {
 function measureWires() {
   if (!board.value) return
   const bounds = board.value.getBoundingClientRect()
-  wires.value = gameCases.flatMap((item) => {
+  wires.value = gameCases.value.flatMap((item) => {
     const target = pairs.value[item.id]
     if (!target) return []
     const from = board
@@ -99,7 +101,7 @@ function link(id: GameId) {
   pairs.value = connectPair(clearIncorrectPairs(pairs.value), medicine, id)
   lastAttempt.value = { medicine, ingredient: id }
   if (medicine === id) {
-    const remaining = gameCases.find((c) => pairs.value[c.id] !== c.id)
+    const remaining = gameCases.value.find((c) => pairs.value[c.id] !== c.id)
     if (remaining) selected.value = remaining.id
   }
 }
@@ -108,8 +110,9 @@ function restart() {
   errorCount.value = 0
   pairs.value = {}
   lastAttempt.value = undefined
-  selected.value = 'ciclosporine'
-  order.value = [...order.value.slice(1), order.value[0]!]
+  gameCases.value = createGame(gameCases.value)
+  selected.value = gameCases.value[0]!.id
+  order.value = shuffle([0, 1, 2, 3, 4])
 }
 </script>
 
@@ -120,7 +123,8 @@ function restart() {
         <p class="eyebrow">Le jeu Herbal Nexus</p>
         <h1>De la nature<br />au labo<span>.</span></h1>
         <p>
-          Cinq échantillons. Cinq composants naturels.<br />À vous de créer les bonnes connexions.
+          Une nouvelle partie à chaque fois.<br />Cinq échantillons. Cinq composants naturels.<br />À
+          vous de créer les bonnes connexions.
         </p>
       </div>
       <div class="mission-badge">
@@ -305,10 +309,7 @@ function restart() {
               >
                 <span class="fruit-leaf" aria-hidden="true"></span
                 ><span class="fruit-shine" aria-hidden="true"></span>
-                <NexusIcon
-                  :name="item.id === 'levothyroxine' ? 'spark' : 'leaf'"
-                  :size="24"
-                /><strong>{{ item.ingredient }}</strong
+                <NexusIcon :name="'leaf'" :size="24" /><strong>{{ item.ingredient }}</strong
                 ><small>{{
                   !owner(item.id)
                     ? 'Relier'
@@ -358,8 +359,10 @@ function restart() {
               }}
             </p>
             <p><b>Où le trouver ?</b> {{ feedback.component.foundIn }}</p>
-            <a :href="feedback.component.originUrl" target="_blank" rel="noopener noreferrer"
-              >Découvrir ce composant <NexusIcon name="arrow" :size="13"
+            <p v-if="feedback.correct">{{ feedback.medicine.explanation }}</p>
+            <small>{{ feedback.component.source }}</small>
+            <a :href="workbookUrl('/api/source/workbook')" target="_blank" rel="noopener noreferrer"
+              >Consulter le classeur <NexusIcon name="arrow" :size="13"
             /></a>
           </div>
         </div>
