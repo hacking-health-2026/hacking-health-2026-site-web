@@ -6,7 +6,7 @@ import {
   assessStaticProducts,
   searchStaticProducts,
   staticProfileOptions,
-  workbookStatistics,
+  searchRelatedProducts,
 } from '../src/services/staticDemo.ts'
 
 for (const [index, fixture] of fixtures.entries()) {
@@ -91,17 +91,32 @@ test('all 4,950 workbook product pairs match the Python matrix, including unknow
   }
 })
 
-test('statistics match the complete Python matrix without treating missing rules as low risk', () => {
-  const stats = workbookStatistics()
-  const count = (status) => matrix.filter((pair) => pair.status === status).length
-  assert.equal(stats.productCount, 100)
-  assert.equal(stats.totalPairs, matrix.length)
-  assert.deepEqual(stats.counts, {
-    critical: count('critical'),
-    watch: count('watch'),
-    low: count('low'),
-  })
-  assert.equal(stats.unknownPairs, count('unknown'))
-  assert.equal(stats.coveredPairs + stats.unknownPairs, stats.totalPairs)
-  assert.equal(stats.coverageRate, stats.coveredPairs / stats.totalPairs)
+test('following choices contain exactly known interaction neighbours, in either direction', () => {
+  const products = searchStaticProducts('')
+  assert.equal(searchRelatedProducts('').length, 100)
+  for (const product of products) {
+    const expected = matrix
+      .filter((p) => p.rules.length && p.ids.includes(product.id))
+      .flatMap((p) => p.ids.filter((id) => id !== product.id))
+      .sort()
+    assert.deepEqual(
+      searchRelatedProducts('', [product.id])
+        .map((p) => p.id)
+        .sort(),
+      expected,
+    )
+  }
+  const ids = ['MED-005', 'SUP-006']
+  const expected = matrix
+    .filter((p) => p.rules.length && p.ids.some((id) => ids.includes(id)))
+    .flatMap((p) => p.ids)
+    .filter((id) => !ids.includes(id))
+  assert.deepEqual(
+    searchRelatedProducts('', ids)
+      .map((p) => p.id)
+      .sort(),
+    [...new Set(expected)].sort(),
+  )
+  assert.deepEqual(searchRelatedProducts('', ['UNKNOWN']), [])
+  assert.deepEqual(searchRelatedProducts('not-a-real-product', ids), [])
 })

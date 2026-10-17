@@ -67,28 +67,19 @@ export function staticProfileOptions() {
   return { conditions: [...data.conditions] }
 }
 
-export function workbookStatistics() {
-  const counts = { critical: 0, watch: 0, low: 0 }
-  const profile: Profile = { age: null, weight_kg: null, conditions: [] }
+// Once products are selected, offer only neighbours with a workbook interaction.
+export function searchRelatedProducts(query: string, selectedIds: string[] = []): Drug[] {
+  const selected = new Set(selectedIds)
+  if (!selected.size) return searchStaticProducts(query)
+  const related = new Set<string>()
   for (const pair of data.pairs) {
-    const result = assessStaticProducts([pair.product_a_id, pair.product_b_id], profile)
-    if (result.status !== 'unknown') counts[result.status] += 1
+    if (!pair.rules.length) continue
+    if (selected.has(pair.product_a_id)) related.add(pair.product_b_id)
+    if (selected.has(pair.product_b_id)) related.add(pair.product_a_id)
   }
-  const productCount = data.products.length
-  const totalPairs = (productCount * (productCount - 1)) / 2
-  const coveredPairs = counts.critical + counts.watch + counts.low
-  return {
-    productCount,
-    medicines: data.products.filter((p) => p.kind === 'medicine').length,
-    supplements: data.products.filter((p) => p.kind === 'supplement').length,
-    totalPairs,
-    coveredPairs,
-    unknownPairs: totalPairs - coveredPairs,
-    counts,
-    coverageRate: totalPairs ? coveredPairs / totalPairs : 0,
-    source: data.source.name,
-  }
+  return searchStaticProducts(query).filter((p) => !selected.has(p.id) && related.has(p.id))
 }
+
 export function searchStaticProducts(query: string): Drug[] {
   const term = normalize(query)
   return structuredClone(

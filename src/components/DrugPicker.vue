@@ -3,7 +3,12 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { searchWorkbookProducts, type Drug } from '@/services/api'
 import NexusIcon from '@/components/NexusIcon.vue'
 
-const props = defineProps<{ id: string; selected: Drug | null; label: string }>()
+const props = defineProps<{
+  id: string
+  selected: Drug | null
+  label: string
+  relatedTo: string[]
+}>()
 const emit = defineEmits<{ select: [drug: Drug | null] }>()
 const root = ref<HTMLElement>()
 const input = ref<HTMLInputElement>()
@@ -11,7 +16,7 @@ const query = ref(props.selected?.name ?? '')
 const open = ref(false)
 const activeIndex = ref(-1)
 const results = computed(() =>
-  searchWorkbookProducts(query.value === props.selected?.name ? '' : query.value),
+  searchWorkbookProducts(query.value === props.selected?.name ? '' : query.value, props.relatedTo),
 )
 const listId = computed(() => `${props.id}-options`)
 const activeId = computed(() =>
@@ -23,7 +28,7 @@ const activeId = computed(() =>
 watch(
   () => props.selected,
   (drug) => {
-    if (drug) query.value = drug.name
+    query.value = drug?.name ?? ''
   },
 )
 function openMenu() {
@@ -90,7 +95,7 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', closeOutside))
         autocomplete="off"
         aria-autocomplete="list"
         aria-haspopup="listbox"
-        :aria-expanded="open"
+        :aria-expanded="open && results.length > 0"
         :aria-controls="listId"
         :aria-activedescendant="activeId"
         :aria-describedby="`${id}-hint`"
@@ -108,7 +113,7 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', closeOutside))
         type="button"
         class="dropdown-toggle"
         :aria-label="`${open ? 'Fermer' : 'Ouvrir'} la liste ${label}`"
-        :aria-expanded="open"
+        :aria-expanded="open && results.length > 0"
         :aria-controls="listId"
         @click="toggle"
       >
@@ -118,9 +123,11 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', closeOutside))
     <small :id="`${id}-hint`" class="hint">{{
       selected
         ? 'Produit du classeur sélectionné'
-        : 'Médicaments et compléments du fichier Excel uniquement'
+        : relatedTo.length
+          ? 'Produits avec une interaction renseignée avec votre sélection'
+          : 'Médicaments et compléments du fichier Excel uniquement'
     }}</small>
-    <div v-if="open" class="dropdown-panel">
+    <div v-if="open && results.length" class="dropdown-panel">
       <div class="dropdown-heading">
         <NexusIcon name="book" :size="14" /><span>Produits du classeur</span
         ><strong>{{ results.length }}</strong>
@@ -152,9 +159,6 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', closeOutside))
           ><NexusIcon v-if="selected?.id === drug.id" name="check" :size="16" />
         </li>
       </ul>
-      <p v-if="!results.length" class="empty-results" role="status">
-        Aucun produit correspondant dans le fichier Excel. Choisissez un nom présent dans la liste.
-      </p>
     </div>
   </div>
 </template>
@@ -332,13 +336,7 @@ input:focus {
   color: var(--purple);
   flex-shrink: 0;
 }
-.empty-results {
-  font-size: 11px;
-  line-height: 1.7;
-  margin: 0;
-  padding: 18px;
-  color: #91849e;
-}
+
 @media (max-width: 600px) {
   .dropdown-panel {
     left: 0;

@@ -225,6 +225,11 @@ function selectProduct(rowId: number, drug: Drug | null) {
   if (row) {
     row.drug = drug
     row.units = 1
+    // A changed earlier choice starts the following selections afresh.
+    for (const following of rows.value.slice(rows.value.indexOf(row) + 1)) {
+      following.drug = null
+      following.units = 1
+    }
   }
 }
 async function doubleQuantities() {
@@ -365,6 +370,11 @@ onBeforeUnmount(() => controller?.abort())
                 <DrugPicker
                   :id="`drug-${row.id}`"
                   :selected="row.drug"
+                  :related-to="
+                    rows
+                      .slice(0, index)
+                      .flatMap((previous) => (previous.drug ? [previous.drug.id] : []))
+                  "
                   :label="`Produit ${index + 1}`"
                   @select="selectProduct(row.id, $event)"
                 />

@@ -1,4 +1,9 @@
-import { assessStaticProducts, searchStaticProducts, staticProfileOptions } from './staticDemo'
+import {
+  assessStaticProducts,
+  searchStaticProducts,
+  searchRelatedProducts,
+  staticProfileOptions,
+} from './staticDemo'
 import presets from '../data/presets.json'
 
 export interface Component {
@@ -102,8 +107,8 @@ export interface Scenario {
 const baseUrl = (import.meta.env.VITE_API_BASE_URL ?? '').trim().replace(/\/+$/, '')
 const staticDemo = import.meta.env.VITE_STATIC_DEMO === 'true' && !baseUrl
 
-export function searchWorkbookProducts(query: string) {
-  return searchStaticProducts(query)
+export function searchWorkbookProducts(query: string, selectedIds: string[] = []) {
+  return searchRelatedProducts(query, selectedIds)
 }
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {

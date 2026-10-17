@@ -30,7 +30,6 @@ et par `createWebHistory(import.meta.env.BASE_URL)` au routeur.
 | --- | --- | --- |
 | `/` | `src/views/HomeView.vue` | `dist/index.html` |
 | `/jeu/` | `src/views/GameView.vue`, jeu autonome sans API | `dist/jeu/index.html` |
-| `/statistiques/` | `src/views/StatisticsView.vue`, couverture et limites du catalogue | `dist/statistiques/index.html` |
 | `/utilisation/` | `src/views/CompatibilityView.vue`, étapes sélection / analyse / résumé | `dist/utilisation/index.html` |
 | `/utilisation/?example=sleep` | Même vue, exemple sélectionné | Même fichier ; la query est lue côté Vue |
 | `/compatibility/` | Redirection Vue vers `/utilisation`, query conservée | `dist/compatibility/index.html` |
@@ -73,7 +72,7 @@ Source de configuration : [sorties officielles de configure-pages](https://githu
 | Backend `FRONTEND_DIST` par défaut | Dépôt frère `hacking-health-2026-site-web/dist/` |
 | Backend `FRONTEND_DIST` explicite | Dossier alternatif choisi par l’exploitant |
 | Backend `/assets/…`, `/favicon.ico` | Fichiers exacts dans `FRONTEND_DIST`, avec leur type MIME |
-| Backend `/utilisation`, `/compatibility`, `/team`, `/jeu`, `/statistiques` | Entrée SPA, puis résolution/redirection Vue |
+| Backend `/utilisation`, `/compatibility`, `/team`, `/jeu` | Entrée SPA, puis résolution/redirection Vue |
 | Fichier absent, route API inconnue, chemin sortant de `dist/` | HTTP 404 ; aucun renvoi trompeur vers le HTML |
 
 Les autres données du backend et l’ancien moteur DDInter ne sont pas exposés comme
