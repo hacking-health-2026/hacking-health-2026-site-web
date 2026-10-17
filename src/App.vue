@@ -29,7 +29,7 @@ import NexusIcon from '@/components/NexusIcon.vue'
       <span class="footer-signature"
         ><NexusFlower :size="19" /> Herbal Nexus <span>· Besançon 2026</span></span
       >
-      <p>Prototype de présentation · Score simulé, non validé pour un usage médical.</p>
+      <p>Prototype de présentation · Évaluation simulée, non validée pour un usage médical.</p>
     </div>
   </footer>
 </template>

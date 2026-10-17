@@ -40,7 +40,7 @@ export interface IngredientRelation {
   mechanism: string
   mapping_note: string
 }
-export type Status = 'critical' | 'watch' | 'unknown'
+export type Status = 'critical' | 'watch' | 'low' | 'unknown'
 export interface Profile {
   age: number | null
   weight_kg: number | null

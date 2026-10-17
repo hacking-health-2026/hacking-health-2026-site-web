@@ -39,20 +39,24 @@ backend for search and scoring to work there.
 
 ## Demo script
 
+The interface displays **Danger** (red), **Risque modéré** (orange) or **Risque
+faible** (green), with a separate unclassified state for missing information.
+No points, percentage or numeric gauge are shown. The values in the technical
+example descriptions below are internal API diagnostics, not interface labels.
+
 The **Accueil** page presents three documented interaction cases with direct
 primary-source links and contextual limitations; see `docs/homepage-sources.md`.
 The team page has been removed. The Vue app now lives at the repository root.
 
-1. Click **Leeloo Gé + Millepertuis**: 80 fictional points, simulated red.
-2. Click **Xanax + Sommeil Fort**: 50 points, simulated orange.
-3. Click **Essayer 72 ans et 50 kg**: 65 points, simulated red.
-4. Reload the sleep example, then **Comparer ×2**: 60 points. The quantity tile
-   adds 10 points. Editing only melatonin from 1 to 4 mg also gives 60; the
-   valerian relation stays unchanged. These are demo heuristics, not clinical dosing.
+1. Click **Leeloo Gé + Millepertuis**: **Danger**, red.
+2. Click **Xanax + Sommeil Fort**: **Risque modéré**, orange.
+3. Click **Essayer 72 ans et 50 kg**: **Danger**, red.
+4. Reload the sleep example, then **Comparer ×2**: **Danger**, red.
+   These are simulated demo heuristics, not clinical dosing recommendations.
 
 The presentation interface uses a violet, coral and lime palette, product cards,
-a prominent score ring and five color-coded contribution tiles. Both examples
-run an analysis directly. The UI displays ingredient mappings, point contributions,
+a prominent alert label and five color-coded explanation tiles. Both examples
+run an analysis directly. The UI displays ingredient mappings, qualitative reasons,
 the pair matrix and source worksheet cells. The numeric coefficients are invented.
 Age/weight modifiers are not derived from workbook observations. A source label
 such as ANSM in the workbook is displayed as unverified, not as a checked citation.

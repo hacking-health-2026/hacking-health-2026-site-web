@@ -5,6 +5,7 @@ import CompositionEditor from '@/components/CompositionEditor.vue'
 import NexusIcon from '@/components/NexusIcon.vue'
 import NexusFlower from '@/components/NexusFlower.vue'
 import { useRoute } from 'vue-router'
+import { alertLabels, alertColors, severityStatus } from '@/services/alerts'
 import {
   assessDrugs,
   fetchProfileOptions,
@@ -18,13 +19,6 @@ import {
 
 const route = useRoute()
 const selectedScenario = ref('')
-const stepLabels = [
-  'Gravité de l’association',
-  'Cumul des règles',
-  'Âge du profil',
-  'Poids du profil',
-  'Quantités croisées',
-]
 let nextId = 3
 const rows = ref<{ id: number; drug: Drug | null; units: number }[]>([
   { id: 1, drug: null, units: 1 },
@@ -42,11 +36,47 @@ const error = ref('')
 const loading = ref(false)
 let controller: AbortController | undefined
 const ready = computed(() => rows.value.every((row) => row.drug !== null) && !loading.value)
-const titles: Record<Status, string> = {
-  critical: 'Alerte rouge',
-  watch: 'Vigilance orange',
-  unknown: 'Informations insuffisantes pour cette association',
-}
+const reasons = computed(() => {
+  if (!result.value || result.value.status === 'unknown') return []
+  const assessment = result.value
+  return [
+    {
+      label: 'Interaction identifiée',
+      detail: 'Une règle du classeur correspond à cette association.',
+    },
+    {
+      label: 'Règles croisées',
+      detail:
+        assessment.calculation.matched_rule_count > 1
+          ? 'Plusieurs règles sont prises en compte.'
+          : 'Une règle est prise en compte.',
+    },
+    {
+      label: 'Âge du profil',
+      detail:
+        profile.age == null
+          ? 'Âge non renseigné.'
+          : assessment.calculation.steps[2]?.value
+            ? 'Facteur de vigilance supplémentaire dans cette simulation.'
+            : 'Âge renseigné, sans majoration dans cette simulation.',
+    },
+    {
+      label: 'Poids du profil',
+      detail:
+        profile.weight_kg == null
+          ? 'Poids non renseigné.'
+          : assessment.calculation.steps[3]?.value
+            ? 'Facteur de vigilance supplémentaire dans cette simulation.'
+            : 'Poids renseigné, sans majoration dans cette simulation.',
+    },
+    {
+      label: 'Quantités croisées',
+      detail: assessment.quantity_coverage.calculated_relations
+        ? 'Les quantités disponibles sont prises en compte.'
+        : 'Quantités ou références insuffisantes pour une pondération.',
+    },
+  ]
+})
 
 function clearResult() {
   controller?.abort()
@@ -185,10 +215,8 @@ function amountLabel(value: number | null | undefined) {
     : `${value.toLocaleString('fr-FR', { maximumFractionDigits: 5 })} mg/j`
 }
 
-function cellLabel(cell: { status: Status; score: number | null } | null | undefined) {
-  return cell?.score == null
-    ? 'Inconnu'
-    : `${cell.status === 'critical' ? 'Rouge' : 'Orange'} · ${cell.score}`
+function cellLabel(cell: { status: Status } | null | undefined) {
+  return alertLabels[cell?.status ?? 'unknown']
 }
 onBeforeUnmount(() => controller?.abort())
 </script>
@@ -202,7 +230,7 @@ onBeforeUnmount(() => controller?.abort())
           Vos produits.<br class="mobile-break" />
           <span>Une vue d’ensemble.</span>
         </h1>
-        <p>Reliez les informations. Repérez les associations. Comprenez le score.</p>
+        <p>Reliez les informations. Repérez les associations. Comprenez le niveau d’alerte.</p>
       </div>
       <div class="heading-flower"><NexusFlower :size="73" /></div>
     </header>
@@ -389,37 +417,26 @@ onBeforeUnmount(() => controller?.abort())
         </div>
 
         <template v-else>
-          <div class="result-overview" :key="`${result.status}-${result.calculation.score}`">
-            <div
-              class="score-ring"
-              :style="{ '--score': `${(result.calculation.score ?? 0) * 3.6}deg` }"
-            >
-              <div>
-                <span class="score-caption">SCORE D’ASSOCIATION</span
-                ><strong>{{ result.calculation.score ?? '—' }}</strong
-                ><span class="score-unit">points sur 100</span>
-              </div>
+          <div class="result-overview" :key="result.status">
+            <div class="alert-symbol" aria-hidden="true">
+              <NexusIcon :name="result.status === 'low' ? 'check' : 'info'" :size="48" />
             </div>
             <div class="result-summary">
-              <span class="status-tag"
-                ><span></span
-                >{{
-                  result.status === 'critical'
-                    ? 'Niveau élevé'
-                    : result.status === 'watch'
-                      ? 'Point de vigilance'
-                      : 'À compléter'
-                }}</span
-              >
-              <h2>{{ titles[result.status] }}</h2>
+              <span class="status-tag"><span></span>{{ alertColors[result.status] }}</span>
+              <h2>{{ alertLabels[result.status] }}</h2>
               <p>
                 {{
                   result.status === 'unknown'
                     ? 'Les données disponibles ne permettent pas de classer cette association.'
-                    : `${result.calculation.matched_rule_count} règle${result.calculation.matched_rule_count > 1 ? 's' : ''} contribue${result.calculation.matched_rule_count > 1 ? 'nt' : ''} à ce résultat. Découvrez ci-dessous ce qui fait varier le score.`
+                    : 'Ce niveau tient compte des règles identifiées, du profil et des quantités disponibles.'
                 }}
               </p>
             </div>
+          </div>
+          <div class="alert-legend" aria-label="Les trois niveaux d’alerte">
+            <span class="critical"><i></i>Rouge · Danger</span>
+            <span class="watch"><i></i>Orange · Risque modéré</span>
+            <span class="low"><i></i>Vert · Risque faible</span>
           </div>
           <div class="result-products">
             <span v-for="(drug, index) in result.drugs" :key="drug.id"
@@ -448,21 +465,21 @@ onBeforeUnmount(() => controller?.abort())
           </div>
 
           <div class="contribution-heading">
-            <h3>D’où viennent les points ?</h3>
-            <span>Le score, en clair.</span>
+            <h3>
+              {{
+                result.status === 'unknown' ? 'Évaluation indisponible' : 'Pourquoi cette alerte ?'
+              }}
+            </h3>
+            <span>Les éléments pris en compte.</span>
           </div>
-          <div v-if="result.calculation.steps.length" class="points-grid">
+          <div v-if="reasons.length" class="reasons-grid">
             <div
-              v-for="(step, index) in result.calculation.steps"
-              :key="step.label"
-              :class="['point-tile', `point-${index}`]"
+              v-for="(reason, index) in reasons"
+              :key="reason.label"
+              :class="['reason-tile', `reason-${index}`]"
             >
-              <div>
-                <span>{{ String(index + 1).padStart(2, '0') }}</span
-                ><strong>+{{ step.value }}</strong>
-              </div>
-              <p>{{ stepLabels[index] ?? step.label }}</p>
-              <div class="point-track"><span :style="{ width: `${step.value}%` }"></span></div>
+              <p>{{ reason.label }}</p>
+              <small>{{ reason.detail }}</small>
             </div>
           </div>
           <p v-if="result.ingredient_relations.length" class="quantity-explanation">
@@ -513,7 +530,7 @@ onBeforeUnmount(() => controller?.abort())
           <span class="detail-icon lavender"><NexusIcon name="link" :size="20" /></span>
           <span
             >Les ingrédients en relation<small
-              >Quantités journalières et score de chaque relation.</small
+              >Quantités journalières et niveau d’alerte de chaque relation.</small
             ></span
           >
           <NexusIcon name="chevron" :size="18" class="details-chevron" />
@@ -534,15 +551,13 @@ onBeforeUnmount(() => controller?.abort())
                 ><strong>{{ relation.ingredient.name }}</strong
                 ><small>{{ amountLabel(relation.ingredient.daily_mg) }}</small></span
               >
-              <b :class="['edge-score', relation.status]"
-                >{{ relation.score }} <small>points</small></b
-              >
+              <b :class="['edge-alert', relation.status]">{{ alertLabels[relation.status] }}</b>
             </div>
             <p>{{ relation.mechanism }}</p>
             <p class="edge-quantity">
               {{
                 relation.quantity_complete
-                  ? `Quantités : +${relation.quantity_points} points · facteur d’exposition simulé ×${relation.exposure_factor}`
+                  ? 'Quantités prises en compte dans l’évaluation simulée.'
                   : 'Quantités ou référence manquantes : pondération non calculée.'
               }}
             </p>
@@ -555,7 +570,7 @@ onBeforeUnmount(() => controller?.abort())
           <span class="detail-icon lavender"><NexusIcon name="link" :size="20" /></span
           ><span
             >Les associations, une par une<small
-              >Retrouvez le score de chaque paire de produits.</small
+              >Retrouvez le niveau d’alerte de chaque paire de produits.</small
             ></span
           ><NexusIcon name="chevron" :size="18" class="details-chevron" />
         </summary>
@@ -610,10 +625,9 @@ onBeforeUnmount(() => controller?.abort())
             <div v-for="rule in pair.rules" :key="rule.id" class="rule-card">
               <div>
                 <strong>{{ rule.ingredient }}</strong
-                ><span
-                  :class="['rule-severity', rule.severity === 'Rouge' ? 'critical' : 'watch']"
-                  >{{ rule.severity }}</span
-                >
+                ><span :class="['rule-severity', severityStatus(rule.severity)]">{{
+                  alertLabels[severityStatus(rule.severity)]
+                }}</span>
               </div>
               <p class="rule-target">{{ rule.target }}</p>
               <p>{{ rule.mechanism }}</p>
@@ -628,7 +642,7 @@ onBeforeUnmount(() => controller?.abort())
             <h3>Règles liées au profil</h3>
             <p v-for="alert in result.profile_alerts" :key="alert.id">
               {{ alert.ingredient }} + {{ alert.condition }} : {{ alert.risk }} ({{
-                alert.severity
+                alertLabels[severityStatus(alert.severity)]
               }}
               dans le classeur).
             </p>
@@ -648,19 +662,111 @@ onBeforeUnmount(() => controller?.abort())
 </template>
 
 <style scoped>
+.alert-symbol {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 110px;
+  height: 110px;
+  border-radius: 28px;
+  background: #ffffffa8;
+  color: var(--accent);
+  box-shadow: 0 8px 24px #25253108;
+}
+.alert-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 17px;
+  border-top: 1px solid #2525310c;
+  padding-top: 16px;
+  margin: 20px 0;
+}
+.alert-legend > span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.alert-legend i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #df5f47;
+}
+.alert-legend .watch i {
+  background: #df9d29;
+}
+.alert-legend .low i {
+  background: #548d41;
+}
+.insight-panel.low {
+  --accent: #548d41;
+  background: #eff6e8;
+  border-color: #dcebcf;
+}
+.low .status-tag {
+  background: #dfedcf;
+  color: #426d31;
+}
+.matrix-cell.low,
+.rule-severity.low,
+.edge-alert.low {
+  background: #e3efd7;
+  color: #426d31;
+}
+.edge-alert {
+  flex-shrink: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  line-height: 1.4;
+  background: #f9e9c8;
+  color: #835c13;
+  text-align: center;
+}
+.edge-alert.critical {
+  background: #ffe3df;
+  color: #b33e3b;
+}
+.edge-alert.unknown {
+  background: #ece7f3;
+  color: #756284;
+}
+.reason-tile > small {
+  display: block;
+  font-size: 11px;
+  line-height: 1.6;
+  color: #625d6c;
+}
+@media (max-width: 600px) {
+  .alert-symbol {
+    width: 72px;
+    height: 72px;
+    border-radius: 21px;
+  }
+  .alert-symbol svg {
+    width: 36px;
+    height: 36px;
+  }
+  .alert-legend {
+    gap: 10px;
+  }
+  .edge-alert {
+    flex-shrink: 1;
+    font-size: 11px;
+  }
+}
 .quantity-explanation {
   font-size: 11px;
   line-height: 1.6;
   color: var(--muted);
   margin: 12px 0;
 }
-.point-4 {
+.reason-4 {
   grid-column: 1 / -1;
   background: #eee6fa;
   color: #7551a8;
-}
-.point-4 .point-track > span {
-  background: #a775cc;
 }
 .quantity-compare {
   margin-top: 12px;
@@ -697,21 +803,6 @@ onBeforeUnmount(() => controller?.abort())
   margin-top: 5px;
   color: var(--muted);
 }
-.edge-score {
-  padding: 10px 14px;
-  border-radius: 12px;
-  font-size: 22px;
-  background: #f9e9c8;
-  color: #835c13;
-  text-align: center;
-}
-.edge-score.critical {
-  background: #fee3da;
-  color: #ad4a30;
-}
-.edge-score small {
-  font-size: 10px;
-}
 .ingredient-edge p {
   font-size: 12px;
   line-height: 1.6;
@@ -736,9 +827,6 @@ onBeforeUnmount(() => controller?.abort())
   }
   .edge-pair strong {
     font-size: 12px;
-  }
-  .edge-score {
-    font-size: 18px;
   }
 }
 .explorer {
@@ -1092,7 +1180,7 @@ onBeforeUnmount(() => controller?.abort())
   line-height: 1.6;
 }
 .insight-panel {
-  --accent: #e9694e;
+  --accent: #d54d47;
   --ring-track: #f5d9ce;
   background: #fff0e9;
   border: 1px solid #f5e2d7;
@@ -1267,54 +1355,6 @@ onBeforeUnmount(() => controller?.abort())
   margin: 24px 0 19px;
   animation: enter 0.4s ease-out;
 }
-.score-ring {
-  flex-shrink: 0;
-  width: 161px;
-  height: 161px;
-  padding: 9px;
-  border-radius: 50%;
-  background: conic-gradient(
-    from 220deg,
-    var(--accent) 0deg,
-    var(--accent) var(--score),
-    var(--ring-track) var(--score) 360deg
-  );
-  box-shadow: 0 9px 24px #ce805415;
-}
-.score-ring > div {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background: #fff8f3;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
-.watch .score-ring > div {
-  background: #fffcf2;
-}
-.unknown .score-ring > div {
-  background: #faf7ff;
-}
-.score-caption {
-  font-size: 6px;
-  letter-spacing: 0.8px;
-  color: #b6a092;
-  font-weight: 650;
-}
-.score-ring strong {
-  font-size: 62px;
-  line-height: 1.1;
-  letter-spacing: -4px;
-  font-weight: 650;
-  color: var(--ink);
-  margin-top: 3px;
-}
-.score-unit {
-  font-size: 8px;
-  color: #b6a092;
-}
 .result-summary {
   min-width: 0;
 }
@@ -1429,12 +1469,12 @@ onBeforeUnmount(() => controller?.abort())
   font-size: 8px;
   color: #b59f91;
 }
-.points-grid {
+.reasons-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 9px;
 }
-.point-tile {
+.reason-tile {
   background: #f1ebff;
   border: 1px solid #ede4fb;
   border-radius: 12px;
@@ -1442,65 +1482,54 @@ onBeforeUnmount(() => controller?.abort())
   --point-color: #8e6ee5;
   --point-track: #eee8fb;
 }
-.point-tile > div:first-child {
+.reason-tile > div:first-child {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
-.point-tile > div:first-child > span {
+.reason-tile > div:first-child > span {
   font-size: 8px;
   color: #baa9d1;
 }
-.point-tile strong {
+.reason-tile strong {
   font-size: 20px;
   color: var(--point-color);
   font-weight: 600;
   letter-spacing: -0.8px;
 }
-.point-tile p {
+.reason-tile p {
   font-size: 11px;
   color: #74627f;
   margin: 7px 0 10px;
 }
-.point-track {
-  height: 3px;
-  border-radius: 5px;
-  background: var(--point-track);
-}
-.point-track > span {
-  display: block;
-  height: 100%;
-  border-radius: 5px;
-  background: var(--point-color);
-}
-.point-1 {
+.reason-1 {
   background: #fff0e3;
   --point-color: #dd8b61;
   --point-track: #fae9dd;
   border-color: #f2dfd0;
 }
-.point-1 p,
-.point-1 > div:first-child > span {
+.reason-1 p,
+.reason-1 > div:first-child > span {
   color: #b49a83;
 }
-.point-2 {
+.reason-2 {
   background: #eef5d9;
   --point-color: #83a142;
   --point-track: #eaf1d7;
   border-color: #e0e9ca;
 }
-.point-2 p,
-.point-2 > div:first-child > span {
+.reason-2 p,
+.reason-2 > div:first-child > span {
   color: #9ca982;
 }
-.point-3 {
+.reason-3 {
   background: #e6f2f4;
   --point-color: #579faf;
   --point-track: #e1f0f4;
   border-color: #d8e9ed;
 }
-.point-3 p,
-.point-3 > div:first-child > span {
+.reason-3 p,
+.reason-3 > div:first-child > span {
   color: #90adb3;
 }
 .try-profile {
@@ -1645,8 +1674,8 @@ td {
 }
 .matrix-cell.critical,
 .rule-severity.critical {
-  background: #ffe8df;
-  color: #c46a4b;
+  background: #ffe4e1;
+  color: #b53f3b;
 }
 .matrix-cell.watch,
 .rule-severity.watch {
@@ -1755,10 +1784,6 @@ td {
   .insight-panel {
     padding: 27px 36px;
   }
-  .score-ring {
-    width: 178px;
-    height: 178px;
-  }
   .result-summary h2 {
     font-size: 34px;
   }
@@ -1777,18 +1802,8 @@ td {
   .result-overview {
     gap: 15px;
   }
-  .score-ring {
-    width: 139px;
-    height: 139px;
-  }
-  .score-ring strong {
-    font-size: 53px;
-  }
   .result-summary h2 {
     font-size: 25px;
-  }
-  .score-caption {
-    font-size: 5px;
   }
   .example-strip {
     gap: 12px;
@@ -1840,10 +1855,6 @@ td {
   }
   .result-summary p {
     max-width: 280px;
-  }
-  .score-ring {
-    width: 145px;
-    height: 145px;
   }
   .result-summary h2 {
     font-size: 28px;
@@ -1901,10 +1912,6 @@ td {
     flex-direction: row;
     text-align: left;
     gap: 20px;
-  }
-  .score-ring {
-    width: 142px;
-    height: 142px;
   }
   .result-summary h2 {
     font-size: 27px;
