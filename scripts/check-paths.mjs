@@ -49,7 +49,7 @@ for (const file of walk(path.join(root, 'src'))) {
     else require.resolve(specifier)
   }
   // Literal template assets and CSS url() references; dynamic URLs are API data.
-  for (const match of text.matchAll(/(?:\bsrc=["']([^"']+)["']|url\(["']?([^\s)'"\]]+)["']?\))/g)) {
+  for (const match of text.matchAll(/(?:(?<![:\w-])src=["']([^"']+)["']|url\(["']?([^\s)'"\]]+)["']?\))/g)) {
     const asset = match[1] || match[2]
     if (/^(https?:|data:|#)/.test(asset)) continue
     const full = asset.startsWith('/')
