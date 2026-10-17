@@ -31,3 +31,11 @@ sélectionner un échantillon n’en ajoute pas. Rejouer remet ce compteur à z�
 
 Vérifications : `node --test scripts/game.test.mjs`, vérification TypeScript,
 build et audit des chemins. Les tests de connexion utilisent Node 24.
+
+La mascotte fleur Nexus ouvre une bulle non modale à chaque mauvais lien. Elle
+varie ses encouragements, indique les produits du classeur où trouver le composant
+choisi et rappelle l’indice de la carte. « Montre-moi le duo » révèle la bonne
+association et le mécanisme du classeur. Fermer masque la bulle ; « Je retente ! »
+efface aussi le mauvais lien. Toute nouvelle sélection ferme la bulle ; les bonnes
+connexions et le compteur d’erreurs sont conservés. Les animations respectent
+`prefers-reduced-motion`.

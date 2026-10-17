@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import NexusIcon from '@/components/NexusIcon.vue'
+import GameCoach from '@/components/GameCoach.vue'
 import { workbookUrl } from '@/services/api'
 import { clearIncorrectPairs, connectPair, createGame, shuffle, type GameId } from '@/data/game'
 
 const gameCases = ref(createGame())
 const selected = ref<GameId>(gameCases.value[0]!.id)
 const errorCount = ref(0)
+const coachDismissed = ref(false)
 const pairs = ref<Partial<Record<GameId, GameId>>>({})
 const order = ref(shuffle([0, 1, 2, 3, 4]))
 const lastAttempt = ref<{ medicine: GameId; ingredient: GameId }>()
@@ -97,6 +99,7 @@ function selectSample(id: GameId) {
 }
 function link(id: GameId) {
   const medicine = selected.value
+  coachDismissed.value = false
   if (medicine !== id) errorCount.value += 1
   pairs.value = connectPair(clearIncorrectPairs(pairs.value), medicine, id)
   lastAttempt.value = { medicine, ingredient: id }
@@ -381,6 +384,16 @@ function restart() {
         </button>
       </div>
     </section>
+
+    <GameCoach
+      v-if="feedback && !feedback.correct && !coachDismissed"
+      :key="errorCount"
+      :medicine="feedback.medicine"
+      :component="feedback.component"
+      :attempt="errorCount"
+      @dismiss="coachDismissed = true"
+      @retry="selectSample(selected)"
+    />
 
     <dialog
       ref="victory"
