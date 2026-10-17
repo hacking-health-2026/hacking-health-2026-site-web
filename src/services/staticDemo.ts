@@ -66,6 +66,29 @@ const validNumber = (value: number | null, min: number, max: number) =>
 export function staticProfileOptions() {
   return { conditions: [...data.conditions] }
 }
+
+export function workbookStatistics() {
+  const counts = { critical: 0, watch: 0, low: 0 }
+  const profile: Profile = { age: null, weight_kg: null, conditions: [] }
+  for (const pair of data.pairs) {
+    const result = assessStaticProducts([pair.product_a_id, pair.product_b_id], profile)
+    if (result.status !== 'unknown') counts[result.status] += 1
+  }
+  const productCount = data.products.length
+  const totalPairs = (productCount * (productCount - 1)) / 2
+  const coveredPairs = counts.critical + counts.watch + counts.low
+  return {
+    productCount,
+    medicines: data.products.filter((p) => p.kind === 'medicine').length,
+    supplements: data.products.filter((p) => p.kind === 'supplement').length,
+    totalPairs,
+    coveredPairs,
+    unknownPairs: totalPairs - coveredPairs,
+    counts,
+    coverageRate: totalPairs ? coveredPairs / totalPairs : 0,
+    source: data.source.name,
+  }
+}
 export function searchStaticProducts(query: string): Drug[] {
   const term = normalize(query)
   return structuredClone(

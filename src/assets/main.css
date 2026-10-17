@@ -381,3 +381,27 @@ a svg {
     scroll-behavior: auto !important;
   }
 }
+@media (max-width: 740px) {
+  .nav-wrap {
+    grid-template-columns: 1fr;
+    height: auto;
+    padding: 18px 20px;
+    gap: 14px;
+  }
+  .brand {
+    justify-self: center;
+  }
+  .main-nav {
+    width: 100%;
+    justify-content: center;
+    gap: 3px;
+    padding: 3px;
+  }
+  .main-nav a {
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+  .main-nav .nav-use {
+    padding: 11px 14px;
+  }
+}

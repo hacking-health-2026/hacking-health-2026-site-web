@@ -6,6 +6,7 @@ import {
   assessStaticProducts,
   searchStaticProducts,
   staticProfileOptions,
+  workbookStatistics,
 } from '../src/services/staticDemo.ts'
 
 for (const [index, fixture] of fixtures.entries()) {
@@ -88,4 +89,19 @@ test('all 4,950 workbook product pairs match the Python matrix, including unknow
     )
     assert.equal(result.ingredient_relations.length, fixture.relations)
   }
+})
+
+test('statistics match the complete Python matrix without treating missing rules as low risk', () => {
+  const stats = workbookStatistics()
+  const count = (status) => matrix.filter((pair) => pair.status === status).length
+  assert.equal(stats.productCount, 100)
+  assert.equal(stats.totalPairs, matrix.length)
+  assert.deepEqual(stats.counts, {
+    critical: count('critical'),
+    watch: count('watch'),
+    low: count('low'),
+  })
+  assert.equal(stats.unknownPairs, count('unknown'))
+  assert.equal(stats.coveredPairs + stats.unknownPairs, stats.totalPairs)
+  assert.equal(stats.coverageRate, stats.coveredPairs / stats.totalPairs)
 })

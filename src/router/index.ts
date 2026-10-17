@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import CompatibilityView from '../views/CompatibilityView.vue'
 import GameView from '../views/GameView.vue'
+import StatisticsView from '../views/StatisticsView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -9,6 +10,7 @@ const router = createRouter({
     return savedPosition ?? { top: 0, left: 0 }
   },
   routes: [
+    { path: '/statistiques', name: 'statistiques', component: StatisticsView },
     { path: '/jeu', name: 'jeu', component: GameView },
     {
       path: '/',
