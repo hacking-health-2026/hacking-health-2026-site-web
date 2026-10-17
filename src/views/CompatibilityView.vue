@@ -464,8 +464,7 @@ onBeforeUnmount(() => controller?.abort())
               <span class="detail-icon lavender"><NexusIcon name="link" :size="20" /></span>
               <span
                 >Les relations, produit par produit<small
-                  >Croisez deux produits pour retrouver leurs principes actifs et leur
-                  relation.</small
+                  >Retrouvez les principes actifs et la relation de chaque association.</small
                 ></span
               >
               <NexusIcon name="chevron" :size="18" class="details-chevron" />

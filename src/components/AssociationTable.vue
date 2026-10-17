@@ -7,181 +7,101 @@ const amount = (component: Component) =>
   component.daily_mg == null
     ? 'Quantité inconnue'
     : `${component.daily_mg.toLocaleString('fr-FR', { maximumFractionDigits: 5 })} mg/j`
-const cells = computed(() =>
-  props.result.drugs.map((a) =>
-    props.result.drugs.map((b) => {
-      if (a.id === b.id) return null
-      const pair = props.result.pairs.find(
-        (p) =>
-          (p.drug_a.id === a.id && p.drug_b.id === b.id) ||
-          (p.drug_a.id === b.id && p.drug_b.id === a.id),
-      )
-      const aIds = new Set(a.components.map((c) => c.id))
-      const bIds = new Set(b.components.map((c) => c.id))
-      const relations = props.result.ingredient_relations.filter(
-        (r) =>
-          (aIds.has(r.substance.id) && bIds.has(r.ingredient.id)) ||
-          (bIds.has(r.substance.id) && aIds.has(r.ingredient.id)),
-      )
-      return { pair, relations }
-    }),
-  ),
+const associations = computed(() =>
+  props.result.pairs.map((pair) => {
+    const aIds = new Set(pair.drug_a.components.map((c) => c.id))
+    const bIds = new Set(pair.drug_b.components.map((c) => c.id))
+    const relations = props.result.ingredient_relations.filter(
+      (r) =>
+        (aIds.has(r.substance.id) && bIds.has(r.ingredient.id)) ||
+        (bIds.has(r.substance.id) && aIds.has(r.ingredient.id)),
+    )
+    return { pair, relations }
+  }),
 )
 </script>
 <template>
-  <div
-    class="matrix-scroll"
-    tabindex="0"
-    role="region"
-    aria-label="Tableau croisé des relations entre produits"
-  >
-    <table>
-      <caption>
-        Chaque association apparaît une seule fois, au croisement de ses deux produits. Une relation
-        absente ne signifie pas une absence de danger.
-      </caption>
-      <thead>
-        <tr>
-          <th scope="col" class="corner">Vos produits</th>
-          <th v-for="drug in result.drugs.slice(1)" :key="drug.id" scope="col">{{ drug.name }}</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="(drug, i) in result.drugs.slice(0, -1)" :key="drug.id">
-          <th scope="row">{{ drug.name }}</th>
-          <td
-            v-for="(other, j) in result.drugs.slice(1)"
-            :key="other.id"
-            :class="{ diagonal: i >= j + 1 }"
-          >
-            <span v-if="i >= j + 1" class="dash" aria-label="Association déjà affichée">—</span>
-            <template v-else>
-              <span :class="['alert', cells[i]?.[j + 1]?.pair?.status ?? 'unknown']">{{
-                alertLabels[cells[i]?.[j + 1]?.pair?.status ?? 'unknown']
-              }}</span>
-              <article
-                v-for="relation in cells[i]?.[j + 1]?.relations"
-                :key="relation.id"
-                class="relation"
-              >
-                <strong
-                  >{{ relation.substance.name }} <span class="link">↔</span>
-                  {{ relation.ingredient.name }}</strong
-                >
-                <small class="amounts"
-                  >{{ amount(relation.substance) }} ↔ {{ amount(relation.ingredient) }}</small
-                >
-                <p>{{ relation.mechanism }}</p>
-                <p
-                  v-if="
-                    cells[i]?.[j + 1]?.pair?.rules.find((r) => r.id === relation.rule_id)
-                      ?.consequence
-                  "
-                  class="consequence"
-                >
-                  {{
-                    cells[i]?.[j + 1]?.pair?.rules.find((r) => r.id === relation.rule_id)
-                      ?.consequence
-                  }}
-                </p>
-                <small>{{ relation.rule_id }} · {{ relation.mapping_note }}</small>
-              </article>
-              <template v-if="!cells[i]?.[j + 1]?.relations.length">
-                <article
-                  v-for="rule in cells[i]?.[j + 1]?.pair?.rules"
-                  :key="rule.id"
-                  class="relation"
-                >
-                  <strong>{{ rule.ingredient }} ↔ {{ rule.target }}</strong>
-                  <p>{{ rule.mechanism }}</p>
-                  <p class="consequence">{{ rule.consequence }}</p>
-                  <small
-                    >{{ rule.id }} · {{ rule.reference.sheet }}, ligne
-                    {{ rule.reference.row }}</small
-                  >
-                </article>
-                <p v-if="!cells[i]?.[j + 1]?.pair?.rules.length" class="missing">
-                  Aucune relation documentée dans les données disponibles.
-                </p>
-              </template>
-            </template>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+  <div class="associations" aria-label="Relations entre produits">
+    <section
+      v-for="entry in associations"
+      :key="`${entry.pair.drug_a.id}-${entry.pair.drug_b.id}`"
+      class="association"
+    >
+      <header class="association-heading">
+        <span :class="['alert', entry.pair.status]">{{ alertLabels[entry.pair.status] }}</span>
+        <h3>
+          {{ entry.pair.drug_a.name }} <span class="link">↔</span> {{ entry.pair.drug_b.name }}
+        </h3>
+      </header>
+      <article v-for="relation in entry.relations" :key="relation.id" class="relation">
+        <strong
+          >{{ relation.substance.name }} <span class="link">↔</span>
+          {{ relation.ingredient.name }}</strong
+        >
+        <small class="amounts"
+          >{{ amount(relation.substance) }} ↔ {{ amount(relation.ingredient) }}</small
+        >
+        <p>{{ relation.mechanism }}</p>
+        <p
+          v-if="entry.pair.rules.find((r) => r.id === relation.rule_id)?.consequence"
+          class="consequence"
+        >
+          {{ entry.pair.rules.find((r) => r.id === relation.rule_id)?.consequence }}
+        </p>
+        <small>{{ relation.rule_id }} · {{ relation.mapping_note }}</small>
+      </article>
+      <template v-if="!entry.relations.length">
+        <article v-for="rule in entry.pair.rules" :key="rule.id" class="relation">
+          <strong>{{ rule.ingredient }} ↔ {{ rule.target }}</strong>
+          <p>{{ rule.mechanism }}</p>
+          <p class="consequence">{{ rule.consequence }}</p>
+          <small>{{ rule.id }} · {{ rule.reference.sheet }}, ligne {{ rule.reference.row }}</small>
+        </article>
+        <p v-if="!entry.pair.rules.length" class="missing">
+          Aucune relation documentée dans les données disponibles.
+        </p>
+      </template>
+    </section>
+    <p class="notice">Une relation absente ne signifie pas une absence de danger.</p>
   </div>
 </template>
 <style scoped>
-.matrix-scroll {
-  overflow-x: auto;
+.associations {
   margin: 0 20px 24px;
+}
+.association {
+  padding: 24px;
   border: 1px solid #e5def5;
   border-radius: 18px;
-}
-table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  text-align: left;
   font-size: 17px;
-  line-height: 1.5;
-}
-caption {
-  caption-side: bottom;
-  text-align: left;
-  padding: 16px 20px;
-  font-size: 15px;
-  color: #666079;
-  background: #faf8ff;
-}
-th,
-td {
-  padding: 20px;
-  border-right: 1px solid #e8e2f2;
-  border-bottom: 1px solid #e8e2f2;
-  vertical-align: top;
+  line-height: 1.55;
   overflow-wrap: anywhere;
 }
-th {
-  background: #f0eaff;
-  color: #554078;
-  font-size: 17px;
-  min-width: 145px;
+.association + .association {
+  margin-top: 18px;
 }
-tbody th {
-  position: sticky;
-  left: 0;
-  z-index: 1;
-  width: 170px;
-  box-shadow: 2px 0 0 #e8e2f2;
+.association-heading {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px 18px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #e8e2f2;
 }
-td {
-  min-width: 270px;
-}
-tr > :last-child {
-  border-right: 0;
-}
-tbody tr:last-child > * {
-  border-bottom: 0;
-}
-.diagonal {
-  background: #faf8fd;
-  text-align: center;
-  vertical-align: middle;
-}
-.dash {
-  color: #c0b5d4;
-  font-size: 32px;
+h3 {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.4;
+  color: #42374f;
 }
 .relation {
   margin-top: 18px;
 }
 .relation + .relation {
   border-top: 1px solid #e8e2f2;
-  padding-top: 16px;
+  padding-top: 18px;
 }
 .relation strong {
-  display: block;
   color: #42374f;
 }
 .link {
@@ -208,6 +128,7 @@ small {
   border-radius: 12px;
   font-weight: 700;
   font-size: 15px;
+  flex-shrink: 0;
 }
 .critical {
   color: #a42538;
@@ -225,23 +146,23 @@ small {
   color: #5c5870;
   background: #efedf5;
 }
-.missing {
+.missing,
+.notice {
   color: #736b80;
 }
+.notice {
+  font-size: 15px;
+  margin: 16px 0 0;
+}
 @media (max-width: 600px) {
-  .matrix-scroll {
+  .associations {
     margin: 0 12px 16px;
   }
-  th,
-  td {
-    padding: 16px 14px;
+  .association {
+    padding: 18px;
   }
-  tbody th {
-    min-width: 115px;
-    max-width: 135px;
-  }
-  td {
-    min-width: 245px;
+  h3 {
+    font-size: 20px;
   }
 }
 </style>
