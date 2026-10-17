@@ -194,9 +194,59 @@ function restart() {
               ><span class="lab-lights" aria-hidden="true"><i></i><i></i><i></i></span>
             </div>
             <div class="lab-wall" aria-hidden="true">
-              <span class="wall-molecule">⌬</span>
-              <div class="lab-window"><i></i><i></i><i></i><i></i></div>
-              <span class="wall-label">HERBAL NEXUS / LAB 01</span>
+              <svg class="lab-equipment" viewBox="0 0 1000 130" preserveAspectRatio="xMidYMid meet">
+                <defs>
+                  <pattern id="lab-tiles" width="44" height="38" patternUnits="userSpaceOnUse">
+                    <path d="M44 0H0v38" fill="none" stroke="#ddd5ec" stroke-width="1" />
+                  </pattern>
+                </defs>
+                <rect width="1000" height="130" rx="12" fill="url(#lab-tiles)" />
+                <rect
+                  x="350"
+                  y="9"
+                  width="210"
+                  height="93"
+                  rx="9"
+                  fill="#e4f2f3"
+                  stroke="#c8b9e1"
+                  stroke-width="6"
+                />
+                <path d="M455 12v86m-100-40h200" stroke="#c8b9e1" stroke-width="5" />
+                <path d="m368 84 44-53m58 50 42-50" stroke="white" stroke-width="9" opacity=".8" />
+                <rect x="24" y="105" width="242" height="9" rx="4" fill="#aa95c7" />
+                <g stroke="#9d86bd" stroke-width="3" fill="#fdfcff">
+                  <path d="M49 24h26v34l20 32q5 9-5 10H35q-10-1-5-10l19-32Z" />
+                  <path d="M111 34h24v58q0 12-12 12t-12-12Z" />
+                  <path d="M160 45h51v49q0 10-12 10h-27q-12 0-12-10Z" />
+                </g>
+                <path d="m43 77-9 17h56L79 77Z" fill="#9ccfc6" />
+                <path d="M115 65h16v28q0 7-8 7t-8-7Z" fill="#e9ae91" />
+                <path d="M164 72h43v23q0 5-8 5h-27q-8 0-8-5Z" fill="#c3b1ef" />
+                <path d="M171 58h10m-10 10h7m-7 14h10" stroke="#9d86bd" stroke-width="2" />
+                <g
+                  transform="translate(628 9)"
+                  stroke="#9982b9"
+                  stroke-width="5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="m35 14 25 14-17 30-25-14Z" fill="#c3b2df" />
+                  <path d="M61 37q41 26 9 58H32" fill="none" />
+                  <path d="M17 72h49M39 74v29M18 105h75" fill="none" />
+                  <circle cx="63" cy="63" r="8" fill="#e5d8f5" />
+                </g>
+                <g stroke="#a28ebc" stroke-width="3" fill="none">
+                  <path d="M814 51h119v46H814Z" fill="#eee6f8" />
+                  <path
+                    d="M828 43v42q0 9 7 9t7-9V43m17 0v42q0 9 7 9t7-9V43m17 0v42q0 9 7 9t7-9V43"
+                    fill="#fff"
+                  />
+                  <path d="M829 68v18q0 6 6 6t6-6V68" fill="#eab6ce" />
+                  <path d="M860 64v22q0 6 6 6t6-6V64" fill="#a5d5ce" />
+                  <path d="M891 72v14q0 6 6 6t6-6V72" fill="#e9d28b" />
+                  <path d="M799 108h151" />
+                </g>
+              </svg>
             </div>
             <div class="sample-row">
               <button
@@ -219,7 +269,7 @@ function restart() {
                   <path d="M20 20v17" stroke="white" stroke-width="3" stroke-linecap="round" />
                 </svg>
                 <strong>{{ item.active }}</strong
-                ><small>{{ item.role }}</small>
+                ><small :title="item.role">{{ item.medicine }}</small>
                 <span class="sample-result"
                   ><NexusIcon
                     :name="
@@ -461,7 +511,7 @@ function restart() {
   color: var(--coral);
 }
 .game-intro > div > p:last-child {
-  font-size: 15px;
+  font-size: 18px;
   line-height: 1.6;
   color: #726b7e;
   margin: 0;
@@ -476,12 +526,12 @@ function restart() {
   transform: rotate(4deg);
 }
 .mission-badge > span {
-  font-size: 12px;
+  font-size: 16px;
   line-height: 1.6;
 }
 .mission-badge strong {
   display: block;
-  font-size: 17px;
+  font-size: 19px;
 }
 .game-workspace {
   background: #fffefa;
@@ -501,7 +551,7 @@ function restart() {
   gap: 20px;
 }
 .game-toolbar strong {
-  font-size: 18px;
+  font-size: 20px;
   letter-spacing: -0.5px;
 }
 .live-dot {
@@ -512,7 +562,7 @@ function restart() {
   box-shadow: 0 0 0 5px #7155e811;
 }
 .progress > span {
-  font-size: 13px;
+  font-size: 17px;
   font-weight: 750;
   color: var(--purple);
   white-space: nowrap;
@@ -532,7 +582,7 @@ function restart() {
   box-shadow: 0 0 0 3px #39a45e15;
 }
 .instructions {
-  font-size: 12px;
+  font-size: 16px;
   line-height: 1.7;
   color: #77707e;
   margin: 14px 0 19px;
@@ -553,17 +603,17 @@ function restart() {
   flex-shrink: 0;
   background: var(--purple);
   color: white;
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 800;
   border-radius: 10px;
   width: 34px;
   height: 34px;
 }
 .clue-panel strong {
-  font-size: 13px;
+  font-size: 17px;
 }
 .clue-panel p {
-  font-size: 12px;
+  font-size: 16px;
   line-height: 1.5;
   margin: 4px 0 0;
   color: #756486;
@@ -589,11 +639,14 @@ function restart() {
 }
 .nature-board {
   position: relative;
-  min-width: 640px;
+  min-width: 850px;
   background: linear-gradient(#f5f1fd 0%, #f5f1fd 38%, #f9f9ec 63%, #eff4e7 100%);
   overflow: hidden;
 }
 .lab-scene {
+  width: min(100%, 950px);
+  margin-inline: auto;
+  box-sizing: border-box;
   position: relative;
   padding: 18px 24px 0;
 }
@@ -608,12 +661,12 @@ function restart() {
   display: flex;
   align-items: center;
   gap: 7px;
-  font-size: 12px;
+  font-size: 16px;
   font-weight: 750;
   color: #65528f;
 }
 .scene-caption small {
-  font-size: 10px;
+  font-size: 13px;
   color: #92869e;
 }
 .lab-lights {
@@ -631,34 +684,13 @@ function restart() {
   background: #a5c979;
 }
 .lab-wall {
-  height: 47px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 20px;
-  color: #b8a6d5;
+  height: 102px;
+  margin: 12px 0 14px;
 }
-.wall-molecule {
-  font-size: 40px;
-  opacity: 0.7;
-}
-.wall-label {
-  font-size: 8px;
-  letter-spacing: 2px;
-}
-.lab-window {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  width: 58px;
-  height: 33px;
-  border: 3px solid #d6cce8;
-  border-radius: 5px;
-  gap: 2px;
-  background: #d6cce8;
-  transform: translateX(-40px);
-}
-.lab-window i {
-  background: #e9f3f1;
+.lab-equipment {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 .sample-row {
   display: grid;
@@ -674,9 +706,9 @@ function restart() {
   align-items: center;
   text-align: center;
   gap: 6px;
-  min-height: 218px;
+  min-height: 158px;
   width: 100%;
-  padding: 12px 7px 14px;
+  padding: 12px 10px;
   border: 2px solid #ddd2ee;
   border-radius: 15px 15px 10px 10px;
   background: #ffffffed;
@@ -709,15 +741,19 @@ function restart() {
   border-radius: 50%;
 }
 .sample-number {
-  font-size: 8px;
+  align-self: flex-start;
+  margin-bottom: 10px;
+  font-size: 11px;
   letter-spacing: 1px;
   font-weight: 750;
-  color: #a595b4;
+  color: #7d688e;
 }
 .sample-vial {
-  width: 41px;
-  height: 70px;
-  margin: 0 0 1px;
+  position: absolute;
+  right: 8px;
+  top: 9px;
+  width: 22px;
+  height: 36px;
 }
 .vial-cap {
   fill: #8b74be;
@@ -743,20 +779,21 @@ function restart() {
   fill: #b19acc;
 }
 .sample-card strong {
-  font-size: 12px;
+  line-height: 1.25;
+  font-size: 16px;
   overflow-wrap: anywhere;
 }
 .sample-card > small {
-  font-size: 9px;
+  font-size: 12px;
   line-height: 1.5;
-  color: #95879f;
+  color: #74617f;
 }
 .sample-result {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 4px;
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 650;
   margin-top: auto;
   min-height: 18px;
@@ -818,14 +855,14 @@ function restart() {
   background: #a18abf;
 }
 .worlds-gap {
-  height: 125px;
+  height: 100px;
   position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 10px;
   color: #af9ebf;
-  font-size: 9px;
+  font-size: 12px;
   letter-spacing: 1.4px;
   text-transform: uppercase;
   z-index: 1;
@@ -963,11 +1000,11 @@ function restart() {
   transform: rotate(25deg);
 }
 .fruit-card strong {
-  font-size: 13px;
+  font-size: 17px;
   position: relative;
 }
 .fruit-card > small {
-  font-size: 9px;
+  font-size: 12px;
 }
 .fruit-card > svg {
   width: 20px;
@@ -999,11 +1036,11 @@ function restart() {
   color: #736641;
 }
 .tree-sign strong {
-  font-size: 11px;
+  font-size: 14px;
   display: block;
 }
 .tree-sign small {
-  font-size: 9px;
+  font-size: 12px;
   display: block;
   margin-top: 3px;
 }
@@ -1013,7 +1050,7 @@ function restart() {
   left: 0;
   width: 100%;
   text-align: center;
-  font-size: 9px;
+  font-size: 12px;
   color: #7c896c;
   margin: 0;
   padding: 0 15px;
@@ -1090,7 +1127,7 @@ function restart() {
   gap: 10px;
   background: #f5f2fa;
   border-radius: 12px;
-  font-size: 12px;
+  font-size: 16px;
   line-height: 1.6;
   padding: 20px;
   color: #96899f;
@@ -1119,10 +1156,10 @@ function restart() {
   color: #98493c;
 }
 .instant-feedback strong {
-  font-size: 14px;
+  font-size: 17px;
 }
 .instant-feedback p {
-  font-size: 12px;
+  font-size: 16px;
   line-height: 1.7;
   margin: 7px 0;
 }
@@ -1130,7 +1167,7 @@ function restart() {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  font-size: 10px;
+  font-size: 13px;
   text-decoration: underline;
 }
 .game-actions {
@@ -1141,7 +1178,7 @@ function restart() {
   margin-top: 20px;
 }
 .game-actions p {
-  font-size: 10px;
+  font-size: 13px;
   color: #81778b;
   margin: 0;
   line-height: 1.7;
@@ -1162,7 +1199,7 @@ function restart() {
 }
 .game-actions small {
   display: block;
-  font-size: 9px;
+  font-size: 12px;
 }
 .game-primary {
   display: inline-flex;
@@ -1174,7 +1211,7 @@ function restart() {
   border-radius: 12px;
   background: var(--purple);
   color: white;
-  font-size: 12px;
+  font-size: 16px;
   font-weight: 650;
 }
 .game-primary:hover {
@@ -1234,7 +1271,7 @@ function restart() {
 }
 .victory-content .eyebrow {
   justify-content: center;
-  font-size: 10px;
+  font-size: 13px;
 }
 .victory-content h2 {
   font-size: 44px;
@@ -1247,7 +1284,7 @@ function restart() {
   display: block;
 }
 .victory-content > p:not(.eyebrow) {
-  font-size: 14px;
+  font-size: 17px;
   color: #86798f;
   line-height: 1.9;
   margin-bottom: 18px;
@@ -1271,7 +1308,7 @@ function restart() {
   background: var(--lavender);
   color: #68528e;
   border-radius: 12px;
-  font-size: 12px;
+  font-size: 16px;
 }
 .victory-summary strong {
   color: var(--purple);
@@ -1279,7 +1316,7 @@ function restart() {
 }
 .victory-content .game-primary {
   width: 100%;
-  font-size: 13px;
+  font-size: 17px;
   padding: 17px;
 }
 .victory-replay {
@@ -1288,7 +1325,7 @@ function restart() {
   border: 0;
   background: transparent;
   color: #8a7d98;
-  font-size: 12px;
+  font-size: 16px;
   padding: 18px 10px 0;
 }
 .victory-replay:hover {
@@ -1389,7 +1426,7 @@ function restart() {
     max-width: 220px;
   }
   .mission-badge strong {
-    font-size: 14px;
+    font-size: 17px;
   }
   .lab-scene {
     padding-left: 17px;
@@ -1404,13 +1441,13 @@ function restart() {
     gap: 9px;
   }
   .sample-card strong {
-    font-size: 11px;
+    font-size: 14px;
   }
   .sample-card > small {
-    font-size: 8px;
+    font-size: 11px;
   }
   .scene-caption small {
-    font-size: 9px;
+    font-size: 12px;
   }
 }
 @media (max-width: 740px) {
@@ -1418,12 +1455,12 @@ function restart() {
     display: flex;
     gap: 7px;
     align-items: center;
-    font-size: 10px;
+    font-size: 13px;
     color: #9b88b1;
     margin: -8px 0 12px;
   }
   .game-toolbar strong {
-    font-size: 15px;
+    font-size: 18px;
   }
   .progress > div {
     gap: 3px;
@@ -1446,7 +1483,7 @@ function restart() {
     letter-spacing: -2px;
   }
   .game-intro > div > p:last-child {
-    font-size: 12px;
+    font-size: 16px;
   }
   .mission-badge {
     display: none;
@@ -1460,7 +1497,7 @@ function restart() {
     gap: 12px;
   }
   .game-toolbar strong {
-    font-size: 14px;
+    font-size: 17px;
   }
   .game-toolbar .live-dot {
     display: none;
@@ -1473,13 +1510,13 @@ function restart() {
     gap: 10px;
   }
   .clue-panel p {
-    font-size: 11px;
+    font-size: 14px;
   }
   .clue-panel > svg {
     display: none;
   }
   .instructions {
-    font-size: 11px;
+    font-size: 14px;
   }
   .game-actions {
     flex-direction: column;
@@ -1489,10 +1526,10 @@ function restart() {
     width: 100%;
   }
   .game-actions p {
-    font-size: 10px;
+    font-size: 13px;
   }
   .feedback-idle {
-    font-size: 11px;
+    font-size: 14px;
     text-align: center;
     padding: 16px;
   }
@@ -1504,7 +1541,7 @@ function restart() {
     gap: 8px;
   }
   .instant-feedback p {
-    font-size: 11px;
+    font-size: 14px;
   }
   .victory-content {
     padding: 35px 22px 22px;
@@ -1525,7 +1562,7 @@ function restart() {
     font-size: 25px;
   }
   .victory-content > p:not(.eyebrow) {
-    font-size: 12px;
+    font-size: 16px;
   }
   .victory-stars {
     font-size: 21px;

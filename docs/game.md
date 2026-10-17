@@ -29,3 +29,10 @@ Rejouer remet les liens et le compteur à zéro. Les animations respectent
 
 Vérifications : `node --test scripts/game.test.mjs`, TypeScript, build,
 audit des chemins et parcours dans le navigateur.
+
+Pour la projection, les textes du plateau et de la popup sont agrandis. Les cartes
+présentent le principe actif et le nom commercial, avec une petite fiole en coin
+pour réduire leur hauteur. La table est centrée sur 950 px maximum. Le décor SVG
+comprend fioles, bécher, éprouvettes, microscope, fenêtre et carrelage. Le plateau
+garde une largeur minimale de 850 px sur mobile pour préserver la lisibilité des
+cinq cartes ; il reste accessible par défilement horizontal.

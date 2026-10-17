@@ -99,7 +99,7 @@ const cheer = computed(() => cheers[(props.attempt - 1) % cheers.length])
   position: fixed;
   inset: 0;
   margin: auto;
-  width: min(740px, calc(100vw - 32px));
+  width: min(820px, calc(100vw - 32px));
   max-width: none;
   max-height: calc(100dvh - 32px);
   border: 2px solid var(--coach-border);
@@ -160,7 +160,7 @@ const cheer = computed(() => cheers[(props.attempt - 1) % cheers.length])
 .coach-label {
   text-transform: uppercase;
   letter-spacing: 1.4px;
-  font-size: 9px;
+  font-size: 12px;
   color: #8d7569;
   font-weight: 700;
   margin: 0 25px 9px 0;
@@ -169,7 +169,7 @@ const cheer = computed(() => cheers[(props.attempt - 1) % cheers.length])
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 750;
   color: var(--coach-color);
   background: var(--coach-tint);
@@ -185,7 +185,7 @@ h2 {
   letter-spacing: -0.5px;
 }
 .coach-message {
-  font-size: 12px;
+  font-size: 16px;
   line-height: 1.65;
   color: #6b5c57;
 }
@@ -217,7 +217,7 @@ h2 {
 }
 .coach-message small {
   display: block;
-  font-size: 9px;
+  font-size: 12px;
   line-height: 1.6;
 }
 .coach-actions {
@@ -227,7 +227,7 @@ h2 {
   margin-top: 16px;
 }
 .coach-actions button {
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 700;
   padding: 11px 14px;
   border-radius: 12px;
@@ -245,7 +245,7 @@ h2 {
   gap: 7px;
 }
 .coach-note {
-  font-size: 9px;
+  font-size: 12px;
   line-height: 1.5;
   color: #8b7e79;
   margin: 13px 0 0;
