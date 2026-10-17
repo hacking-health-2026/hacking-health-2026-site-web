@@ -1,41 +1,31 @@
 # Jeu des associations
 
-La page `/jeu` fonctionne sans API, y compris sur GitHub Pages. On relie cinq
-fiches à partir d’indices. Chaque tentative donne immédiatement un retour vert
-(bon lien) ou rouge (lien incorrect), une explication et les produits où trouver
-le composant naturel choisi, avec une source. Il n’y a plus de questions ni d’étape de validation.
+La page `/jeu` fonctionne sans API, y compris sur GitHub Pages. Chaque partie
+propose cinq associations tirées du classeur via `src/data/static-demo.json`.
+Les tirages excluent les doublons et les liens croisés ambigus ; rejouer renouvelle
+les duos et mélange les composants. Les indices, mécanismes et produits cités
+viennent du classeur. Ses références ne sont pas vérifiées.
 
-Les parties sont générées par `src/data/game.ts` à partir de `src/data/static-demo.json`, export du classeur. Les cinq associations fixes et leurs anciennes sources externes ont été retirées. Les plantes ne sont pas
-présentées comme des molécules isolées. Les couleurs indiquent la correspondance
-avec l’indice, jamais la sécurité médicale du duo. Les indices, mécanismes et produits où trouver chaque composant viennent des règles du classeur. Les références du classeur restent non vérifiées.
+Le plateau présente les échantillons sur une table de laboratoire et les composants
+naturels dans un arbre imaginaire, centré sur une largeur maximale de 850 px.
+Tous les composants ne sont pas des fruits. Les liens sont des courbes SVG
+recalculées après connexion et redimensionnement. Sur mobile, le plateau peut
+être parcouru horizontalement.
 
-Le compteur mesure les liens corrects, jamais un risque médical. Une tentative
-incorrecte garde la même fiche sélectionnée pour réessayer. Un bon lien passe à
-la prochaine fiche à résoudre. Les connexions peuvent être réattribuées, une seule
-fois par composant. Recommencer efface les liens, tire cinq nouvelles associations et mélange les composants. Un tirage exclut les doublons de principes actifs et les liens croisés présents dans le dataset afin de garder une solution sans ambiguïté. Le même ensemble ne peut pas être repris immédiatement.
+Une tentative correcte trace le lien et passe au prochain échantillon. Une erreur
+incrémente le compteur, trace immédiatement la bonne connexion, puis ouvre la
+popup éducative de la mascotte fournie (`public/billy-mascot.png`). La popup
+explique le duo corrigé et indique où trouver le composant choisi. Sa couleur
+orange ou rouge correspond à la gravité du duo corrigé dans le classeur, et non
+à celle du mauvais lien. Les liens verts valident les associations du jeu ; ils
+ne représentent pas leur sécurité médicale.
 
-Le plateau montre les échantillons du laboratoire en haut et les composants
-naturels comme fruits d’un arbre illustré en bas. Cette représentation est
-métaphorique : tous les composants ne proviennent pas de fruits. Les courbes SVG
-relient le bas des échantillons au sommet des fruits et sont mesurées après chaque
-connexion et redimensionnement. Sur mobile, le plateau se parcourt horizontalement. Toute
-nouvelle sélection efface les tentatives incorrectes et leur message ; les bons
-liens restent en place. Les couleurs sont accompagnées d’icônes et de libellés.
+« Compris, on continue ! », la croix ou Échap ferme la popup. La correction reste
+tracée et l’erreur reste dans le bilan. Si la correction termine la partie, le
+dialogue de victoire attend la fermeture de la popup pour éviter la superposition
+des dialogues. Il affiche médaille, étoiles, confettis et nombre d’erreurs.
+Rejouer remet les liens et le compteur à zéro. Les animations respectent
+`prefers-reduced-motion`. Aucun son n’est joué.
 
-Le cinquième lien correct ouvre un dialogue de victoire avec médaille, étoiles et
-confettis. Il permet de revenir au plateau ou de rejouer. Échap ferme le dialogue ;
-les animations sont désactivées avec `prefers-reduced-motion`. Aucun son n’est joué.
-Le bilan affiche aussi le nombre de tentatives incorrectes de la partie, y compris
-les erreurs effacées à la sélection suivante. Chaque mauvais lien compte une erreur ;
-sélectionner un échantillon n’en ajoute pas. Rejouer remet ce compteur à zéro.
-
-Vérifications : `node --test scripts/game.test.mjs`, vérification TypeScript,
-build et audit des chemins. Les tests de connexion utilisent Node 24.
-
-La mascotte fournie par l’utilisateur (`public/billy-mascot.png`) ouvre une fenêtre modale centrée à chaque mauvais lien. Elle
-varie ses encouragements, indique les produits du classeur où trouver le composant
-choisi et rappelle l’indice de la carte. « Montre-moi le duo » révèle la bonne
-association et le mécanisme du classeur. La couleur orange ou rouge correspond à la gravité du duo attendu dans le classeur ; le libellé le précise pour ne pas attribuer cette gravité au mauvais lien. Fermer masque la bulle ; « Je retente ! »
-efface aussi le mauvais lien. Toute nouvelle sélection ferme la bulle ; les bonnes
-connexions et le compteur d’erreurs sont conservés. Les animations respectent
-`prefers-reduced-motion`.
+Vérifications : `node --test scripts/game.test.mjs`, TypeScript, build,
+audit des chemins et parcours dans le navigateur.

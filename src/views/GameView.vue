@@ -29,6 +29,9 @@ const feedback = computed(() => {
     component: gameCases.value.find((c) => c.id === lastAttempt.value!.ingredient)!,
   }
 })
+const coachVisible = computed(
+  () => !!feedback.value && !feedback.value.correct && !coachDismissed.value,
+)
 const componentName = (id?: GameId) => gameCases.value.find((c) => c.id === id)?.ingredient
 const owner = (id: GameId) => gameCases.value.find((c) => pairs.value[c.id] === id)
 const connectionState = (medicine: GameId) =>
@@ -77,10 +80,11 @@ watch(
   },
   { deep: true },
 )
-watch(pairCount, async (count, previous) => {
-  if (count === 5 && previous !== 5) {
+watch([pairCount, coachVisible], async ([count, coaching]) => {
+  if (count === 5 && !coaching) {
     await nextTick()
-    victory.value?.showModal()
+    if (pairCount.value === 5 && !coachVisible.value && !victory.value?.open)
+      victory.value?.showModal()
   }
 })
 onMounted(() => {
@@ -101,12 +105,10 @@ function link(id: GameId) {
   const medicine = selected.value
   coachDismissed.value = false
   if (medicine !== id) errorCount.value += 1
-  pairs.value = connectPair(clearIncorrectPairs(pairs.value), medicine, id)
+  pairs.value = connectPair(clearIncorrectPairs(pairs.value), medicine, medicine)
   lastAttempt.value = { medicine, ingredient: id }
-  if (medicine === id) {
-    const remaining = gameCases.value.find((c) => pairs.value[c.id] !== c.id)
-    if (remaining) selected.value = remaining.id
-  }
+  const remaining = gameCases.value.find((c) => pairs.value[c.id] !== c.id)
+  if (remaining) selected.value = remaining.id
 }
 function restart() {
   victory.value?.close()
@@ -351,14 +353,14 @@ function restart() {
           <NexusIcon :name="feedback.correct ? 'check' : 'close'" :size="23" />
           <div>
             <strong>{{
-              feedback.correct ? 'Une connexion de plus !' : 'Pas ce duo-là. Tentez un autre lien !'
+              feedback.correct ? 'Une connexion de plus !' : 'Nexus a tracé le bon lien pour vous !'
             }}</strong>
             <p>
               {{ feedback.medicine.medicine }} + {{ feedback.component.ingredient }} :
               {{
                 feedback.correct
                   ? 'ce lien correspond à l’indice.'
-                  : 'ce lien ne correspond pas à l’indice.'
+                  : 'ce lien ne correspondait pas à l’indice. La bonne association a été reliée automatiquement.'
               }}
             </p>
             <p><b>Où le trouver ?</b> {{ feedback.component.foundIn }}</p>
@@ -386,13 +388,13 @@ function restart() {
     </section>
 
     <GameCoach
-      v-if="feedback && !feedback.correct && !coachDismissed"
+      v-if="coachVisible && feedback"
       :key="errorCount"
       :medicine="feedback.medicine"
       :component="feedback.component"
       :attempt="errorCount"
       @dismiss="coachDismissed = true"
-      @retry="selectSample(selected)"
+      @retry="coachDismissed = true"
     />
 
     <dialog
@@ -844,6 +846,9 @@ function restart() {
   padding: 5px;
 }
 .tree-scene {
+  width: min(100%, 850px);
+  margin-inline: auto;
+  box-sizing: border-box;
   position: relative;
   height: 385px;
   padding: 0 24px;

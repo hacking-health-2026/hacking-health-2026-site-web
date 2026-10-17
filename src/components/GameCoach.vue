@@ -5,7 +5,6 @@ import type { GameCase } from '@/data/game'
 
 const props = defineProps<{ medicine: GameCase; component: GameCase; attempt: number }>()
 const emit = defineEmits<{ dismiss: []; retry: [] }>()
-const reveal = ref(false)
 const mascotUrl = `${import.meta.env.BASE_URL}billy-mascot.png`
 const severe = computed(() => props.medicine.severity === 'Rouge')
 const popup = ref<HTMLDialogElement>()
@@ -54,8 +53,7 @@ const cheer = computed(() => cheers[(props.attempt - 1) % cheers.length])
       </button>
       <p class="coach-label">Votre complice du labo</p>
       <p class="coach-severity">
-        <NexusIcon name="info" :size="15" />{{ severe ? 'Danger' : 'Risque modéré' }} · duo à
-        retrouver
+        <NexusIcon name="info" :size="15" />{{ severe ? 'Danger' : 'Risque modéré' }} · duo corrigé
       </p>
       <h2 id="coach-title">{{ cheer }}</h2>
       <div class="coach-message" aria-live="polite">
@@ -70,27 +68,24 @@ const cheer = computed(() => cheers[(props.attempt - 1) % cheers.length])
             {{ component.foundIn }}.
           </p>
         </div>
-        <template v-if="reveal">
+        <div>
           <p class="coach-answer">
-            <b>Le duo à retrouver : {{ medicine.medicine }} + {{ medicine.ingredient }}.</b><br />{{
-              medicine.explanation
-            }}
+            <b
+              >Le bon lien est maintenant tracé : {{ medicine.medicine }} +
+              {{ medicine.ingredient }}.</b
+            ><br />{{ medicine.explanation }}
           </p>
           <small>{{ medicine.source }}</small>
-        </template>
-        <p v-else class="coach-tip"><b>Pour votre prochain essai :</b> {{ medicine.clue }}</p>
+        </div>
       </div>
       <div class="coach-actions">
-        <button v-if="!reveal" type="button" class="coach-hint" @click="reveal = true">
-          Montre-moi le duo
-        </button>
         <button type="button" class="coach-retry" @click="emit('retry')">
-          Je retente ! <NexusIcon name="spark" :size="15" />
+          Compris, on continue ! <NexusIcon name="spark" :size="15" />
         </button>
       </div>
       <p class="coach-note">
-        La couleur de cette bulle indique la gravité du duo à retrouver dans le classeur, pas celle
-        du lien incorrect.
+        La couleur de cette bulle indique la gravité du duo corrigé dans le classeur, pas celle du
+        lien incorrect.
       </p>
     </div>
   </dialog>
