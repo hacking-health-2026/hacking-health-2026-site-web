@@ -36,8 +36,10 @@ that origin in backend `CORS_ORIGINS`.
 2. Click **Xanax + Sommeil Fort**: 50 points, simulated orange.
 3. Click **Essayer 72 ans et 50 kg**: 65 points, simulated red.
 
-The UI displays brand-to-class and supplement-to-ingredient mappings, the exact
-arithmetic, its invented coefficients, the pair matrix and source worksheet cells.
+The presentation interface uses a violet, coral and lime palette, product cards,
+a prominent score ring and four color-coded contribution tiles. Both examples
+run an analysis directly. The UI displays ingredient mappings, point contributions,
+the pair matrix and source worksheet cells. The numeric coefficients are invented.
 Age/weight modifiers are not derived from workbook observations. A source label
 such as ANSM in the workbook is displayed as unverified, not as a checked citation.
 

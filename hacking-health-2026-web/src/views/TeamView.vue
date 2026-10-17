@@ -1,153 +1,188 @@
 <script setup lang="ts">
 const teamMembers = [
   {
-    name: "Sophie Martin",
-    role: "Porteuse de Projet",
-    specialty: "Infirmière DE",
-    icon: "👩‍⚕️",
-    bio: "À l'origine de l'idée, Sophie apporte son expertise terrain sur les défis quotidiens de l'administration médicamenteuse."
+    name: 'Sophie Martin',
+    role: 'Porteuse de Projet',
+    specialty: 'Infirmière DE',
+    icon: '👩‍⚕️',
+    bio: "À l'origine de l'idée, Sophie apporte son expertise terrain sur les défis quotidiens de l'administration médicamenteuse.",
   },
   {
-    name: "Lucas Bernard",
-    role: "Développeur",
-    specialty: "Fullstack JavaScript",
-    icon: "💻",
-    bio: "En charge de transformer les concepts en une solution technique robuste et évolutive."
+    name: 'Lucas Bernard',
+    role: 'Développeur',
+    specialty: 'Fullstack JavaScript',
+    icon: '💻',
+    bio: 'En charge de transformer les concepts en une solution technique robuste et évolutive.',
   },
   {
-    name: "Léa Petit",
-    role: "Marketing / Com",
-    specialty: "Stratégie Digitale",
-    icon: "📢",
-    bio: "Assure la visibilité du projet et définit l'identité visuelle pour toucher les bons acteurs de santé."
+    name: 'Léa Petit',
+    role: 'Marketing / Com',
+    specialty: 'Stratégie Digitale',
+    icon: '📢',
+    bio: "Assure la visibilité du projet et définit l'identité visuelle pour toucher les bons acteurs de santé.",
   },
   {
-    name: "Thomas Dubois",
-    role: "Designer UI/UX",
-    specialty: "Expérience Utilisateur",
-    icon: "🎨",
-    bio: "Conçoit une interface intuitive adaptée aux situations d'urgence et au stress du milieu hospitalier."
+    name: 'Thomas Dubois',
+    role: 'Designer UI/UX',
+    specialty: 'Expérience Utilisateur',
+    icon: '🎨',
+    bio: "Conçoit une interface intuitive adaptée aux situations d'urgence et au stress du milieu hospitalier.",
   },
   {
-    name: "Dr. Julie Leroy",
-    role: "Pharmacienne",
-    specialty: "Pharmacie Hospitalière",
-    icon: "💊",
-    bio: "Garante de la base de données scientifique et de la fiabilité des interactions médicamenteuses."
+    name: 'Dr. Julie Leroy',
+    role: 'Pharmacienne',
+    specialty: 'Pharmacie Hospitalière',
+    icon: '💊',
+    bio: 'Garante de la base de données scientifique et de la fiabilité des interactions médicamenteuses.',
   },
   {
-    name: "Dr. Marc Morel",
-    role: "Médecin",
-    specialty: "Réanimation",
-    icon: "🩺",
-    bio: "Apporte son regard clinique sur l'intégration du logiciel dans le protocole de soin médical."
+    name: 'Dr. Marc Morel',
+    role: 'Médecin',
+    specialty: 'Réanimation',
+    icon: '🩺',
+    bio: "Apporte son regard clinique sur l'intégration du logiciel dans le protocole de soin médical.",
   },
   {
-    name: "Nicolas Faivre",
-    role: "Ingénieur Biomédical",
-    specialty: "Systèmes de Santé",
-    icon: "⚙️",
-    bio: "Expert en intégration logicielle et conformité des dispositifs médicaux."
-  }
-];
+    name: 'Nicolas Faivre',
+    role: 'Ingénieur Biomédical',
+    specialty: 'Systèmes de Santé',
+    icon: '⚙️',
+    bio: 'Expert en intégration logicielle et conformité des dispositifs médicaux.',
+  },
+]
 </script>
 
 <template>
-  <div class="team-view">
-    <section class="team-header">
-      <div class="container">
-        <h1>L'Équipe Défi n°4</h1>
-        <p>Une synergie de compétences pour la sécurité des patients.</p>
-      </div>
-    </section>
-
-    <section class="team-grid container">
-      <div v-for="member in teamMembers" :key="member.name" class="member-card">
-        <div class="member-icon">{{ member.icon }}</div>
-        <h3>{{ member.name }}</h3>
-        <div class="member-role">{{ member.role }}</div>
-        <div class="member-specialty">{{ member.specialty }}</div>
-        <p class="member-bio">{{ member.bio }}</p>
-      </div>
+  <div class="team-page page-width">
+    <header class="team-heading">
+      <span class="eyebrow">Hacking Health · Défi n°4</span>
+      <h1>Des regards différents.<br /><span>Un projet commun.</span></h1>
+      <p>L’équipe réunie autour d’Herbal Nexus.</p>
+    </header>
+    <section class="team-grid" aria-label="Membres de l’équipe">
+      <article
+        v-for="(member, index) in teamMembers"
+        :key="member.name"
+        :class="['member', `member-${index % 4}`]"
+      >
+        <div class="member-avatar" aria-hidden="true">
+          {{
+            member.name
+              .replace('Dr. ', '')
+              .split(' ')
+              .map((part) => part.charAt(0))
+              .slice(0, 2)
+              .join('')
+          }}
+        </div>
+        <span class="member-role">{{ member.role }}</span>
+        <h2>{{ member.name }}</h2>
+        <p>{{ member.specialty }}</p>
+      </article>
     </section>
   </div>
 </template>
-
 <style scoped>
-.team-header {
-  padding: 4rem 0;
-  background: #1d3557;
-  color: white;
-  text-align: center;
-  margin-bottom: 3rem;
+.team-page {
+  padding-top: 55px;
+  padding-bottom: 20px;
 }
-
-.team-header h1 {
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
+.team-heading h1 {
+  font-size: 48px;
+  font-weight: 650;
+  letter-spacing: -2px;
+  line-height: 1.15;
+  margin: 20px 0;
 }
-
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px;
+.team-heading h1 > span {
+  color: var(--purple);
 }
-
+.team-heading > p {
+  font-size: 14px;
+  color: var(--muted);
+}
 .team-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 2rem;
-  padding-bottom: 5rem;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+  margin-top: 40px;
 }
-
-.member-card {
-  background: white;
-  border-radius: 15px;
-  padding: 2rem;
-  text-align: center;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-  transition: transform 0.3s ease;
-  border-top: 5px solid #e63946;
+.member {
+  background: #fff;
+  border: 1px solid #ebe5f3;
+  border-radius: 20px;
+  padding: 25px;
+  --avatar-bg: #eae1ff;
+  --avatar-color: #7e5acc;
 }
-
-.member-card:hover {
-  transform: translateY(-10px);
+.member-1 {
+  --avatar-bg: #ffe1ce;
+  --avatar-color: #ce8050;
 }
-
-.member-icon {
-  font-size: 4rem;
-  margin-bottom: 1rem;
+.member-2 {
+  --avatar-bg: #e1edb9;
+  --avatar-color: #819849;
 }
-
-.member-card h3 {
-  margin: 0.5rem 0;
-  color: #1d3557;
+.member-3 {
+  --avatar-bg: #dceff0;
+  --avatar-color: #62929d;
 }
-
+.member-avatar {
+  display: grid;
+  place-items: center;
+  background: var(--avatar-bg);
+  color: var(--avatar-color);
+  width: 65px;
+  height: 70px;
+  border-radius: 20px;
+  font-size: 20px;
+  letter-spacing: -1px;
+  font-weight: 600;
+  margin-bottom: 25px;
+  transform: rotate(-4deg);
+}
 .member-role {
-  font-weight: bold;
-  color: #e63946;
+  font-size: 9px;
+  color: var(--avatar-color);
   text-transform: uppercase;
-  font-size: 0.85rem;
   letter-spacing: 1px;
+  font-weight: 650;
 }
-
-.member-specialty {
-  color: #457b9d;
-  font-style: italic;
-  margin-bottom: 1rem;
-  font-size: 0.95rem;
+.member h2 {
+  font-size: 17px;
+  font-weight: 650;
+  letter-spacing: -0.5px;
+  margin: 10px 0;
 }
-
-.member-bio {
-  font-size: 0.9rem;
-  color: #666;
-  line-height: 1.5;
+.member p {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-bottom: 0;
 }
-
-@media (max-width: 768px) {
-  .team-header h1 {
-    font-size: 2rem;
+@media (max-width: 1000px) {
+  .team-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+@media (max-width: 700px) {
+  .team-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .member {
+    padding: 20px;
+  }
+  .team-heading h1 {
+    font-size: 38px;
+  }
+  .team-page {
+    padding-top: 35px;
+  }
+}
+@media (max-width: 380px) {
+  .team-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>

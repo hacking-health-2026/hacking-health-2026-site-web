@@ -1,31 +1,36 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
+import NexusFlower from '@/components/NexusFlower.vue'
+import NexusIcon from '@/components/NexusIcon.vue'
 </script>
 
 <template>
-  <nav class="navbar">
-    <div class="container">
-      <div class="logo">HackingHealth 2026</div>
-      <div class="nav-links">
-        <RouterLink to="/">Accueil</RouterLink>
-        <RouterLink to="/compatibility">Vérifier</RouterLink>
-        <RouterLink to="/team">Notre Équipe</RouterLink>
-      </div>
+  <a class="skip-link" href="#main-content">Aller au contenu</a>
+  <header class="site-header">
+    <div class="nav-wrap">
+      <RouterLink class="brand" to="/" aria-label="Herbal Nexus, accueil"
+        ><span class="brand-mark"><NexusFlower :size="31" /></span
+        ><span
+          >herbal<span class="brand-light">nexus</span><span class="brand-dot">.</span></span
+        ></RouterLink
+      >
+      <nav class="main-nav" aria-label="Navigation principale">
+        <RouterLink to="/" exact-active-class="nav-current">Découvrir</RouterLink>
+        <RouterLink to="/compatibility" active-class="nav-current"
+          ><NexusIcon name="spark" :size="16" /> Explorer</RouterLink
+        >
+        <RouterLink to="/team" active-class="nav-current">L’équipe</RouterLink>
+      </nav>
+      <span class="event-tag"><span></span> Hacking Health 2026</span>
     </div>
-  </nav>
-
-  <RouterView />
+  </header>
+  <main id="main-content"><RouterView /></main>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <span class="footer-signature"
+        ><NexusFlower :size="19" /> Herbal Nexus <span>· Besançon 2026</span></span
+      >
+      <p>Prototype de présentation · Score simulé, non validé pour un usage médical.</p>
+    </div>
+  </footer>
 </template>
-
-<style>
-/* Global styles */
-body { margin: 0; font-family: 'Inter', sans-serif; background-color: #f8f9fa; }
-.navbar { background: #1d3557; color: white; padding: 1rem 0; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-.navbar .container { display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; padding: 0 20px; }
-.logo { font-weight: bold; font-size: 1.2rem; }
-.nav-links { display: flex; gap: 20px; }
-.nav-links a { color: white; text-decoration: none; font-weight: 500; padding: 5px 0; border-bottom: 2px solid transparent; transition: border-color 0.2s; }
-.nav-links a:hover { color: #a8dadc; }
-.nav-links a.router-link-active { color: #a8dadc; border-bottom: 2px solid #a8dadc; }
-</style>
-
