@@ -63,18 +63,18 @@ onBeforeUnmount(cancel)
   <div class="picker">
     <label :for="id">{{ label }}</label>
     <input :id="id" v-model="query" type="search" autocomplete="off"
-      placeholder="Ex. Warfarin, Aspirin, Iron…" :aria-describedby="`${id}-hint`" />
+      placeholder="Ex. Leeloo, Millepertuis, Xanax…" :aria-describedby="`${id}-hint`" />
     <small :id="`${id}-hint`" class="hint">
-      {{ selected ? `Sélectionné : ${selected.id}` : 'Saisissez au moins 2 lettres, puis choisissez un résultat (noms anglais).' }}
+      {{ selected ? `Sélectionné : ${selected.id}` : 'Recherchez une marque, un complément ou un ingrédient du classeur.' }}
     </small>
     <p v-if="loading" role="status">Recherche…</p>
     <p v-if="error" role="alert" class="error">{{ error }}</p>
     <ul v-if="results.length" class="suggestions" :aria-label="`Résultats pour ${label}`">
       <li v-for="drug in results" :key="drug.id">
-        <button type="button" @click="select(drug)">{{ drug.name }} <small>{{ drug.id }}</small></button>
+        <button type="button" @click="select(drug)">{{ drug.name }} <small>{{ drug.kind === 'medicine' ? 'Médicament' : drug.kind === 'supplement' ? 'Complément' : 'Ingrédient' }} · {{ drug.id }}</small></button>
       </li>
     </ul>
-    <p v-else-if="searched && !selected" role="status" class="hint">Aucun ingrédient trouvé. Les marques, plantes et huiles essentielles ne sont pas couvertes de façon exhaustive.</p>
+    <p v-else-if="searched && !selected" role="status" class="hint">Aucun produit trouvé dans le classeur de démonstration.</p>
   </div>
 </template>
 

@@ -5,8 +5,8 @@
   <div class="home-container">
     <header class="header">
       <div class="container">
-        <h1>Hacking Health Besançon 2026</h1>
-        <p class="subtitle">Défi n°4 : Explorer les interactions entre principes actifs</p>
+        <h1>Herbal Nexus · Hacking Health 2026</h1>
+        <p class="subtitle">Démonstration simulée des interactions plantes et médicaments</p>
       </div>
     </header>
 
@@ -14,18 +14,18 @@
       <section class="hero">
         <div class="container">
           <div class="hero-card">
-            <h2>Quels principes actifs sont pris ensemble ?</h2>
+            <h2>Explorez un scénario de démonstration</h2>
             <p>
-              La prise de plusieurs médicaments peut modifier leur efficacité ou leurs effets indésirables.
-              Ce prototype explore les interactions documentées dans les données publiques DDInter.
+              Sélectionnez un médicament et un complément du classeur Herbal Nexus.
+              Le prototype retrouve leurs ingrédients et leurs classes, puis applique un calcul fictif dont chaque étape est visible.
             </p>
             <p>
-              <strong>Notre mission :</strong> Rendre les alertes et leurs sources faciles à consulter.
-              L'absence d'alerte ne garantit pas la sécurité. Les mélanges physiques, les doses et le profil patient ne sont pas évalués.
+              <strong>Mode démo :</strong> les scores et les modificateurs de profil sont inventés pour le hackathon.
+              Les références du classeur ne sont pas vérifiées. Aucun usage médical.
             </p>
             <div class="cta-group">
-              <RouterLink to="/compatibility" class="btn-primary">Tester les interactions</RouterLink>
-              <a class="btn-secondary" href="https://ddinter2.scbdd.com/" target="_blank" rel="noopener noreferrer">Découvrir les données</a>
+              <RouterLink to="/compatibility" class="btn-primary">Ouvrir la démonstration</RouterLink>
+              <a class="btn-secondary" href="/api/source/workbook">Consulter le classeur</a>
             </div>
           </div>
         </div>
@@ -36,17 +36,17 @@
           <div class="feature-item">
             <div class="icon">🧪</div>
             <h3>Matrice des interactions</h3>
-            <p>Comparez jusqu'à cinq ingrédients et visualisez les alertes par paire.</p>
+            <p>Comparez jusqu'à cinq produits du classeur et visualisez les relations reconnues.</p>
           </div>
           <div class="feature-item">
             <div class="icon">⏱️</div>
-            <h3>Sources accessibles</h3>
-            <p>Retrouvez le niveau DDInter et le fichier d'origine de chaque relation.</p>
+            <h3>Calcul visible</h3>
+            <p>Suivez le barème fictif et faites varier l'âge et le poids du profil de démonstration.</p>
           </div>
           <div class="feature-item">
             <div class="icon">🛡️</div>
-            <h3>Limites explicites</h3>
-            <p>Les relations inconnues restent visibles. Prototype de recherche à faire vérifier par un pharmacien.</p>
+            <h3>Scénarios prêts à présenter</h3>
+            <p>Deux exemples préconfigurés avec les règles et les cellules du classeur utilisées.</p>
           </div>
         </div>
       </section>

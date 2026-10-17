@@ -1,50 +1,53 @@
-# Hacking Health 2026 — Vue frontend
+# Herbal Nexus — simulated demo frontend
 
-Interaction checker connected to the FastAPI backend:
+Vue frontend for the workbook-only FastAPI demo:
 https://github.com/hacking-health-2026/hacking-health-2026-backend.
-Requires Node 24.12+ (or the version supported by `package.json`).
 
-## Development
+All scores are explicitly fictional. The workbook is the only active dataset.
+DDInter remains archived in the backend and is not used for demo results.
 
-Start the backend on port 8000 (see its README), then:
+## Run
+
+Start `uvicorn app.main:app` in the backend on port 8000, then:
 
 ```sh
 npm ci
 npm run dev
 ```
 
-Open the printed local URL and choose **Vérifier**. Vite proxies `/api` to
-`http://127.0.0.1:8000`. A pnpm lockfile is also provided; with pnpm use
-`pnpm install --frozen-lockfile` and `pnpm dev` instead.
+Open the local URL and choose **Vérifier**. Vite proxies `/api` to
+`http://127.0.0.1:8000`. With pnpm, use `pnpm install --frozen-lockfile`
+and `pnpm dev` instead.
 
-## Single-server demo
+For a single-server demo:
 
 ```sh
 npm run build
 ```
 
-The backend serves this `dist/` folder automatically when both repositories are
-cloned next to each other with their default names. Open
-http://127.0.0.1:8000/compatibility. Override its `FRONTEND_DIST` if necessary.
-For a separately hosted frontend set `VITE_API_BASE_URL` before building and
-allow the frontend origin in the backend's `CORS_ORIGINS`.
+The backend serves the sibling frontend's `dist/` at
+http://127.0.0.1:8000/compatibility. Set its `FRONTEND_DIST` for another location.
+For separate hosting set frontend `VITE_API_BASE_URL` before building and allow
+that origin in backend `CORS_ORIGINS`.
 
-## Behavior
+## Demo script
 
-- Search English ingredient names and select a DDInter result in each field.
-- Compare 2–5 distinct ingredients, with add/remove controls.
-- Display the symmetric pairwise matrix, raw source levels, source-file links,
-  source version/license and coverage of the submitted pairs.
-- Major/Moderate = danger flag. Minor = no major alert, not guaranteed safe.
-  Missing/Unknown stays unknown.
-- Editing any ingredient clears previous results and cancels pending analysis.
-- Search and analysis failures are visible; there is no hardcoded fallback.
+1. Click **Leeloo Gé + Millepertuis**: 80 fictional points, simulated red.
+2. Click **Xanax + Sommeil Fort**: 50 points, simulated orange.
+3. Click **Essayer 72 ans et 50 kg**: 65 points, simulated red.
 
-This checks co-administration interactions, not physical mixing or stability.
-Patient profiles, doses, brands, higher-order effects and exhaustive coverage of
-supplements/essential oils are outside this PoC.
+The UI displays brand-to-class and supplement-to-ingredient mappings, the exact
+arithmetic, its invented coefficients, the pair matrix and source worksheet cells.
+Age/weight modifiers are not derived from workbook observations. A source label
+such as ANSM in the workbook is displayed as unverified, not as a checked citation.
 
-## Verification
+Editing products or the fictional profile clears stale results and cancels pending
+analysis. Unknown associations have no score and are never shown as safe.
+The source workbook is downloadable from the result. Profile-risk rules come from
+the workbook; all numeric weighting is explicitly simulated.
 
-`npm run build` runs Vue/TypeScript checks and the production build.
-For individual checks use `npm run type-check` and `npm run build-only`.
+## Build checks
+
+`npm run build` runs Vue/TypeScript checks and the production build. Individual
+checks: `npm run type-check`, `npm run build-only`. Requires Node 24.12+ or the
+alternative engine version specified by `package.json`.
