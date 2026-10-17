@@ -24,12 +24,17 @@ function fitBoard() {
   const width = boardFrame.value.clientWidth
   boardWidth.value = Math.max(850, width)
   const naturalHeight = board.value.offsetHeight
-  const fit = window.innerWidth >= 740
-  boardScale.value = fit
-    ? Math.min(1, (window.innerHeight - 36) / naturalHeight, width / boardWidth.value)
-    : 1
+  const visibleHeight = Math.min(
+    window.innerHeight,
+    window.visualViewport?.height ?? window.innerHeight,
+  )
+  boardScale.value = Math.min(
+    1,
+    Math.max(1, visibleHeight - 24) / naturalHeight,
+    width / boardWidth.value,
+  )
   boardHeight.value = naturalHeight * boardScale.value
-  boardLeft.value = fit ? Math.max(0, (width - boardWidth.value * boardScale.value) / 2) : 0
+  boardLeft.value = Math.max(0, (width - boardWidth.value * boardScale.value) / 2)
 }
 async function showWholeBoard() {
   fitBoard()
@@ -185,8 +190,8 @@ function restart() {
         verts !
       </p>
       <p class="mobile-hint">
-        <NexusIcon name="arrow" :size="14" /> Faites glisser le plateau pour explorer les cinq
-        échantillons.
+        <NexusIcon name="arrow" :size="14" /> Tournez votre téléphone à l’horizontale pour jouer
+        plus confortablement.
       </p>
 
       <div
@@ -194,7 +199,7 @@ function restart() {
         class="board-scroll"
         :style="boardHeight ? { height: `${boardHeight + 2}px` } : undefined"
         tabindex="0"
-        aria-label="Plateau à explorer horizontalement sur petit écran"
+        aria-label="Plateau du jeu ajusté à l’écran"
       >
         <div
           ref="board"
@@ -639,7 +644,7 @@ function restart() {
 .board-scroll {
   position: relative;
   scroll-margin-top: 12px;
-  overflow-x: auto;
+  overflow: hidden;
   border-radius: 19px;
   border: 1px solid #e7e1ec;
   scrollbar-color: #c5b4e9 #f1ecf9;
@@ -1433,11 +1438,6 @@ function restart() {
     stroke-width: 3;
   }
 }
-@media (min-width: 740px) {
-  .board-scroll {
-    overflow: hidden;
-  }
-}
 @media (max-width: 900px) {
   .game-workspace {
     padding: 20px;
@@ -1577,6 +1577,109 @@ function restart() {
   }
   .victory-stars {
     font-size: 21px;
+  }
+}
+/* Wide, short screens need a compact scene before fitting it to the viewport. */
+@media (orientation: landscape) and (max-height: 600px) {
+  .mobile-hint {
+    display: none;
+  }
+  .lab-scene {
+    padding-top: 8px;
+  }
+  .scene-caption {
+    gap: 8px;
+  }
+  .scene-caption > span:first-child {
+    font-size: 17px;
+  }
+  .scene-caption small {
+    font-size: 14px;
+  }
+  .lab-wall {
+    height: 36px;
+    margin: 4px 0 8px;
+  }
+  .sample-card {
+    min-height: 105px;
+    padding: 8px;
+    gap: 4px;
+  }
+  .sample-number,
+  .sample-vial {
+    display: none;
+  }
+  .sample-card strong {
+    font-size: 21px;
+  }
+  .sample-card > small,
+  .sample-result {
+    font-size: 14px;
+  }
+  .lab-bench {
+    height: 20px;
+    border-top-width: 6px;
+  }
+  .lab-bench .table-leg {
+    top: 15px;
+    height: 28px;
+  }
+  .lab-bench .table-brace {
+    top: 35px;
+  }
+  .worlds-gap {
+    height: 42px;
+    font-size: 11px;
+  }
+  .worlds-gap i {
+    height: 24px;
+  }
+  .tree-scene {
+    height: 280px;
+  }
+  .tree-art {
+    height: 260px;
+  }
+  .fruit-row {
+    padding-top: 8px;
+    gap: 10px;
+  }
+  .fruit-card {
+    min-height: 95px;
+    padding: 12px 8px;
+    gap: 4px;
+  }
+  .fruit-card strong {
+    font-size: 21px;
+  }
+  .fruit-card > svg,
+  .fruit-card > small {
+    display: none;
+  }
+  .fruit-0,
+  .fruit-4 {
+    margin-top: 28px;
+  }
+  .fruit-1,
+  .fruit-3 {
+    margin-top: 0;
+  }
+  .fruit-2 {
+    margin-top: 32px;
+  }
+  .tree-sign {
+    bottom: 20px;
+    padding: 6px 14px;
+  }
+  .tree-sign strong {
+    font-size: 15px;
+  }
+  .tree-sign small {
+    display: none;
+  }
+  .tree-metaphor {
+    font-size: 11px;
+    bottom: 2px;
   }
 }
 @media (prefers-reduced-motion: reduce) {

@@ -9,8 +9,7 @@ viennent du classeur. Ses références ne sont pas vérifiées.
 Le plateau présente les échantillons sur une table de laboratoire et les composants
 naturels dans un arbre imaginaire, centré sur une largeur maximale de 850 px.
 Tous les composants ne sont pas des fruits. Les liens sont des courbes SVG
-recalculées après connexion et redimensionnement. Sur mobile, le plateau peut
-être parcouru horizontalement.
+recalculées après connexion et redimensionnement. Sur mobile, le plateau est réduit pour tenir en largeur ; le mode paysage est conseillé.
 
 Une tentative correcte trace le lien et passe au prochain échantillon. Une erreur
 incrémente le compteur, trace immédiatement la bonne connexion, puis ouvre la
@@ -33,11 +32,9 @@ audit des chemins et parcours dans le navigateur.
 Pour la projection, les textes du plateau et de la popup sont agrandis. Les cartes
 présentent le principe actif et le nom commercial, avec une petite fiole en coin
 pour réduire leur hauteur. La table est centrée sur 950 px maximum. Le décor SVG
-comprend fioles, bécher, éprouvettes, microscope, fenêtre et carrelage. Le plateau
-garde une largeur minimale de 850 px sur mobile pour préserver la lisibilité des
-cinq cartes ; il reste accessible par défilement horizontal.
+comprend fioles, bécher, éprouvettes, microscope, fenêtre et carrelage. Le plateau garde une largeur de dessin minimale de 850 px puis se réduit à la taille disponible.
 
 Sur ordinateur, le plateau est ajusté à la hauteur de la fenêtre. Le bouton
 « Voir tout le plateau » cadre le laboratoire, l’arbre et le pied du tronc en un
 clic. Le calcul SVG compense le facteur d’échelle pour garder les lignes
-attachées aux cartes. Sur mobile, le défilement horizontal est conservé.
+attachées aux cartes. Sur téléphone, le même ajustement évite le défilement horizontal. Un décor et des cartes compacts sont appliqués en paysage lorsque la fenêtre fait au plus 600 px de haut.
