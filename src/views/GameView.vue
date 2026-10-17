@@ -304,12 +304,12 @@ function restart() {
           <section class="tree-scene" aria-label="L’arbre : composants naturels à relier">
             <svg
               class="tree-art"
-              viewBox="0 0 1000 490"
+              viewBox="0 0 1000 630"
               preserveAspectRatio="none"
               aria-hidden="true"
             >
-              <ellipse cx="500" cy="466" rx="310" ry="19" fill="#d9e6be" />
-              <path d="M458 455c28-91 19-175 24-225h43c-4 80-4 156 32 225Z" fill="#a77852" />
+              <ellipse cx="500" cy="606" rx="310" ry="19" fill="#d9e6be" />
+              <path d="M458 595c28-151 19-315 24-365h43c-4 80-4 296 32 365Z" fill="#a77852" />
               <path
                 d="M499 379 347 225M511 335l163-147M492 292l-34-134M515 282l78-153"
                 fill="none"
@@ -318,7 +318,7 @@ function restart() {
                 stroke-linecap="round"
               />
               <path
-                d="M470 448c18-62 24-126 23-195"
+                d="M470 588c18-112 24-246 23-335"
                 fill="none"
                 stroke="#c6996b"
                 stroke-width="8"
@@ -344,7 +344,7 @@ function restart() {
                 <circle cx="902" cy="157" r="3" />
               </g>
               <path
-                d="M377 465q13-40 32-14m177 12q18-44 29-13M319 464q-11-26-24-14"
+                d="M377 605q13-40 32-14m177 12q18-44 29-13M319 604q-11-26-24-14"
                 fill="none"
                 stroke="#81a66b"
                 stroke-width="5"
@@ -887,7 +887,7 @@ function restart() {
   margin-inline: auto;
   box-sizing: border-box;
   position: relative;
-  height: 385px;
+  height: 485px;
   padding: 0 24px;
 }
 .tree-art {
@@ -895,7 +895,7 @@ function restart() {
   left: 0;
   top: 0;
   width: 100%;
-  height: 350px;
+  height: 450px;
   z-index: 0;
 }
 .fruit-row {
