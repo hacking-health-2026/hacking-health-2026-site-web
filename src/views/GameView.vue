@@ -14,6 +14,32 @@ const pairs = ref<Partial<Record<GameId, GameId>>>({})
 const order = ref(shuffle([0, 1, 2, 3, 4]))
 const lastAttempt = ref<{ medicine: GameId; ingredient: GameId }>()
 const board = ref<HTMLElement>()
+const boardFrame = ref<HTMLElement>()
+const boardScale = ref(1)
+const boardWidth = ref(850)
+const boardHeight = ref(0)
+const boardLeft = ref(0)
+function fitBoard() {
+  if (!board.value || !boardFrame.value) return
+  const width = boardFrame.value.clientWidth
+  boardWidth.value = Math.max(850, width)
+  const naturalHeight = board.value.offsetHeight
+  const fit = window.innerWidth >= 740
+  boardScale.value = fit
+    ? Math.min(1, (window.innerHeight - 36) / naturalHeight, width / boardWidth.value)
+    : 1
+  boardHeight.value = naturalHeight * boardScale.value
+  boardLeft.value = fit ? Math.max(0, (width - boardWidth.value * boardScale.value) / 2) : 0
+}
+async function showWholeBoard() {
+  fitBoard()
+  await nextTick()
+  boardFrame.value?.scrollIntoView({ block: 'start', behavior: 'smooth' })
+}
+function resizeBoard() {
+  fitBoard()
+  nextTick(measureWires)
+}
 const victory = ref<HTMLDialogElement>()
 const wires = ref<
   { id: GameId; path: string; x1: number; y1: number; x2: number; y2: number; correct: boolean }[]
@@ -45,6 +71,7 @@ const fruitState = (component: GameId) => {
 function measureWires() {
   if (!board.value) return
   const bounds = board.value.getBoundingClientRect()
+  const scale = bounds.width / board.value.offsetWidth || 1
   wires.value = gameCases.value.flatMap((item) => {
     const target = pairs.value[item.id]
     if (!target) return []
@@ -55,10 +82,10 @@ function measureWires() {
       .value!.querySelector<HTMLElement>(`[data-component="${target}"]`)
       ?.getBoundingClientRect()
     if (!from || !to) return []
-    const x1 = from.left + from.width / 2 - bounds.left
-    const y1 = from.bottom - bounds.top
-    const x2 = to.left + to.width / 2 - bounds.left
-    const y2 = to.top - bounds.top
+    const x1 = (from.left + from.width / 2 - bounds.left) / scale
+    const y1 = (from.bottom - bounds.top) / scale
+    const x2 = (to.left + to.width / 2 - bounds.left) / scale
+    const y2 = (to.top - bounds.top) / scale
     const bend = Math.max(45, (y2 - y1) * 0.5)
     return [
       {
@@ -74,7 +101,7 @@ function measureWires() {
   })
 }
 watch(
-  [pairs, order],
+  [pairs, order, boardScale],
   async () => {
     await nextTick()
     measureWires()
@@ -89,13 +116,15 @@ watch([pairCount, coachVisible], async ([count, coaching]) => {
   }
 })
 onMounted(() => {
-  resizeObserver = new ResizeObserver(measureWires)
+  resizeObserver = new ResizeObserver(resizeBoard)
   if (board.value) resizeObserver.observe(board.value)
-  window.addEventListener('resize', measureWires)
+  if (boardFrame.value) resizeObserver.observe(boardFrame.value)
+  resizeBoard()
+  window.addEventListener('resize', resizeBoard)
 })
 onBeforeUnmount(() => {
   resizeObserver?.disconnect()
-  window.removeEventListener('resize', measureWires)
+  window.removeEventListener('resize', resizeBoard)
 })
 function selectSample(id: GameId) {
   pairs.value = clearIncorrectPairs(pairs.value)
@@ -148,6 +177,9 @@ function restart() {
           </div>
         </div>
       </div>
+      <button class="show-board" type="button" @click="showWholeBoard">
+        Voir tout le plateau <NexusIcon name="scan" :size="19" />
+      </button>
       <p class="instructions">
         Sélectionnez un échantillon dans le labo, puis un fruit de l’arbre. Retrouvez les cinq liens
         verts !
@@ -168,11 +200,22 @@ function restart() {
       </p>
 
       <div
+        ref="boardFrame"
         class="board-scroll"
+        :style="boardHeight ? { height: `${boardHeight + 2}px` } : undefined"
         tabindex="0"
         aria-label="Plateau à explorer horizontalement sur petit écran"
       >
-        <div ref="board" class="nature-board" :class="{ finished: pairCount === 5 }">
+        <div
+          ref="board"
+          class="nature-board"
+          :class="{ finished: pairCount === 5 }"
+          :style="{
+            width: `${boardWidth}px`,
+            transform: `scale(${boardScale})`,
+            marginLeft: `${boardLeft}px`,
+          }"
+        >
           <svg class="connection-wires" aria-hidden="true">
             <g
               v-for="wire in wires"
@@ -626,7 +669,22 @@ function restart() {
 .mobile-hint {
   display: none;
 }
+.show-board {
+  display: inline-flex;
+  gap: 9px;
+  align-items: center;
+  padding: 12px 16px;
+  border: 1px solid #d6c8f2;
+  border-radius: 12px;
+  background: #f0eaff;
+  color: #6244c2;
+  font-size: 17px;
+  font-weight: 650;
+  margin-top: 16px;
+}
 .board-scroll {
+  position: relative;
+  scroll-margin-top: 12px;
   overflow-x: auto;
   border-radius: 19px;
   border: 1px solid #e7e1ec;
@@ -638,6 +696,7 @@ function restart() {
   outline-offset: 4px;
 }
 .nature-board {
+  transform-origin: top left;
   position: relative;
   min-width: 850px;
   background: linear-gradient(#f5f1fd 0%, #f5f1fd 38%, #f9f9ec 63%, #eff4e7 100%);
@@ -1418,6 +1477,11 @@ function restart() {
   to {
     opacity: 1;
     stroke-width: 3;
+  }
+}
+@media (min-width: 740px) {
+  .board-scroll {
+    overflow: hidden;
   }
 }
 @media (max-width: 900px) {

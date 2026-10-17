@@ -36,3 +36,8 @@ pour réduire leur hauteur. La table est centrée sur 950 px maximum. Le décor 
 comprend fioles, bécher, éprouvettes, microscope, fenêtre et carrelage. Le plateau
 garde une largeur minimale de 850 px sur mobile pour préserver la lisibilité des
 cinq cartes ; il reste accessible par défilement horizontal.
+
+Sur ordinateur, le plateau est ajusté à la hauteur de la fenêtre. Le bouton
+« Voir tout le plateau » cadre le laboratoire, l’arbre et le pied du tronc en un
+clic. Le calcul SVG compense le facteur d’échelle pour garder les lignes
+attachées aux cartes. Sur mobile, le défilement horizontal est conservé.
