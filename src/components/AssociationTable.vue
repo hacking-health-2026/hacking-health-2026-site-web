@@ -29,7 +29,7 @@ const associations = computed(() =>
     >
       <header class="association-heading">
         <span :class="['alert', entry.pair.status]">{{ alertLabels[entry.pair.status] }}</span>
-        <h3>Explication de l’analyse</h3>
+        <h3>Explications de l’analyse</h3>
       </header>
       <article v-for="relation in entry.relations" :key="relation.id" class="relation">
         <strong
