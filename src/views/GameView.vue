@@ -8,10 +8,30 @@ const pairs = ref<Partial<Record<GameId, GameId>>>({})
 const order = ref([3, 0, 4, 1, 2])
 const lastAttempt = ref<{ medicine: GameId; ingredient: GameId }>()
 const board = ref<HTMLElement>()
+const victory = ref<HTMLDialogElement>()
 const wires = ref<
   { id: GameId; path: string; x1: number; y1: number; x2: number; y2: number; correct: boolean }[]
 >([])
 let resizeObserver: ResizeObserver | undefined
+const components = computed(() => order.value.map((i) => gameCases[i]!))
+const pairCount = computed(() => gameCases.filter((c) => pairs.value[c.id] === c.id).length)
+const selectedCase = computed(() => gameCases.find((c) => c.id === selected.value)!)
+const feedback = computed(() => {
+  if (!lastAttempt.value) return undefined
+  return {
+    correct: lastAttempt.value.medicine === lastAttempt.value.ingredient,
+    medicine: gameCases.find((c) => c.id === lastAttempt.value!.medicine)!,
+    component: gameCases.find((c) => c.id === lastAttempt.value!.ingredient)!,
+  }
+})
+const componentName = (id?: GameId) => gameCases.find((c) => c.id === id)?.ingredient
+const owner = (id: GameId) => gameCases.find((c) => pairs.value[c.id] === id)
+const connectionState = (medicine: GameId) =>
+  !pairs.value[medicine] ? '' : pairs.value[medicine] === medicine ? 'correct' : 'incorrect'
+const fruitState = (component: GameId) => {
+  const medicine = owner(component)
+  return medicine ? connectionState(medicine.id) : ''
+}
 
 function measureWires() {
   if (!board.value) return
@@ -23,14 +43,14 @@ function measureWires() {
       .value!.querySelector<HTMLElement>(`[data-medicine="${item.id}"]`)
       ?.getBoundingClientRect()
     const to = board
-      .value!.querySelector<HTMLElement>(`[data-ingredient="${target}"]`)
+      .value!.querySelector<HTMLElement>(`[data-component="${target}"]`)
       ?.getBoundingClientRect()
     if (!from || !to) return []
-    const x1 = from.right - bounds.left
-    const y1 = from.top + from.height / 2 - bounds.top
-    const x2 = to.left - bounds.left
-    const y2 = to.top + to.height / 2 - bounds.top
-    const bend = Math.max(18, (x2 - x1) * 0.6)
+    const x1 = from.left + from.width / 2 - bounds.left
+    const y1 = from.bottom - bounds.top
+    const x2 = to.left + to.width / 2 - bounds.left
+    const y2 = to.top - bounds.top
+    const bend = Math.max(45, (y2 - y1) * 0.5)
     return [
       {
         id: item.id,
@@ -39,7 +59,7 @@ function measureWires() {
         x2,
         y2,
         correct: item.id === target,
-        path: `M ${x1} ${y1} C ${x1 + bend} ${y1}, ${x2 - bend} ${y2}, ${x2} ${y2}`,
+        path: `M ${x1} ${y1} C ${x1} ${y1 + bend}, ${x2} ${y2 - bend}, ${x2} ${y2}`,
       },
     ]
   })
@@ -52,6 +72,12 @@ watch(
   },
   { deep: true },
 )
+watch(pairCount, async (count, previous) => {
+  if (count === 5 && previous !== 5) {
+    await nextTick()
+    victory.value?.showModal()
+  }
+})
 onMounted(() => {
   resizeObserver = new ResizeObserver(measureWires)
   if (board.value) resizeObserver.observe(board.value)
@@ -61,27 +87,7 @@ onBeforeUnmount(() => {
   resizeObserver?.disconnect()
   window.removeEventListener('resize', measureWires)
 })
-const ingredients = computed(() => order.value.map((i) => gameCases[i]!))
-const pairCount = computed(() => gameCases.filter((c) => pairs.value[c.id] === c.id).length)
-const selectedCase = computed(() => gameCases.find((c) => c.id === selected.value)!)
-const feedback = computed(() => {
-  if (!lastAttempt.value) return undefined
-  return {
-    correct: lastAttempt.value.medicine === lastAttempt.value.ingredient,
-    medicine: gameCases.find((c) => c.id === lastAttempt.value!.medicine)!,
-    ingredient: gameCases.find((c) => c.id === lastAttempt.value!.ingredient)!,
-  }
-})
-const ingredientName = (id?: GameId) => gameCases.find((c) => c.id === id)?.ingredient
-const owner = (id: GameId) => gameCases.find((c) => pairs.value[c.id] === id)
-const connectionState = (medicine: GameId) =>
-  !pairs.value[medicine] ? '' : pairs.value[medicine] === medicine ? 'correct' : 'incorrect'
-const ingredientState = (ingredient: GameId) => {
-  const medicine = owner(ingredient)
-  return medicine ? connectionState(medicine.id) : ''
-}
-
-function selectMedicine(id: GameId) {
+function selectSample(id: GameId) {
   pairs.value = clearIncorrectPairs(pairs.value)
   lastAttempt.value = undefined
   selected.value = id
@@ -90,13 +96,13 @@ function link(id: GameId) {
   const medicine = selected.value
   pairs.value = connectPair(clearIncorrectPairs(pairs.value), medicine, id)
   lastAttempt.value = { medicine, ingredient: id }
-  // Keep a failed attempt selected so it can be corrected immediately.
   if (medicine === id) {
     const remaining = gameCases.find((c) => pairs.value[c.id] !== c.id)
     if (remaining) selected.value = remaining.id
   }
 }
 function restart() {
+  victory.value?.close()
   pairs.value = {}
   lastAttempt.value = undefined
   selected.value = 'ciclosporine'
@@ -108,800 +114,837 @@ function restart() {
   <div class="game-page page-width">
     <header class="game-intro">
       <div>
-        <p class="eyebrow">À vous de relier</p>
-        <h1>Un duo.<br />À vous de faire le lien<span class="game-dot">.</span></h1>
-        <p class="game-lead">
-          Cinq duos à retrouver. Reliez les cartes à l’aide des indices<br class="desktop-break" />
-          et découvrez où se cachent ces composants.
+        <p class="eyebrow">Le jeu Herbal Nexus</p>
+        <h1>De la nature<br />au labo<span>.</span></h1>
+        <p>
+          Cinq échantillons. Cinq composants naturels.<br />À vous de créer les bonnes connexions.
         </p>
       </div>
-      <div class="game-emblem" aria-hidden="true">
-        <NexusIcon name="pill" :size="45" /><span>+</span><NexusIcon name="leaf" :size="45" />
-        <small>Reliez. Découvrez.<br /><strong>Retenez le bon réflexe.</strong></small>
+      <div class="mission-badge">
+        <NexusIcon name="spark" :size="25" /><span
+          >Votre mission<strong>5 liens à retrouver</strong></span
+        >
       </div>
     </header>
 
-    <section class="game-workspace">
-      <header class="game-section-head">
-        <div>
-          <p class="eyebrow">Le jeu des associations</p>
-          <h2>À vous de connecter !</h2>
+    <section class="game-workspace" aria-label="Jeu du laboratoire et de l’arbre">
+      <div class="game-toolbar">
+        <div><span class="live-dot"></span><strong>Connectez les deux mondes</strong></div>
+        <div class="progress" aria-live="polite">
+          <span>{{ pairCount }} / 5</span>
+          <div aria-hidden="true">
+            <i v-for="n in 5" :key="n" :class="{ solved: n <= pairCount }"></i>
+          </div>
         </div>
-        <span class="game-counter" :class="{ complete: pairCount === 5 }" aria-live="polite"
-          >{{ pairCount }} / 5 liens corrects</span
-        >
-      </header>
-      <p class="game-instruction">
-        Cliquez sur une carte à gauche, puis sur son ingrédient à droite. Faites apparaître les cinq
-        liens verts !
+      </div>
+      <p class="instructions">
+        Sélectionnez un échantillon dans le labo, puis un fruit de l’arbre. Retrouvez les cinq liens
+        verts !
       </p>
-      <p class="game-legend">
-        <span><i class="legend-green"></i> Bonne réponse</span
-        ><span><i class="legend-red"></i> Lien à revoir</span
-        ><small
-          >Les couleurs indiquent la justesse du lien dans le jeu, pas la sécurité d’une
-          association.</small
-        >
+      <div class="clue-panel" aria-live="polite">
+        <span class="clue-number">{{
+          String(gameCases.findIndex((c) => c.id === selected) + 1).padStart(2, '0')
+        }}</span>
+        <div>
+          <strong>{{ selectedCase.medicine }}</strong>
+          <p>{{ selectedCase.clue }}</p>
+        </div>
+        <NexusIcon name="scan" :size="24" />
+      </div>
+      <p class="mobile-hint">
+        <NexusIcon name="arrow" :size="14" /> Faites glisser le plateau pour explorer les cinq
+        échantillons.
       </p>
 
-      <div class="board-toolbar">
-        <span><NexusIcon name="link" :size="17" /> Connectez les cartes</span>
-        <div class="level-dots" aria-hidden="true">
-          <i v-for="n in 5" :key="n" :class="{ solved: n <= pairCount }"></i>
-        </div>
-      </div>
-      <p class="selection-prompt" aria-live="polite">
-        Carte sélectionnée : <strong>{{ selectedCase.medicine }}</strong
-        ><span>Choisissez son ingrédient</span><NexusIcon name="arrow" :size="17" />
-      </p>
-      <div ref="board" class="matching-board">
-        <svg class="connection-wires" aria-hidden="true">
-          <g
-            v-for="wire in wires"
-            :key="wire.id"
-            :class="wire.correct ? 'wire-correct' : 'wire-incorrect'"
-          >
-            <path class="wire-halo" :d="wire.path" />
-            <path class="wire-line" :d="wire.path" />
-            <circle :cx="wire.x1" :cy="wire.y1" r="5" />
-            <circle :cx="wire.x2" :cy="wire.y2" r="5" />
-          </g>
-        </svg>
-        <div class="match-column">
-          <h3>
-            <NexusIcon name="pill" :size="18" /> Les médicaments <span>Principe actif indiqué</span>
-          </h3>
-          <button
-            v-for="(item, index) in gameCases"
-            :key="item.id"
-            :data-medicine="item.id"
-            class="medicine-card"
-            :class="[connectionState(item.id), { selected: selected === item.id }]"
-            :aria-pressed="selected === item.id"
-            @click="selectMedicine(item.id)"
-          >
-            <span class="card-number">0{{ index + 1 }}</span>
-            <span class="card-body"
-              ><strong>{{ item.medicine }}</strong
-              ><small>{{ item.role }} · Actif : {{ item.active }}</small
-              ><span class="card-clue">{{ item.clue }}</span>
-              <span v-if="pairs[item.id]" class="connection-chip"
-                ><NexusIcon
-                  :name="connectionState(item.id) === 'correct' ? 'check' : 'close'"
-                  :size="14"
-                />{{ ingredientName(pairs[item.id]) }} ·
-                {{ connectionState(item.id) === 'correct' ? 'Bon lien' : 'À revoir' }}</span
-              > </span
-            ><NexusIcon
-              :name="
-                !pairs[item.id]
-                  ? 'plus'
-                  : connectionState(item.id) === 'correct'
-                    ? 'check'
-                    : 'close'
-              "
-              :size="20"
-            />
-          </button>
-        </div>
-        <div class="match-column ingredients-column">
-          <h3>
-            <NexusIcon name="leaf" :size="18" /> Les ingrédients
-            <span>À associer une seule fois</span>
-          </h3>
-          <button
-            v-for="item in ingredients"
-            :key="item.id"
-            :data-ingredient="item.id"
-            class="ingredient-card"
-            :class="ingredientState(item.id)"
-            :aria-label="`Relier ${item.ingredient} à ${selectedCase.medicine}`"
-            @click="link(item.id)"
-          >
-            <span class="ingredient-symbol"
-              ><NexusIcon :name="item.id === 'levothyroxine' ? 'spark' : 'leaf'" :size="23"
-            /></span>
-            <span class="card-body"
-              ><strong>{{ item.ingredient }}</strong
-              ><small>{{ item.ingredientNote }}</small>
-              <span v-if="owner(item.id)" class="ingredient-owner"
-                >{{ ingredientState(item.id) === 'correct' ? 'Bon lien' : 'Lien à revoir' }} ·
-                {{ owner(item.id)?.medicine }}</span
-              > </span
-            ><NexusIcon
-              :name="
-                !owner(item.id)
-                  ? 'plus'
-                  : ingredientState(item.id) === 'correct'
-                    ? 'check'
-                    : 'close'
-              "
-              :size="18"
-            />
-          </button>
-        </div>
-      </div>
       <div
-        v-if="feedback"
-        class="instant-feedback"
-        :class="feedback.correct ? 'correct' : 'incorrect'"
-        role="status"
-        aria-live="polite"
-        aria-atomic="true"
+        class="board-scroll"
+        tabindex="0"
+        aria-label="Plateau à explorer horizontalement sur petit écran"
       >
-        <NexusIcon :name="feedback.correct ? 'check' : 'close'" :size="23" />
-        <div>
-          <strong>{{ feedback.correct ? 'Bien joué !' : 'Pas ce lien-là, réessayez !' }}</strong>
-          <p>
-            {{ feedback.medicine.medicine }} + {{ feedback.ingredient.ingredient }} :
-            {{
-              feedback.correct
-                ? 'ce lien correspond à l’indice.'
-                : 'ce lien ne correspond pas à l’indice de cette fiche.'
-            }}
-          </p>
-          <p class="found-in"><b>Où le trouver ?</b> {{ feedback.ingredient.foundIn }}</p>
-          <a :href="feedback.ingredient.originUrl" target="_blank" rel="noopener noreferrer"
-            >En savoir plus sur cet ingrédient <NexusIcon name="arrow" :size="13"
-          /></a>
+        <div ref="board" class="nature-board" :class="{ finished: pairCount === 5 }">
+          <svg class="connection-wires" aria-hidden="true">
+            <g
+              v-for="wire in wires"
+              :key="wire.id"
+              :class="wire.correct ? 'wire-correct' : 'wire-incorrect'"
+            >
+              <path class="wire-halo" :d="wire.path" />
+              <path class="wire-line" :d="wire.path" />
+              <circle :cx="wire.x1" :cy="wire.y1" r="5" />
+              <circle :cx="wire.x2" :cy="wire.y2" r="5" />
+            </g>
+          </svg>
+
+          <section class="lab-scene" aria-label="Le laboratoire : principes actifs des médicaments">
+            <div class="scene-caption">
+              <span><NexusIcon name="pill" :size="16" /> Le laboratoire</span
+              ><small>Les principes actifs des médicaments</small
+              ><span class="lab-lights" aria-hidden="true"><i></i><i></i><i></i></span>
+            </div>
+            <div class="lab-wall" aria-hidden="true">
+              <span class="wall-molecule">⌬</span>
+              <div class="lab-window"><i></i><i></i><i></i><i></i></div>
+              <span class="wall-label">HERBAL NEXUS / LAB 01</span>
+            </div>
+            <div class="sample-row">
+              <button
+                v-for="(item, index) in gameCases"
+                :key="item.id"
+                :data-medicine="item.id"
+                class="sample-card"
+                :class="[connectionState(item.id), { selected: selected === item.id }]"
+                :aria-pressed="selected === item.id"
+                :aria-label="`Sélectionner l’échantillon ${item.medicine}`"
+                @click="selectSample(item.id)"
+              >
+                <span class="sample-number">ÉCH. 0{{ index + 1 }}</span>
+                <svg class="sample-vial" viewBox="0 0 50 83" aria-hidden="true">
+                  <rect x="13" y="4" width="24" height="10" rx="3" class="vial-cap" />
+                  <path d="M16 14v51a9 9 0 0 0 18 0V14" class="vial-glass" />
+                  <path d="M18 43v22a7 7 0 0 0 14 0V43Z" class="vial-liquid" />
+                  <circle cx="23" cy="53" r="2" fill="white" opacity=".65" />
+                  <circle cx="28" cy="63" r="1.5" fill="white" opacity=".65" />
+                  <path d="M20 20v17" stroke="white" stroke-width="3" stroke-linecap="round" />
+                </svg>
+                <strong>{{ item.active }}</strong
+                ><small>{{ item.role }}</small>
+                <span class="sample-result"
+                  ><NexusIcon
+                    :name="
+                      !pairs[item.id]
+                        ? 'plus'
+                        : connectionState(item.id) === 'correct'
+                          ? 'check'
+                          : 'close'
+                    "
+                    :size="14"
+                  />{{
+                    !pairs[item.id]
+                      ? 'Choisir'
+                      : connectionState(item.id) === 'correct'
+                        ? componentName(pairs[item.id])
+                        : 'À réessayer'
+                  }}</span
+                >
+              </button>
+            </div>
+            <div class="lab-bench" aria-hidden="true"><span></span><span></span><span></span></div>
+          </section>
+
+          <div class="worlds-gap" aria-hidden="true">
+            <span>Reliez les découvertes</span><NexusIcon name="link" :size="22" /><i></i>
+          </div>
+
+          <section class="tree-scene" aria-label="L’arbre : composants naturels à relier">
+            <svg
+              class="tree-art"
+              viewBox="0 0 1000 490"
+              preserveAspectRatio="none"
+              aria-hidden="true"
+            >
+              <ellipse cx="500" cy="466" rx="310" ry="19" fill="#d9e6be" />
+              <path d="M458 455c28-91 19-175 24-225h43c-4 80-4 156 32 225Z" fill="#a77852" />
+              <path
+                d="M499 379 347 225M511 335l163-147M492 292l-34-134M515 282l78-153"
+                fill="none"
+                stroke="#a77852"
+                stroke-width="23"
+                stroke-linecap="round"
+              />
+              <path
+                d="M470 448c18-62 24-126 23-195"
+                fill="none"
+                stroke="#c6996b"
+                stroke-width="8"
+                stroke-linecap="round"
+              />
+              <path
+                d="M89 211C20 136 104 56 205 65 217-6 357-13 415 39 482-25 609-9 646 39 764 1 854 49 853 93 969 81 1007 184 921 230c11 100-132 137-225 98-54 66-178 65-222 22-109 59-223 12-218-31-115 47-210-29-167-108Z"
+                fill="#c6df9c"
+              />
+              <ellipse cx="299" cy="126" rx="153" ry="92" fill="#d5e9ac" />
+              <ellipse cx="641" cy="118" rx="157" ry="100" fill="#cfe5a5" />
+              <ellipse cx="831" cy="193" rx="100" ry="81" fill="#b9d78c" />
+              <ellipse cx="448" cy="218" rx="163" ry="100" fill="#b5d58a" />
+              <g fill="#709c57" opacity=".4">
+                <path
+                  d="M153 153q28-43 52-25-9 31-52 25ZM366 63q25-33 43-17-11 26-43 17ZM751 94q33-26 49-6-18 22-49 6ZM586 281q30-32 49-10-17 26-49 10ZM251 279q-32-34-47-10 18 25 47 10Z"
+                />
+              </g>
+              <g fill="#f5f9d7">
+                <circle cx="116" cy="198" r="4" />
+                <circle cx="389" cy="98" r="4" />
+                <circle cx="712" cy="230" r="5" />
+                <circle cx="902" cy="157" r="3" />
+              </g>
+              <path
+                d="M377 465q13-40 32-14m177 12q18-44 29-13M319 464q-11-26-24-14"
+                fill="none"
+                stroke="#81a66b"
+                stroke-width="5"
+                stroke-linecap="round"
+              />
+            </svg>
+            <div class="fruit-row">
+              <button
+                v-for="(item, index) in components"
+                :key="item.id"
+                :data-component="item.id"
+                class="fruit-card"
+                :class="[fruitState(item.id), `fruit-${index}`]"
+                :aria-label="`Relier ${item.ingredient} à ${selectedCase.medicine}`"
+                @click="link(item.id)"
+              >
+                <span class="fruit-leaf" aria-hidden="true"></span
+                ><span class="fruit-shine" aria-hidden="true"></span>
+                <NexusIcon
+                  :name="item.id === 'levothyroxine' ? 'spark' : 'leaf'"
+                  :size="24"
+                /><strong>{{ item.ingredient }}</strong
+                ><small>{{
+                  !owner(item.id)
+                    ? 'Relier'
+                    : fruitState(item.id) === 'correct'
+                      ? 'Bien relié !'
+                      : 'Réessayez'
+                }}</small
+                ><NexusIcon
+                  v-if="owner(item.id)"
+                  :name="fruitState(item.id) === 'correct' ? 'check' : 'close'"
+                  :size="16"
+                />
+              </button>
+            </div>
+            <div class="tree-sign">
+              <NexusIcon name="leaf" :size="17" />
+              <div>
+                <strong>L’arbre des composants naturels</strong
+                ><small>Plantes, extraits et compléments</small>
+              </div>
+            </div>
+            <p class="tree-metaphor">
+              Un arbre imaginaire pour explorer les composants : tous ne proviennent pas de fruits.
+            </p>
+          </section>
         </div>
       </div>
 
-      <div v-if="pairCount === 5" class="game-complete" role="status">
-        <NexusIcon name="spark" :size="25" />
-        <div>
-          <strong>Les cinq liens sont retrouvés. Bien joué !</strong>
-          <p>Vous savez maintenant dans quels produits retrouver ces ingrédients.</p>
+      <div class="feedback-slot" aria-live="polite" aria-atomic="true">
+        <div
+          v-if="feedback"
+          class="instant-feedback"
+          :class="feedback.correct ? 'correct' : 'incorrect'"
+          role="status"
+        >
+          <NexusIcon :name="feedback.correct ? 'check' : 'close'" :size="23" />
+          <div>
+            <strong>{{
+              feedback.correct ? 'Une connexion de plus !' : 'Pas ce duo-là. Tentez un autre lien !'
+            }}</strong>
+            <p>
+              {{ feedback.medicine.medicine }} + {{ feedback.component.ingredient }} :
+              {{
+                feedback.correct
+                  ? 'ce lien correspond à l’indice.'
+                  : 'ce lien ne correspond pas à l’indice.'
+              }}
+            </p>
+            <p><b>Où le trouver ?</b> {{ feedback.component.foundIn }}</p>
+            <a :href="feedback.component.originUrl" target="_blank" rel="noopener noreferrer"
+              >Découvrir ce composant <NexusIcon name="arrow" :size="13"
+            /></a>
+          </div>
         </div>
+        <p v-else class="feedback-idle">
+          <NexusIcon name="link" :size="18" /> Chaque connexion raconte une histoire. À vous de la
+          découvrir.
+        </p>
       </div>
       <div class="game-actions">
-        <p>Un clic pour relier, une explication pour retenir.</p>
+        <p>
+          <span class="legend-green"></span> Juste <span class="legend-red"></span> À réessayer
+          <small>Les couleurs valident la réponse au jeu, pas la sécurité d’une association.</small>
+        </p>
         <button class="game-primary" @click="restart">
-          Recommencer <NexusIcon name="spark" :size="18" />
+          Recommencer <NexusIcon name="spark" :size="17" />
         </button>
       </div>
     </section>
+
+    <dialog
+      ref="victory"
+      class="victory-dialog"
+      aria-labelledby="victory-title"
+      aria-describedby="victory-description"
+    >
+      <div class="confetti" aria-hidden="true">
+        <i
+          v-for="n in 55"
+          :key="n"
+          :style="{
+            '--x': `${(n * 37) % 100}%`,
+            '--delay': `${(n % 11) * 0.09}s`,
+            '--drift': `${((n * 19) % 180) - 90}px`,
+            '--hue': ['#7155e8', '#fb704b', '#dcef8f', '#edb546', '#66ba90'][n % 5],
+          }"
+        ></i>
+      </div>
+      <div class="victory-content">
+        <div class="victory-medal" aria-hidden="true">
+          <NexusIcon name="spark" :size="58" /><span>5/5</span>
+        </div>
+        <p class="eyebrow">Mission accomplie</p>
+        <h2 id="victory-title">Connexion parfaite<span>!</span></h2>
+        <p id="victory-description">
+          Du labo à l’arbre, vous avez retrouvé les cinq duos.<br /><strong
+            >Les deux mondes sont connectés !</strong
+          >
+        </p>
+        <div class="victory-stars" aria-hidden="true">✦ ✦ ✦ ✦ ✦</div>
+        <button class="game-primary" @click="victory?.close()">
+          Admirer mes connexions <NexusIcon name="arrow" :size="18" /></button
+        ><button class="victory-replay" @click="restart">Rejouer une partie</button>
+      </div>
+    </dialog>
   </div>
 </template>
 
 <style scoped>
 .game-page {
-  padding-top: 56px;
-  padding-bottom: 76px;
+  padding-top: 40px;
+  padding-bottom: 65px;
 }
 .game-intro {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 32px;
-  margin-bottom: 40px;
+  gap: 25px;
+  margin-bottom: 30px;
 }
 .game-intro h1 {
-  font-size: clamp(42px, 5vw, 66px);
-  line-height: 1.06;
-  letter-spacing: -3px;
-  margin-bottom: 22px;
+  font-size: clamp(40px, 5vw, 65px);
+  line-height: 1.02;
+  letter-spacing: -2.8px;
+  margin: 0 0 18px;
 }
-.game-dot {
+.game-intro h1 > span {
   color: var(--coral);
-  margin-left: 6px;
 }
-.game-lead {
-  font-size: 17px;
-  line-height: 1.6;
-  color: #666471;
-  margin-bottom: 0;
-}
-.game-emblem {
-  width: 270px;
-  min-height: 200px;
-  flex-shrink: 0;
-  background: var(--lime);
-  border-radius: 42% 48% 38% 45%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 17px;
-  flex-wrap: wrap;
-  padding: 35px 26px;
-  transform: rotate(5deg);
-}
-.game-emblem > span {
-  font-size: 29px;
-}
-.game-emblem small {
-  width: 100%;
-  text-align: center;
-  font-size: 14px;
-  line-height: 1.6;
-  transform: rotate(-5deg);
-}
-.game-workspace {
-  background: white;
-  border: 1px solid var(--line);
-  border-radius: 28px;
-  padding: 34px;
-  box-shadow: var(--shadow);
-}
-.game-section-head {
-  display: flex;
-  justify-content: space-between;
-  gap: 20px;
-  align-items: center;
-}
-.game-section-head h2 {
-  font-size: 30px;
-  letter-spacing: -1px;
-  margin-bottom: 12px;
-  max-width: 760px;
-  scroll-margin-top: 25px;
-}
-.game-section-head h2:focus {
-  outline: none;
-}
-.game-counter {
-  white-space: nowrap;
-  background: var(--lavender);
-  color: #6348c7;
-  font-size: 13px;
-  padding: 10px 16px;
-  border-radius: 30px;
-  font-weight: 700;
-}
-.game-instruction {
-  color: #6c6977;
-  line-height: 1.65;
-  font-size: 14px;
-  margin-bottom: 28px;
-  max-width: 800px;
-}
-.matching-board {
-  display: grid;
-  grid-template-columns: 1.12fr 1fr;
-  gap: 32px;
-}
-.match-column h3 {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.game-intro > div > p:last-child {
   font-size: 15px;
-  margin-bottom: 18px;
-}
-.match-column h3 > span {
-  margin-left: auto;
-  font-size: 11px;
-  font-weight: 450;
-  color: #817d89;
-}
-.medicine-card,
-.ingredient-card {
-  width: 100%;
-  text-align: left;
-  border: 1px solid #e8e5ef;
-  border-radius: 17px;
-  background: #fcfbfe;
-  padding: 19px;
-  display: flex;
-  gap: 14px;
-  align-items: center;
-  color: var(--ink);
-  transition:
-    border-color 0.15s,
-    background 0.15s;
-  margin-bottom: 12px;
-  min-height: 125px;
-}
-.medicine-card.selected {
-  border-color: var(--purple);
-  background: #f3efff;
-  box-shadow: 0 0 0 2px #7155e81c;
-}
-.card-number {
-  align-self: flex-start;
-  flex-shrink: 0;
-  width: 29px;
-  height: 29px;
-  display: grid;
-  place-items: center;
-  background: #ece6fb;
-  color: #7155c3;
-  border-radius: 9px;
-  font-size: 11px;
-  font-weight: 750;
-}
-.card-body {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  flex: 1;
-  min-width: 0;
-}
-.card-body strong {
-  font-size: 17px;
-}
-.card-body small {
-  color: #6e697a;
-  font-size: 11px;
-  line-height: 1.5;
-}
-.card-clue {
-  font-size: 12px;
-  line-height: 1.5;
-  color: #605b6c;
-  margin-top: 3px;
-}
-.connection-chip {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--purple);
-  margin-top: 5px;
-}
-.selection-prompt {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  background: var(--ink);
-  color: white;
-  padding: 13px 17px;
-  border-radius: 12px;
-  font-size: 12px;
-  margin-bottom: 13px;
-}
-.selection-prompt svg {
-  margin-left: auto;
-}
-.ingredient-card {
-  background: #f7faec;
-  border-color: #e6ecd3;
-  min-height: 101px;
-}
-.ingredient-card:hover {
-  border-color: #9bb347;
-  background: #f0f6d9;
-}
-.ingredient-symbol {
-  background: #e5efc4;
-  color: #627936;
-  width: 42px;
-  height: 42px;
-  display: grid;
-  place-items: center;
-  border-radius: 13px;
-  flex-shrink: 0;
-}
-.ingredient-owner {
-  font-size: 10px;
-  line-height: 1.5;
-  color: #73658d;
-}
-.game-actions {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  border-top: 1px solid var(--line);
-  padding-top: 24px;
-  margin-top: 26px;
-}
-.game-actions p {
-  color: #716c7b;
-  font-size: 12px;
+  line-height: 1.6;
+  color: #726b7e;
   margin: 0;
 }
-.game-primary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  padding: 15px 21px;
-  border-radius: 13px;
-  font-weight: 650;
-  font-size: 13px;
-  border: 0;
-  background: var(--purple);
-  color: white;
-}
-.game-primary:hover:not(:disabled) {
-  background: #5f43cc;
-}
-@media (max-width: 900px) {
-  .game-emblem {
-    width: 205px;
-    min-height: 180px;
-  }
-  .game-workspace {
-    padding: 25px;
-  }
-  .matching-board {
-    gap: 18px;
-  }
-  .medicine-card,
-  .ingredient-card {
-    padding: 14px;
-    gap: 9px;
-  }
-  .match-column h3 {
-    flex-wrap: wrap;
-  }
-  .match-column h3 > span {
-    width: 100%;
-    margin: 0 0 0 26px;
-  }
-}
-@media (max-width: 620px) {
-  .game-primary {
-    width: 100%;
-  }
-  .game-page {
-    padding-top: 30px;
-    padding-bottom: 40px;
-  }
-  .game-intro {
-    margin-bottom: 27px;
-  }
-  .game-intro h1 {
-    font-size: clamp(32px, 9vw, 42px);
-    letter-spacing: -2px;
-  }
-  .game-emblem {
-    display: none;
-  }
-  .game-lead {
-    font-size: 14px;
-  }
-  .desktop-break {
-    display: none;
-  }
-  .game-workspace {
-    padding: 19px 15px;
-    border-radius: 20px;
-  }
-  .game-section-head {
-    align-items: flex-start;
-    gap: 10px;
-  }
-  .game-section-head h2 {
-    font-size: 25px;
-  }
-  .game-counter {
-    padding: 8px 10px;
-    font-size: 10px;
-  }
-  .game-instruction {
-    font-size: 12px;
-  }
-  .matching-board {
-    grid-template-columns: 1fr;
-    gap: 20px;
-  }
-  .medicine-card {
-    min-height: 115px;
-  }
-  .ingredient-card {
-    min-height: 90px;
-  }
-  .match-column h3 > span {
-    width: auto;
-    margin-left: auto;
-  }
-  .game-actions {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .game-actions p {
-    text-align: center;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  * {
-    scroll-behavior: auto !important;
-    transition: none !important;
-  }
-}
-.game-legend {
+.mission-badge {
   display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 12px 20px;
-  margin: -8px 0 25px;
-  font-size: 12px;
-  color: #655f6d;
-}
-.game-legend > span {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  font-weight: 650;
-}
-.game-legend i {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-}
-.legend-green {
-  background: #25824b;
-}
-.legend-red {
-  background: #c14242;
-}
-.game-legend small {
-  flex-basis: 100%;
-  font-size: 11px;
-  line-height: 1.5;
-}
-.instant-feedback {
-  display: flex;
-  gap: 13px;
-  padding: 20px;
-  border: 1px solid;
-  border-radius: 16px;
-  margin-bottom: 25px;
-}
-.instant-feedback > svg {
-  flex-shrink: 0;
-  margin-top: 1px;
-}
-.instant-feedback strong {
-  font-size: 16px;
-}
-.instant-feedback p {
-  font-size: 13px;
-  line-height: 1.6;
-  margin: 7px 0 0;
-}
-.instant-feedback .found-in {
-  margin-top: 12px;
-}
-.instant-feedback a {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 11px;
-  text-decoration: underline;
-  margin-top: 12px;
-}
-.instant-feedback.correct,
-.medicine-card.correct,
-.ingredient-card.correct {
-  background: #edf8ef;
-  border-color: #55a36d;
-  color: #205c36;
-}
-.instant-feedback.incorrect,
-.medicine-card.incorrect,
-.ingredient-card.incorrect {
-  background: #fff1f0;
-  border-color: #d77470;
-  color: #943535;
-}
-.medicine-card.correct.selected {
-  box-shadow: 0 0 0 3px #25824b25;
-}
-.medicine-card.incorrect.selected {
-  box-shadow: 0 0 0 3px #c1424225;
-}
-.medicine-card.correct .connection-chip,
-.ingredient-card.correct .ingredient-owner {
-  color: #24733f;
-}
-.medicine-card.incorrect .connection-chip,
-.ingredient-card.incorrect .ingredient-owner {
-  color: #a13936;
-}
-.ingredient-discovery {
-  font-size: 11px;
-  line-height: 1.6;
-  margin-top: 6px;
-  color: #5b5661;
-}
-.ingredient-card.correct:hover {
-  background: #e4f3e7;
-  border-color: #25824b;
-}
-.ingredient-card.incorrect:hover {
-  background: #ffe7e5;
-  border-color: #b23c38;
-}
-.game-counter.complete {
-  background: #e4f3e7;
-  color: #24733f;
-}
-.game-complete {
-  display: flex;
-  gap: 14px;
+  gap: 15px;
   align-items: center;
   background: var(--lime);
-  border-radius: 16px;
-  padding: 22px;
-  margin-top: 20px;
+  padding: 25px 28px;
+  border-radius: 28px;
+  transform: rotate(4deg);
 }
-.game-complete p {
+.mission-badge > span {
   font-size: 12px;
   line-height: 1.6;
-  margin: 6px 0 0;
 }
-.game-complete svg {
-  flex-shrink: 0;
-}
-@media (max-width: 620px) {
-  .instant-feedback {
-    padding: 15px;
-    gap: 9px;
-  }
-  .instant-feedback p {
-    font-size: 12px;
-  }
-  .game-counter {
-    white-space: normal;
-    max-width: 100px;
-    text-align: center;
-  }
-  .selection-prompt {
-    position: sticky;
-    top: 8px;
-    z-index: 1;
-  }
-}
-.game-intro {
-  margin-bottom: 28px;
-}
-.game-intro h1 {
-  font-size: clamp(36px, 4.4vw, 58px);
+.mission-badge strong {
+  display: block;
+  font-size: 17px;
 }
 .game-workspace {
   background: #fffefa;
-  border: 2px solid #eee8fa;
+  border: 1px solid #e9e3f3;
+  border-radius: 25px;
+  padding: 27px;
+  box-shadow: 0 12px 50px #39246508;
 }
-.board-toolbar {
+.game-toolbar,
+.game-toolbar > div {
   display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.game-toolbar {
   justify-content: space-between;
-  align-items: center;
-  margin: 22px 0 14px;
-  gap: 15px;
+  gap: 20px;
 }
-.board-toolbar > span {
-  display: flex;
-  gap: 8px;
-  align-items: center;
+.game-toolbar strong {
+  font-size: 18px;
+  letter-spacing: -0.5px;
+}
+.live-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--purple);
+  box-shadow: 0 0 0 5px #7155e811;
+}
+.progress > span {
   font-size: 13px;
   font-weight: 750;
   color: var(--purple);
+  white-space: nowrap;
 }
-.level-dots {
+.progress > div {
   display: flex;
-  gap: 7px;
+  gap: 5px;
 }
-.level-dots i {
-  width: 13px;
-  height: 13px;
+.progress i {
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
-  background: #e9e2f6;
-  border: 2px solid white;
-  box-shadow: 0 0 0 1px #dfd5f1;
-  transition: background 0.2s;
+  background: #e7dff5;
 }
-.level-dots i.solved {
-  background: #36a362;
-  box-shadow: 0 0 0 1px #36a362;
+.progress i.solved {
+  background: #39a45e;
+  box-shadow: 0 0 0 3px #39a45e15;
 }
-.selection-prompt {
-  margin: 0 0 18px;
-  background: #eee8ff;
-  color: #5a429d;
-  position: static;
+.instructions {
+  font-size: 12px;
+  line-height: 1.7;
+  color: #77707e;
+  margin: 14px 0 19px;
 }
-.selection-prompt > span {
-  margin-left: auto;
+.clue-panel {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  background: #f0eaff;
+  border: 1px solid #e3d9fa;
+  border-radius: 14px;
+  padding: 15px 18px;
+  margin-bottom: 22px;
+}
+.clue-number {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  background: var(--purple);
+  color: white;
   font-size: 11px;
-  font-weight: 450;
+  font-weight: 800;
+  border-radius: 10px;
+  width: 34px;
+  height: 34px;
 }
-.selection-prompt svg {
-  margin-left: 0;
+.clue-panel strong {
+  font-size: 13px;
 }
-.matching-board {
+.clue-panel p {
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 4px 0 0;
+  color: #756486;
+}
+.clue-panel > svg {
+  color: var(--purple);
+  margin-left: auto;
+  flex-shrink: 0;
+}
+.mobile-hint {
+  display: none;
+}
+.board-scroll {
+  overflow-x: auto;
+  border-radius: 19px;
+  border: 1px solid #e7e1ec;
+  scrollbar-color: #c5b4e9 #f1ecf9;
+  scrollbar-width: thin;
+}
+.board-scroll:focus-visible {
+  outline: 3px solid #b09bec;
+  outline-offset: 4px;
+}
+.nature-board {
   position: relative;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 90px;
-  padding: 20px 8px 8px;
-  border-radius: 18px;
-  background-image: radial-gradient(#c9bdde80 1px, transparent 1px);
-  background-size: 15px 15px;
+  min-width: 640px;
+  background: linear-gradient(#f5f1fd 0%, #f5f1fd 38%, #f9f9ec 63%, #eff4e7 100%);
+  overflow: hidden;
 }
-.match-column {
-  min-width: 0;
+.lab-scene {
+  position: relative;
+  padding: 18px 24px 0;
 }
-.match-column h3 {
-  min-height: 44px;
-  margin-bottom: 16px;
-  flex-wrap: wrap;
-  align-content: center;
+.scene-caption {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  position: relative;
+  z-index: 4;
 }
-.match-column h3 > span {
+.scene-caption > span:first-child {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 750;
+  color: #65528f;
+}
+.scene-caption small {
+  font-size: 10px;
+  color: #92869e;
+}
+.lab-lights {
+  display: flex;
+  gap: 5px;
+  margin-left: auto;
+}
+.lab-lights i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #b1a1cc;
+}
+.lab-lights i:last-child {
+  background: #a5c979;
+}
+.lab-wall {
+  height: 47px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 20px;
+  color: #b8a6d5;
+}
+.wall-molecule {
+  font-size: 40px;
+  opacity: 0.7;
+}
+.wall-label {
+  font-size: 8px;
+  letter-spacing: 2px;
+}
+.lab-window {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: 58px;
+  height: 33px;
+  border: 3px solid #d6cce8;
+  border-radius: 5px;
+  gap: 2px;
+  background: #d6cce8;
+  transform: translateX(-40px);
+}
+.lab-window i {
+  background: #e9f3f1;
+}
+.sample-row {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  position: relative;
+  z-index: 4;
+}
+.sample-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+  min-height: 218px;
   width: 100%;
-  margin: 0 0 0 26px;
-}
-.medicine-card,
-.ingredient-card {
-  position: relative;
-  z-index: 2;
-  height: 165px;
-  min-height: 0;
-  margin-bottom: 18px;
-  border-width: 2px;
-  box-shadow: 0 5px 0 #ded8e955;
+  padding: 12px 7px 14px;
+  border: 2px solid #ddd2ee;
+  border-radius: 15px 15px 10px 10px;
+  background: #ffffffed;
+  color: #574c65;
+  box-shadow: 0 5px 0 #d3c6e5;
   transition:
-    transform 0.15s,
-    background 0.15s,
-    border-color 0.15s;
+    background 0.2s,
+    border-color 0.2s;
 }
-.medicine-card:hover,
-.ingredient-card:hover {
-  filter: brightness(0.985);
+.sample-card:hover {
+  background: white;
+  border-color: #9a80c7;
 }
-.medicine-card.selected {
+.sample-card.selected {
   border-color: var(--purple);
   box-shadow:
-    0 0 0 3px #7155e81a,
-    0 5px 0 #7155e829;
+    0 0 0 3px #7155e819,
+    0 5px 0 #b7a2df;
 }
-.medicine-card::after,
-.ingredient-card::before {
+.sample-card::after {
   content: '';
   position: absolute;
-  top: 50%;
+  bottom: -7px;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 3px solid #a88dcf;
+  background: white;
   width: 12px;
   height: 12px;
   border-radius: 50%;
+}
+.sample-number {
+  font-size: 8px;
+  letter-spacing: 1px;
+  font-weight: 750;
+  color: #a595b4;
+}
+.sample-vial {
+  width: 41px;
+  height: 70px;
+  margin: 0 0 1px;
+}
+.vial-cap {
+  fill: #8b74be;
+}
+.vial-glass {
+  fill: #f0ebfc;
+  stroke: #b4a1d7;
+  stroke-width: 2;
+}
+.vial-liquid {
+  fill: #a18bea;
+}
+.sample-card:nth-child(2) .vial-liquid {
+  fill: #f6b183;
+}
+.sample-card:nth-child(3) .vial-liquid {
+  fill: #76beb6;
+}
+.sample-card:nth-child(4) .vial-liquid {
+  fill: #e6ca70;
+}
+.sample-card:nth-child(5) .vial-liquid {
+  fill: #b19acc;
+}
+.sample-card strong {
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.sample-card > small {
+  font-size: 9px;
+  line-height: 1.5;
+  color: #95879f;
+}
+.sample-result {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 9px;
+  font-weight: 650;
+  margin-top: auto;
+  min-height: 18px;
+}
+.lab-bench {
+  height: 33px;
+  background: #cfc1e1;
+  border-top: 8px solid #a18abf;
+  border-bottom: 4px solid #e7dff0;
+  margin: 8px -8px 0;
+  border-radius: 6px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+.lab-bench span {
+  width: 20px;
+  height: 3px;
+  border-radius: 5px;
+  background: #a18abf;
+}
+.worlds-gap {
+  height: 100px;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  color: #af9ebf;
+  font-size: 9px;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  z-index: 1;
+}
+.worlds-gap i {
+  position: absolute;
+  left: 50%;
+  height: 72px;
+  width: 1px;
+  background: #d1c6db88;
+  transform: rotate(33deg);
+}
+.worlds-gap > span,
+.worlds-gap > svg {
+  position: relative;
+  z-index: 1;
+  background: #f7f6f4;
+  padding: 5px;
+}
+.tree-scene {
+  position: relative;
+  height: 385px;
+  padding: 0 24px;
+}
+.tree-art {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 350px;
+  z-index: 0;
+}
+.fruit-row {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  padding-top: 24px;
+  position: relative;
+  z-index: 4;
+  align-items: start;
+}
+.fruit-card {
+  position: relative;
+  width: 100%;
+  height: 117px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 16px 7px 10px;
+  background: #ffe7a5;
+  border: 2px solid #e3be65;
+  border-radius: 37% 42% 45% 43%;
+  color: #765328;
+  box-shadow: 0 5px 0 #8ea46145;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
+}
+.fruit-card:hover {
+  border-color: #a68039;
+  background: #ffefbd;
+}
+.fruit-0 {
+  margin-top: 54px;
+  background: #f6caad;
+  border-color: #dca27e;
+}
+.fruit-1 {
+  margin-top: 0;
+  background: #fff0b2;
+}
+.fruit-2 {
+  margin-top: 61px;
+  background: #e9d6f2;
+  border-color: #c1a2d3;
+  color: #715280;
+}
+.fruit-3 {
+  margin-top: 9px;
+  background: #f8cfc2;
+  border-color: #dca08e;
+}
+.fruit-4 {
+  margin-top: 56px;
+  background: #e9edb0;
+  border-color: #b6c777;
+  color: #637132;
+}
+.fruit-card::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  height: 14px;
+  width: 4px;
+  background: #8d774d;
+  border-radius: 4px;
+  transform: rotate(12deg);
+}
+.fruit-card::after {
+  content: '';
+  position: absolute;
+  top: -7px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
   background: white;
-  border: 3px solid #b4a2d9;
-  transform: translateY(-50%);
+  border: 2px solid #a59b67;
 }
-.medicine-card::after {
-  right: -8px;
+.fruit-leaf {
+  position: absolute;
+  width: 22px;
+  height: 11px;
+  background: #6e9d51;
+  border-radius: 0 95% 0 95%;
+  top: -13px;
+  left: calc(50% + 3px);
+  transform: rotate(-20deg);
 }
-.ingredient-card::before {
-  left: -8px;
+.fruit-shine {
+  position: absolute;
+  top: 19px;
+  left: 13px;
+  width: 6px;
+  height: 22px;
+  background: #ffffff80;
+  border-radius: 80%;
+  transform: rotate(25deg);
 }
-.medicine-card.correct::after,
-.ingredient-card.correct::before {
-  border-color: #289152;
-  background: #e2f5e7;
+.fruit-card strong {
+  font-size: 13px;
+  position: relative;
 }
-.medicine-card.incorrect::after,
-.ingredient-card.incorrect::before {
-  border-color: #cd4e4e;
-  background: #fff0ed;
+.fruit-card > small {
+  font-size: 9px;
 }
-.medicine-card.correct,
-.ingredient-card.correct {
-  box-shadow: 0 5px 0 #b6d9bf;
+.fruit-card > svg {
+  width: 20px;
+  height: 20px;
 }
-.medicine-card.incorrect,
-.ingredient-card.incorrect {
-  box-shadow: 0 5px 0 #efc4c0;
+.fruit-card > svg:last-child:not(:first-child) {
+  position: absolute;
+  bottom: 9px;
+  right: 13px;
+  width: 13px;
+  height: 13px;
+}
+.tree-sign {
+  position: absolute;
+  bottom: 37px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  background: #fff9e8;
+  border: 1px solid #b8aa7c;
+  border-radius: 8px;
+  padding: 11px 19px;
+  box-shadow: 0 3px 0 #a99a6d;
+  z-index: 4;
+  white-space: nowrap;
+  color: #736641;
+}
+.tree-sign strong {
+  font-size: 11px;
+  display: block;
+}
+.tree-sign small {
+  font-size: 9px;
+  display: block;
+  margin-top: 3px;
+}
+.tree-metaphor {
+  position: absolute;
+  bottom: 5px;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  font-size: 9px;
+  color: #7c896c;
+  margin: 0;
+  padding: 0 15px;
 }
 .connection-wires {
   position: absolute;
@@ -910,10 +953,12 @@ function restart() {
   height: 100%;
   pointer-events: none;
   overflow: visible;
-  z-index: 1;
+  z-index: 3;
 }
-.connection-wires g {
-  fill: currentColor;
+.connection-wires path {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
 }
 .wire-correct {
   color: #299454;
@@ -921,44 +966,314 @@ function restart() {
 .wire-incorrect {
   color: #d44949;
 }
-.connection-wires path {
-  fill: none;
-  stroke: currentColor;
-  stroke-linecap: round;
-}
-.connection-wires .wire-halo {
-  stroke: #fffefa;
-  stroke-width: 10px;
+.wire-halo {
+  stroke: #fcfcf1 !important;
+  stroke-width: 8px;
+  opacity: 0.9;
 }
 .wire-line {
-  stroke-width: 4px;
-  animation: wire-appear 0.3s ease-out;
+  stroke-width: 3px;
+  animation: draw-link 0.3s ease-out;
 }
 .wire-incorrect .wire-line {
-  stroke-dasharray: 7 6;
+  stroke-dasharray: 6 5;
 }
 .connection-wires circle {
+  fill: currentColor;
   stroke: #fffefa;
-  stroke-width: 2px;
+  stroke-width: 2;
+}
+.sample-card.correct,
+.fruit-card.correct {
+  background: #e5f5d9;
+  border-color: #52a36a;
+  color: #2f7348;
+  box-shadow: 0 5px 0 #9acb96;
+}
+.sample-card.incorrect,
+.fruit-card.incorrect {
+  background: #ffe1d9;
+  border-color: #d77470;
+  color: #a34440;
+  box-shadow: 0 5px 0 #e1a69a;
+}
+.sample-card.correct::after,
+.fruit-card.correct::after {
+  border-color: #299454;
+}
+.sample-card.incorrect::after,
+.fruit-card.incorrect::after {
+  border-color: #d44949;
+}
+.finished .lab-lights i {
+  background: #54aa70;
+}
+.feedback-slot {
+  margin-top: 18px;
+}
+.feedback-idle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: #f5f2fa;
+  border-radius: 12px;
+  font-size: 12px;
+  line-height: 1.6;
+  padding: 20px;
+  color: #96899f;
+  margin: 0;
 }
 .instant-feedback {
-  margin: 24px 0 0;
-  animation: feedback-pop 0.2s ease-out;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  border: 1px solid;
+  border-radius: 14px;
+  padding: 19px;
+  animation: pop-in 0.2s ease-out;
 }
-.game-complete {
-  animation: feedback-pop 0.3s ease-out;
+.instant-feedback > svg {
+  flex-shrink: 0;
 }
-@keyframes wire-appear {
+.instant-feedback.correct {
+  background: #edf8ef;
+  border-color: #afd2b8;
+  color: #27673d;
+}
+.instant-feedback.incorrect {
+  background: #fff1ed;
+  border-color: #e2afa5;
+  color: #98493c;
+}
+.instant-feedback strong {
+  font-size: 14px;
+}
+.instant-feedback p {
+  font-size: 12px;
+  line-height: 1.7;
+  margin: 7px 0;
+}
+.instant-feedback a {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 10px;
+  text-decoration: underline;
+}
+.game-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  margin-top: 20px;
+}
+.game-actions p {
+  font-size: 10px;
+  color: #81778b;
+  margin: 0;
+  line-height: 1.7;
+}
+.game-actions p > span {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  margin-right: 5px;
+}
+.legend-green {
+  background: #299454;
+}
+.game-actions .legend-red {
+  background: #d44949;
+  margin-left: 12px;
+}
+.game-actions small {
+  display: block;
+  font-size: 9px;
+}
+.game-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 14px 20px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--purple);
+  color: white;
+  font-size: 12px;
+  font-weight: 650;
+}
+.game-primary:hover {
+  background: #5e42cb;
+}
+.victory-dialog {
+  position: fixed;
+  width: min(560px, calc(100% - 32px));
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  border: 0;
+  border-radius: 30px;
+  padding: 0;
+  background: #fffdf6;
+  color: var(--ink);
+  box-shadow: 0 35px 130px #20173355;
+}
+.victory-dialog::backdrop {
+  background: #22183bcc;
+  backdrop-filter: blur(8px);
+}
+.victory-dialog[open] {
+  animation: celebration-in 0.5s cubic-bezier(0.2, 0.85, 0.3, 1.2);
+}
+.victory-content {
+  position: relative;
+  z-index: 2;
+  padding: 42px 30px 30px;
+  text-align: center;
+}
+.victory-medal {
+  position: relative;
+  margin: 0 auto 25px;
+  width: 135px;
+  height: 135px;
+  border-radius: 40%;
+  background: var(--lime);
+  display: grid;
+  place-items: center;
+  box-shadow:
+    0 0 0 12px #dcef8f35,
+    0 0 0 24px #dcef8f12;
+  animation: medal-pop 0.8s ease-out;
+}
+.victory-medal > svg {
+  color: #7155e8;
+  position: absolute;
+  top: 16px;
+  left: 38px;
+}
+.victory-medal > span {
+  font-size: 27px;
+  font-weight: 850;
+  letter-spacing: -1px;
+  margin-top: 47px;
+  color: #5d46ac;
+}
+.victory-content .eyebrow {
+  justify-content: center;
+  font-size: 10px;
+}
+.victory-content h2 {
+  font-size: 44px;
+  line-height: 1.02;
+  letter-spacing: -2px;
+  margin-bottom: 18px;
+}
+.victory-content h2 > span {
+  color: var(--coral);
+  display: block;
+}
+.victory-content > p:not(.eyebrow) {
+  font-size: 14px;
+  color: #86798f;
+  line-height: 1.9;
+  margin-bottom: 18px;
+}
+.victory-content > p strong {
+  color: #5d5071;
+  font-weight: 650;
+}
+.victory-stars {
+  color: #edba54;
+  letter-spacing: 9px;
+  font-size: 25px;
+  margin: 12px 0 25px;
+}
+.victory-content .game-primary {
+  width: 100%;
+  font-size: 13px;
+  padding: 17px;
+}
+.victory-replay {
+  display: block;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: #8a7d98;
+  font-size: 12px;
+  padding: 18px 10px 0;
+}
+.victory-replay:hover {
+  color: var(--purple);
+}
+.confetti {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  border-radius: 30px;
+  z-index: 1;
+}
+.confetti i {
+  position: absolute;
+  top: -20px;
+  left: var(--x);
+  width: 8px;
+  height: 15px;
+  background: var(--hue);
+  border-radius: 2px;
+  animation: confetti-fall 2.9s var(--delay) ease-out 2 both;
+}
+.confetti i:nth-child(3n) {
+  border-radius: 50%;
+  height: 9px;
+}
+.confetti i:nth-child(2n) {
+  width: 5px;
+}
+.victory-content > p,
+.victory-content h2 {
+  animation: pop-in 0.5s 0.1s ease-out both;
+}
+@keyframes confetti-fall {
+  0% {
+    opacity: 0;
+    transform: translate(0, -20px) rotate(0);
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--drift), 700px) rotate(600deg);
+  }
+}
+@keyframes celebration-in {
   from {
     opacity: 0;
-    stroke-width: 1px;
+    transform: translateY(35px) scale(0.85);
   }
   to {
     opacity: 1;
-    stroke-width: 4px;
+    transform: translateY(0) scale(1);
   }
 }
-@keyframes feedback-pop {
+@keyframes medal-pop {
+  0% {
+    transform: scale(0.5) rotate(-25deg);
+  }
+  65% {
+    transform: scale(1.08) rotate(8deg);
+  }
+  100% {
+    transform: scale(1) rotate(0);
+  }
+}
+@keyframes pop-in {
   from {
     opacity: 0;
     transform: translateY(5px);
@@ -968,140 +1283,180 @@ function restart() {
     transform: translateY(0);
   }
 }
+@keyframes draw-link {
+  from {
+    opacity: 0;
+    stroke-width: 1;
+  }
+  to {
+    opacity: 1;
+    stroke-width: 3;
+  }
+}
 @media (max-width: 900px) {
-  .matching-board {
-    gap: 64px;
+  .game-workspace {
+    padding: 20px;
   }
-  .medicine-card,
-  .ingredient-card {
-    padding: 13px;
-    height: 185px;
+  .mission-badge {
+    padding: 21px;
+    max-width: 220px;
   }
-  .ingredient-symbol {
-    width: 31px;
-    height: 31px;
+  .mission-badge strong {
+    font-size: 14px;
   }
-  .card-number {
-    width: 24px;
-    height: 24px;
+  .lab-scene {
+    padding-left: 17px;
+    padding-right: 17px;
   }
-  .card-body strong {
-    font-size: 16px;
+  .tree-scene {
+    padding-left: 17px;
+    padding-right: 17px;
+  }
+  .sample-row,
+  .fruit-row {
+    gap: 9px;
+  }
+  .sample-card strong {
+    font-size: 11px;
+  }
+  .sample-card > small {
+    font-size: 8px;
+  }
+  .scene-caption small {
+    font-size: 9px;
+  }
+}
+@media (max-width: 740px) {
+  .mobile-hint {
+    display: flex;
+    gap: 7px;
+    align-items: center;
+    font-size: 10px;
+    color: #9b88b1;
+    margin: -8px 0 12px;
+  }
+  .game-toolbar strong {
+    font-size: 15px;
+  }
+  .progress > div {
+    gap: 3px;
+  }
+  .progress i {
+    width: 7px;
+    height: 7px;
   }
 }
 @media (max-width: 620px) {
+  .game-page {
+    padding-top: 30px;
+    padding-bottom: 40px;
+  }
+  .game-intro {
+    margin-bottom: 24px;
+  }
   .game-intro h1 {
-    font-size: 34px;
+    font-size: 43px;
+    letter-spacing: -2px;
+  }
+  .game-intro > div > p:last-child {
+    font-size: 12px;
+  }
+  .mission-badge {
+    display: none;
   }
   .game-workspace {
-    padding: 19px 12px;
+    padding: 16px 12px;
+    border-radius: 20px;
   }
-  .matching-board {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 36px;
-    padding: 12px 0 0;
-  }
-  .medicine-card,
-  .ingredient-card {
-    height: 201px;
-    padding: 12px 9px;
-    gap: 7px;
-    flex-direction: column;
+  .game-toolbar {
     align-items: flex-start;
+    gap: 12px;
   }
-  .card-number {
-    width: 22px;
-    height: 22px;
-    font-size: 10px;
+  .game-toolbar strong {
+    font-size: 14px;
   }
-  .card-body {
-    flex: 1;
-    gap: 5px;
-  }
-  .card-body strong {
-    font-size: 13px;
-    overflow-wrap: anywhere;
-  }
-  .card-body small {
-    font-size: 10px;
-  }
-  .card-clue {
-    font-size: 10px;
-    line-height: 1.45;
-  }
-  .connection-chip {
-    font-size: 10px;
-    flex-wrap: wrap;
-    gap: 3px;
-  }
-  .medicine-card > svg,
-  .ingredient-card > svg {
+  .game-toolbar .live-dot {
     display: none;
   }
-  .ingredient-symbol {
-    width: 26px;
-    height: 26px;
-    border-radius: 8px;
-  }
-  .ingredient-symbol svg {
-    width: 17px;
-  }
-  .match-column h3 {
-    font-size: 11px;
-    gap: 4px;
-    min-height: 45px;
-  }
-  .match-column h3 > span {
-    margin: 0;
-    font-size: 9px;
-  }
-  .match-column h3 > svg {
+  .progress > div {
     display: none;
   }
-  .selection-prompt {
-    flex-wrap: wrap;
-    gap: 5px;
-    font-size: 11px;
+  .clue-panel {
     padding: 12px;
+    gap: 10px;
   }
-  .selection-prompt > span {
-    width: 100%;
-    margin: 0;
-    font-size: 10px;
-  }
-  .selection-prompt > svg {
-    display: none;
-  }
-  .board-toolbar > span {
+  .clue-panel p {
     font-size: 11px;
   }
-  .level-dots {
-    gap: 5px;
+  .clue-panel > svg {
+    display: none;
   }
-  .level-dots i {
-    width: 10px;
-    height: 10px;
+  .instructions {
+    font-size: 11px;
   }
-  .wire-line {
-    stroke-width: 3px;
+  .game-actions {
+    flex-direction: column;
+    align-items: stretch;
   }
-  .game-counter {
-    max-width: 90px;
+  .game-primary {
+    width: 100%;
   }
-  .game-section-head h2 {
-    font-size: 23px;
-  }
-  .ingredient-owner {
+  .game-actions p {
     font-size: 10px;
+  }
+  .feedback-idle {
+    font-size: 11px;
+    text-align: center;
+    padding: 16px;
+  }
+  .feedback-idle svg {
+    flex-shrink: 0;
+  }
+  .instant-feedback {
+    padding: 14px;
+    gap: 8px;
+  }
+  .instant-feedback p {
+    font-size: 11px;
+  }
+  .victory-content {
+    padding: 35px 22px 22px;
+  }
+  .victory-content h2 {
+    font-size: 37px;
+  }
+  .victory-medal {
+    width: 115px;
+    height: 115px;
+  }
+  .victory-medal > svg {
+    left: 28px;
+    top: 9px;
+  }
+  .victory-medal > span {
+    margin-top: 43px;
+    font-size: 25px;
+  }
+  .victory-content > p:not(.eyebrow) {
+    font-size: 12px;
+  }
+  .victory-stars {
+    font-size: 21px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
   *,
-  .wire-line,
-  .instant-feedback,
-  .game-complete {
+  *::before,
+  *::after {
     animation: none !important;
     transition: none !important;
+    scroll-behavior: auto !important;
+  }
+  .confetti {
+    display: none;
+  }
+  .victory-dialog::backdrop {
+    backdrop-filter: none;
   }
 }
 </style>
