@@ -65,9 +65,10 @@ const associations = computed(() =>
 </template>
 <style scoped>
 .associations {
-  margin: 0 20px 24px;
+  margin: 0 0 24px;
 }
 .association {
+  background: #fff;
   padding: 24px;
   border: 1px solid #e5def5;
   border-radius: 18px;
@@ -154,7 +155,7 @@ small {
 }
 @media (max-width: 600px) {
   .associations {
-    margin: 0 12px 16px;
+    margin: 0 0 16px;
   }
   .association {
     padding: 18px;

@@ -459,18 +459,7 @@ onBeforeUnmount(() => controller?.abort())
           </div>
         </section>
         <section v-if="currentStep === 2 && result" class="details-section">
-          <details class="association-details" open>
-            <summary>
-              <span class="detail-icon lavender"><NexusIcon name="link" :size="20" /></span>
-              <span
-                >Les relations, produit par produit<small
-                  >Retrouvez les principes actifs et la relation de chaque association.</small
-                ></span
-              >
-              <NexusIcon name="chevron" :size="18" class="details-chevron" />
-            </summary>
-            <AssociationTable :result="result" />
-          </details>
+          <AssociationTable :result="result" />
 
           <details class="association-details source-details">
             <summary>
