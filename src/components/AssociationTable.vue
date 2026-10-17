@@ -1,115 +1,100 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { Assessment, Component, IngredientRelation } from '@/services/api'
+import type { Assessment, Component } from '@/services/api'
 import { alertLabels } from '@/services/alerts'
 const props = defineProps<{ result: Assessment }>()
 const amount = (component: Component) =>
   component.daily_mg == null
     ? 'Quantité inconnue'
     : `${component.daily_mg.toLocaleString('fr-FR', { maximumFractionDigits: 5 })} mg/j`
-const entries = computed(() =>
-  props.result.pairs.flatMap<{
-    pair: Assessment['pairs'][number]
-    relation: IngredientRelation | null
-  }>((pair) => {
-    const ids = new Set([...pair.drug_a.components, ...pair.drug_b.components].map((c) => c.id))
-    const relations = props.result.ingredient_relations.filter(
-      (r) => ids.has(r.substance.id) && ids.has(r.ingredient.id),
-    )
-    return relations.length
-      ? relations.map((relation) => ({ pair, relation }))
-      : [{ pair, relation: null }]
-  }),
+const cells = computed(() =>
+  props.result.drugs.map((a) =>
+    props.result.drugs.map((b) => {
+      if (a.id === b.id) return null
+      const pair = props.result.pairs.find(
+        (p) =>
+          (p.drug_a.id === a.id && p.drug_b.id === b.id) ||
+          (p.drug_a.id === b.id && p.drug_b.id === a.id),
+      )
+      const aIds = new Set(a.components.map((c) => c.id))
+      const bIds = new Set(b.components.map((c) => c.id))
+      const relations = props.result.ingredient_relations.filter(
+        (r) =>
+          (aIds.has(r.substance.id) && bIds.has(r.ingredient.id)) ||
+          (bIds.has(r.substance.id) && aIds.has(r.ingredient.id)),
+      )
+      return { pair, relations }
+    }),
+  ),
 )
 </script>
 <template>
   <div
-    class="table-scroll"
+    class="matrix-scroll"
     tabindex="0"
     role="region"
-    aria-label="Associations et principes actifs"
+    aria-label="Tableau croisé des relations entre produits"
   >
     <table>
       <caption>
-        Une relation absente ne permet pas de conclure à l’absence de danger. Les quantités
-        inconnues restent affichées comme telles.
+        Chaque case décrit la relation entre le produit de la ligne et celui de la colonne. Une
+        relation absente ne signifie pas une absence de danger.
       </caption>
       <thead>
         <tr>
-          <th scope="col">Produits associés</th>
-          <th scope="col">Principes actifs · quantité par jour</th>
-          <th scope="col">Relation et explication</th>
-          <th scope="col">Niveau d’alerte</th>
+          <th scope="col" class="corner">Vos produits</th>
+          <th v-for="drug in result.drugs" :key="drug.id" scope="col">{{ drug.name }}</th>
         </tr>
       </thead>
       <tbody>
-        <tr
-          v-for="(entry, index) in entries"
-          :key="`${entry.pair.drug_a.id}-${entry.pair.drug_b.id}-${index}`"
-        >
-          <th scope="row">
-            <strong>{{ entry.pair.drug_a.name }}</strong
-            ><span class="plus">+</span><strong>{{ entry.pair.drug_b.name }}</strong>
-          </th>
-          <td>
-            <template v-if="entry.relation">
-              <div class="component">
-                <strong>{{ entry.relation.substance.name }}</strong
-                ><span>{{ amount(entry.relation.substance) }}</span>
-              </div>
-              <span class="connector" aria-label="en relation avec">↕</span>
-              <div class="component">
-                <strong>{{ entry.relation.ingredient.name }}</strong
-                ><span>{{ amount(entry.relation.ingredient) }}</span>
-              </div>
-            </template>
+        <tr v-for="(drug, i) in result.drugs" :key="drug.id">
+          <th scope="row">{{ drug.name }}</th>
+          <td v-for="(other, j) in result.drugs" :key="other.id" :class="{ diagonal: i === j }">
+            <span v-if="i === j" class="dash" aria-label="Même produit">—</span>
             <template v-else>
-              <div
-                v-for="drug in [entry.pair.drug_a, entry.pair.drug_b]"
-                :key="drug.id"
-                class="fallback-product"
+              <span :class="['alert', cells[i]?.[j]?.pair?.status ?? 'unknown']">{{
+                alertLabels[cells[i]?.[j]?.pair?.status ?? 'unknown']
+              }}</span>
+              <article
+                v-for="relation in cells[i]?.[j]?.relations"
+                :key="relation.id"
+                class="relation"
               >
-                <div v-for="component in drug.components" :key="component.id" class="component">
-                  <strong>{{ component.name }}</strong
-                  ><span>{{ amount(component) }}</span>
-                </div>
-                <span v-if="!drug.components.length"
-                  >Composition non renseignée pour {{ drug.name }}.</span
+                <strong
+                  >{{ relation.substance.name }} <span class="link">↔</span>
+                  {{ relation.ingredient.name }}</strong
                 >
-              </div>
-            </template>
-          </td>
-          <td>
-            <template v-if="entry.relation">
-              <p>{{ entry.relation.mechanism }}</p>
-              <p
-                v-if="entry.pair.rules.find((r) => r.id === entry.relation!.rule_id)?.consequence"
-                class="consequence"
-              >
-                {{ entry.pair.rules.find((r) => r.id === entry.relation!.rule_id)?.consequence }}
-              </p>
-              <small>{{ entry.relation.rule_id }} · {{ entry.relation.mapping_note }}</small>
-              <small class="quantity-note">{{
-                entry.relation.quantity_complete
-                  ? 'Quantités prises en compte dans l’évaluation simulée.'
-                  : 'Quantités ou référence manquantes : pondération non calculée.'
-              }}</small>
-            </template>
-            <template v-else-if="entry.pair.rules.length">
-              <div v-for="rule in entry.pair.rules" :key="rule.id">
-                <p>{{ rule.mechanism }}</p>
-                <p class="consequence">{{ rule.consequence }}</p>
-                <small
-                  >{{ rule.id }} · {{ rule.reference.sheet }}, ligne {{ rule.reference.row }}</small
+                <small class="amounts"
+                  >{{ amount(relation.substance) }} ↔ {{ amount(relation.ingredient) }}</small
                 >
-              </div>
+                <p>{{ relation.mechanism }}</p>
+                <p
+                  v-if="
+                    cells[i]?.[j]?.pair?.rules.find((r) => r.id === relation.rule_id)?.consequence
+                  "
+                  class="consequence"
+                >
+                  {{
+                    cells[i]?.[j]?.pair?.rules.find((r) => r.id === relation.rule_id)?.consequence
+                  }}
+                </p>
+                <small>{{ relation.rule_id }} · {{ relation.mapping_note }}</small>
+              </article>
+              <template v-if="!cells[i]?.[j]?.relations.length">
+                <article v-for="rule in cells[i]?.[j]?.pair?.rules" :key="rule.id" class="relation">
+                  <strong>{{ rule.ingredient }} ↔ {{ rule.target }}</strong>
+                  <p>{{ rule.mechanism }}</p>
+                  <p class="consequence">{{ rule.consequence }}</p>
+                  <small
+                    >{{ rule.id }} · {{ rule.reference.sheet }}, ligne
+                    {{ rule.reference.row }}</small
+                  >
+                </article>
+                <p v-if="!cells[i]?.[j]?.pair?.rules.length" class="missing">
+                  Aucune relation documentée dans les données disponibles.
+                </p>
+              </template>
             </template>
-            <p v-else>Aucune relation documentée pour cette paire dans les données disponibles.</p>
-          </td>
-          <td>
-            <span :class="['alert', entry.relation?.status ?? entry.pair.status]">{{
-              alertLabels[entry.relation?.status ?? entry.pair.status]
-            }}</span>
           </td>
         </tr>
       </tbody>
@@ -117,7 +102,7 @@ const entries = computed(() =>
   </div>
 </template>
 <style scoped>
-.table-scroll {
+.matrix-scroll {
   overflow-x: auto;
   margin: 0 20px 24px;
   border: 1px solid #e5def5;
@@ -125,11 +110,11 @@ const entries = computed(() =>
 }
 table {
   width: 100%;
-  min-width: 760px;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   text-align: left;
   font-size: 17px;
-  line-height: 1.55;
+  line-height: 1.5;
 }
 caption {
   caption-side: bottom;
@@ -139,68 +124,73 @@ caption {
   color: #666079;
   background: #faf8ff;
 }
-thead {
-  background: #f0eaff;
-  color: #554078;
-}
 th,
 td {
-  padding: 22px 18px;
-  vertical-align: top;
+  padding: 20px;
+  border-right: 1px solid #e8e2f2;
   border-bottom: 1px solid #e8e2f2;
+  vertical-align: top;
   overflow-wrap: anywhere;
 }
-thead th {
-  font-size: 15px;
+th {
+  background: #f0eaff;
+  color: #554078;
+  font-size: 17px;
+  min-width: 145px;
 }
 tbody th {
-  width: 20%;
-  font-size: 18px;
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  width: 170px;
+  box-shadow: 2px 0 0 #e8e2f2;
 }
-tbody td:nth-child(2) {
-  width: 26%;
+td {
+  min-width: 270px;
 }
-tbody td:nth-child(3) {
-  width: 38%;
+tr > :last-child {
+  border-right: 0;
 }
 tbody tr:last-child > * {
   border-bottom: 0;
 }
-.plus,
-.component span,
-small {
+.diagonal {
+  background: #faf8fd;
+  text-align: center;
+  vertical-align: middle;
+}
+.dash {
+  color: #c0b5d4;
+  font-size: 32px;
+}
+.relation {
+  margin-top: 18px;
+}
+.relation + .relation {
+  border-top: 1px solid #e8e2f2;
+  padding-top: 16px;
+}
+.relation strong {
   display: block;
+  color: #42374f;
 }
-.plus,
-.connector {
-  color: #8966c2;
+.link {
+  color: #9472c5;
 }
-.plus {
-  margin: 6px 0;
-}
-.component span {
-  color: #666079;
-  font-size: 15px;
-}
-.connector {
-  display: block;
-  margin: 5px 0;
-}
-.fallback-product + .fallback-product {
-  margin-top: 14px;
+.amounts {
+  margin-top: 5px;
+  color: #796091;
 }
 p {
-  margin: 0 0 10px;
+  margin: 12px 0;
 }
 .consequence {
   font-weight: 600;
 }
 small {
-  color: #666079;
+  display: block;
+  color: #736b80;
   font-size: 13px;
-}
-.quantity-note {
-  margin-top: 10px;
 }
 .alert {
   display: inline-block;
@@ -225,13 +215,23 @@ small {
   color: #5c5870;
   background: #efedf5;
 }
+.missing {
+  color: #736b80;
+}
 @media (max-width: 600px) {
-  .table-scroll {
+  .matrix-scroll {
     margin: 0 12px 16px;
   }
   th,
   td {
     padding: 16px 14px;
+  }
+  tbody th {
+    min-width: 115px;
+    max-width: 135px;
+  }
+  td {
+    min-width: 245px;
   }
 }
 </style>

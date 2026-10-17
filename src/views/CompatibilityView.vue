@@ -2,7 +2,6 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import BillyMascot from '@/components/BillyMascot.vue'
 import AnalysisExport from '@/components/AnalysisExport.vue'
-import AnalysisCalculations from '@/components/AnalysisCalculations.vue'
 import AssociationTable from '@/components/AssociationTable.vue'
 import { decodeAnalysis } from '@/services/analysisShare'
 import DrugPicker from '@/components/DrugPicker.vue'
@@ -458,22 +457,15 @@ onBeforeUnmount(() => controller?.abort())
               }}<b v-if="index < result.drugs.length - 1">+</b></span
             >
           </div>
-          <AnalysisCalculations
-            :result="result"
-            :intakes="
-              rows
-                .filter((r) => r.drug)
-                .map((r) => ({ product_id: r.drug!.id, units_per_day: r.units }))
-            "
-          />
         </section>
         <section v-if="currentStep === 2 && result" class="details-section">
           <details class="association-details" open>
             <summary>
               <span class="detail-icon lavender"><NexusIcon name="link" :size="20" /></span>
               <span
-                >Les associations et leurs principes actifs<small
-                  >Produits, quantités et mécanismes réunis dans un seul tableau.</small
+                >Les relations, produit par produit<small
+                  >Croisez deux produits pour retrouver leurs principes actifs et leur
+                  relation.</small
                 ></span
               >
               <NexusIcon name="chevron" :size="18" class="details-chevron" />
