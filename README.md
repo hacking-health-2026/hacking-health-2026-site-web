@@ -16,7 +16,7 @@ npm ci
 npm run dev
 ```
 
-Open the local URL and choose **Explorer**. Vite proxies `/api` to
+Open the local URL and choose **Utiliser**. Vite proxies `/api` to
 `http://127.0.0.1:8000`. With pnpm, use `pnpm install --frozen-lockfile`
 and `pnpm dev` instead.
 
@@ -27,7 +27,7 @@ npm run build
 ```
 
 The backend serves the sibling frontend's `dist/` at
-http://127.0.0.1:8000/compatibility. Set its `FRONTEND_DIST` for another location.
+http://127.0.0.1:8000/utilisation. Set its `FRONTEND_DIST` for another location.
 For separate hosting set frontend `VITE_API_BASE_URL` before building and allow
 that origin in backend `CORS_ORIGINS`.
 
@@ -38,6 +38,12 @@ the frontend: set the repository variable `VITE_API_BASE_URL` to a deployed HTTP
 backend for search and scoring to work there.
 
 ## Demo script
+
+The **Utiliser** action opens `/utilisation`, organized into three stages:
+selection (products and profile), analysis (alerts and relations), and summary.
+Only one stage is shown at a time. Editing an input invalidates the previous
+analysis and summary. `/compatibility` redirects to this page and preserves the
+query string, including `example=sleep`.
 
 The interface displays **Danger** (red), **Risque modéré** (orange) or **Risque
 faible** (green), with a separate unclassified state for missing information.

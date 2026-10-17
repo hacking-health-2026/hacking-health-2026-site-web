@@ -14,9 +14,13 @@ const router = createRouter({
       component: HomeView,
     },
     {
-      path: '/compatibility',
-      name: 'compatibility',
+      path: '/utilisation',
+      name: 'utilisation',
       component: CompatibilityView,
+    },
+    {
+      path: '/compatibility',
+      redirect: (to) => ({ name: 'utilisation', query: to.query, hash: to.hash }),
     },
     {
       path: '/team',

@@ -72,7 +72,7 @@ const cases = [
     <section class="home-hero" aria-labelledby="home-title">
       <div class="hero-copy">
         <span class="eyebrow">Médicaments & compléments alimentaires</span>
-        <h1 id="home-title">Naturel ne veut<br />pas dire<br /><span>sans interaction.</span></h1>
+        <h1 id="home-title">Naturel ne veut<br />pas dire<br /><span>sans danger.</span></h1>
         <p>
           Une plante, un complément, un médicament.<br class="desktop-break" />
           Leurs effets peuvent se croiser dans le même organisme.
@@ -81,8 +81,8 @@ const cases = [
           <a href="#cas-documentes" class="primary-button"
             >Voir les cas documentés <NexusIcon name="arrow"
           /></a>
-          <RouterLink to="/compatibility" class="secondary-link"
-            >Explorer mes produits <NexusIcon name="arrow" :size="16"
+          <RouterLink to="/utilisation" class="secondary-link"
+            >Utiliser Herbal Nexus <NexusIcon name="arrow" :size="16"
           /></RouterLink>
         </div>
         <p class="hero-note">
@@ -223,10 +223,10 @@ const cases = [
     <section class="bottom-invitation">
       <div>
         <span>Vos produits aussi méritent une vue d’ensemble.</span>
-        <h2>On explore ?</h2>
+        <h2>À vous de choisir.</h2>
         <p>Retrouvez leurs ingrédients et les règles d’association disponibles.</p>
       </div>
-      <RouterLink to="/compatibility" class="round-link" aria-label="Ouvrir l’analyse"
+      <RouterLink to="/utilisation" class="round-link" aria-label="Utiliser Herbal Nexus"
         ><NexusIcon name="arrow" :size="28"
       /></RouterLink>
       <NexusFlower class="invitation-flower" :size="150" />

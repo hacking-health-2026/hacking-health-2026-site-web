@@ -16,9 +16,9 @@ import NexusIcon from '@/components/NexusIcon.vue'
       >
       <nav class="main-nav" aria-label="Navigation principale">
         <RouterLink to="/" exact-active-class="nav-current">Accueil</RouterLink>
-        <RouterLink to="/compatibility" active-class="nav-current"
-          ><NexusIcon name="spark" :size="16" /> Explorer</RouterLink
-        >
+        <RouterLink to="/utilisation" active-class="nav-current" class="nav-use"
+          >Utiliser <NexusIcon name="arrow" :size="16"
+        /></RouterLink>
       </nav>
       <span class="event-tag"><span></span> Hacking Health 2026</span>
     </div>

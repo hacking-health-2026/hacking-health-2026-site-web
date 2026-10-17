@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import DrugPicker from '@/components/DrugPicker.vue'
 import CompositionEditor from '@/components/CompositionEditor.vue'
 import NexusIcon from '@/components/NexusIcon.vue'
-import NexusFlower from '@/components/NexusFlower.vue'
 import { useRoute } from 'vue-router'
 import { alertLabels, alertColors, severityStatus } from '@/services/alerts'
 import {
@@ -18,6 +17,22 @@ import {
 } from '@/services/api'
 
 const route = useRoute()
+const currentStep = ref<1 | 2 | 3>(1)
+const stageContent = ref<HTMLElement | null>(null)
+const steps = [
+  { id: 1, title: 'Sélection', description: 'Produits et profil' },
+  { id: 2, title: 'Analyse', description: 'Comprendre les associations' },
+  { id: 3, title: 'Résumé', description: 'Retenir l’essentiel' },
+] as const
+function goToStep(step: 1 | 2 | 3) {
+  if (loading.value || (step > 1 && !result.value)) return
+  currentStep.value = step
+}
+watch(currentStep, async () => {
+  await nextTick()
+  stageContent.value?.focus({ preventScroll: true })
+  stageContent.value?.scrollIntoView({ block: 'start' })
+})
 const selectedScenario = ref('')
 let nextId = 3
 const rows = ref<{ id: number; drug: Drug | null; units: number }[]>([
@@ -83,6 +98,7 @@ function clearResult() {
   loading.value = false
   result.value = null
   error.value = ''
+  currentStep.value = 1
 }
 watch(
   rows,
@@ -161,15 +177,20 @@ async function checkCompatibility() {
         })),
       })),
     )
-    if (!active.signal.aborted) result.value = response
+    if (!active.signal.aborted) {
+      result.value = response
+      currentStep.value = 2
+    }
   } catch (cause) {
-    if (!active.signal.aborted)
+    if (!active.signal.aborted) {
+      currentStep.value = 1
       error.value =
         cause instanceof TypeError
           ? 'Backend inaccessible.'
           : cause instanceof Error
             ? cause.message
             : 'Analyse indisponible.'
+    }
   } finally {
     if (!active.signal.aborted) loading.value = false
   }
@@ -223,200 +244,212 @@ onBeforeUnmount(() => controller?.abort())
 
 <template>
   <div class="explorer page-width">
-    <header class="explorer-heading">
-      <div>
-        <span class="eyebrow">Votre point de rencontre</span>
-        <h1>
-          Vos produits.<br class="mobile-break" />
-          <span>Une vue d’ensemble.</span>
-        </h1>
-        <p>Reliez les informations. Repérez les associations. Comprenez le niveau d’alerte.</p>
-      </div>
-      <div class="heading-flower"><NexusFlower :size="73" /></div>
+    <header class="usage-heading">
+      <h1>Reliez les informations, repérez les associations et comprenez le niveau d’alerte.</h1>
+      <p>Une interaction non détectée ne signifie pas une absence de danger.</p>
     </header>
-
-    <section class="example-strip" aria-label="Exemples d’associations">
-      <span class="example-label"
-        ><NexusIcon name="spark" :size="17" /> Un exemple pour commencer ?</span
-      >
-      <div class="example-buttons">
-        <button
-          v-for="(scenario, index) in scenarios"
-          :key="scenario.id"
-          type="button"
-          :disabled="loading"
-          :class="['example-button', { active: selectedScenario === scenario.id }]"
-          @click="loadScenario(scenario)"
-        >
-          <span class="example-number">0{{ index + 1 }}</span
-          >{{ scenario.title }}<NexusIcon name="arrow" :size="16" />
-        </button>
-      </div>
-    </section>
-
-    <div class="workspace">
-      <section class="selection-panel" aria-label="Produits et profil">
-        <div class="panel-heading">
-          <div>
-            <span class="section-kicker">VOTRE SÉLECTION</span>
-            <h2>Qu’est-ce qu’on associe ?</h2>
-          </div>
-          <span class="selection-count"
-            >{{ rows.filter((row) => row.drug).length }}<span>/ 5</span></span
-          >
-        </div>
-        <form @submit.prevent="checkCompatibility">
-          <div class="product-list">
-            <div
-              v-for="(row, index) in rows"
-              :key="row.id"
-              :class="['product-entry', `product-${index % 3}`]"
+    <div class="utilization-layout">
+      <aside class="usage-sidebar" aria-label="Étapes d’utilisation">
+        <span class="sidebar-title">UTILISATION</span>
+        <ol class="usage-steps">
+          <li v-for="step in steps" :key="step.id">
+            <button
+              type="button"
+              :class="{
+                active: currentStep === step.id,
+                completed: result && currentStep > step.id,
+              }"
+              :aria-current="currentStep === step.id ? 'step' : undefined"
+              :disabled="loading || (step.id > 1 && !result)"
+              @click="goToStep(step.id)"
             >
-              <div class="product-entry-top">
-                <span class="product-index"
-                  ><NexusIcon
-                    :name="
-                      row.drug?.kind === 'medicine' || (!row.drug && index === 0) ? 'pill' : 'leaf'
-                    "
-                    :size="18" /></span
-                ><span>{{
-                  row.drug?.display_kind ??
-                  (row.drug
-                    ? row.drug.kind === 'medicine'
-                      ? 'Médicament'
-                      : row.drug.kind === 'supplement'
-                        ? 'Complément'
-                        : 'Ingrédient'
-                    : `Produit ${index + 1}`)
-                }}</span
-                ><button
-                  v-if="rows.length > 2"
-                  type="button"
-                  class="remove-product"
-                  :aria-label="`Retirer le produit ${index + 1}`"
-                  @click="rows.splice(index, 1)"
-                >
-                  <NexusIcon name="close" :size="15" /></button
-                ><NexusIcon v-else-if="row.drug" name="check" :size="15" class="entry-check" />
-              </div>
-              <DrugPicker
-                :id="`drug-${row.id}`"
-                :selected="row.drug"
-                :label="`Produit ${index + 1}`"
-                @select="selectProduct(row.id, $event)"
-              />
-              <CompositionEditor
-                v-if="row.drug"
-                :drug="row.drug"
-                :units="row.units"
-                @quantity="(id, amount) => setQuantity(row.drug!, id, amount)"
-                @units="row.units = $event"
-              />
-            </div>
-          </div>
-          <button
-            type="button"
-            :disabled="rows.length >= 5"
-            class="add-product"
-            @click="rows.push({ id: nextId++, drug: null, units: 1 })"
-          >
-            <NexusIcon name="plus" :size="16" /> Ajouter un produit <span>Jusqu’à 5 produits</span>
-          </button>
-
-          <details class="profile-panel">
-            <summary>
-              <span class="profile-symbol"><NexusIcon name="user" :size="17" /></span
-              ><span
-                >Votre profil<small
-                  >{{ profile.age ?? '—' }} ans · {{ profile.weight_kg ?? '—' }} kg{{
-                    condition ? ` · ${condition}` : ''
-                  }}</small
-                ></span
-              ><NexusIcon name="chevron" :size="16" class="profile-chevron" />
-            </summary>
-            <div class="profile-fields">
-              <label
-                >Âge <span>ans</span
-                ><input
-                  v-model.number="profile.age"
-                  aria-label="Âge (ans)"
-                  type="number"
-                  min="18"
-                  max="110" /></label
-              ><label
-                >Poids <span>kg</span
-                ><input
-                  v-model.number="profile.weight_kg"
-                  aria-label="Poids (kg)"
-                  type="number"
-                  min="30"
-                  max="250"
-                  step="0.1" /></label
-              ><label class="condition-field"
-                >État du profil<select v-model="condition" aria-label="État du profil">
-                  <option value="">Aucun sélectionné</option>
-                  <option v-for="value in conditions" :key="value" :value="value">
-                    {{ value }}
-                  </option>
-                </select></label
+              <span class="step-number"
+                ><NexusIcon
+                  v-if="result && currentStep > step.id"
+                  name="check"
+                  :size="17"
+                /><template v-else>{{ step.id }}</template></span
               >
-            </div>
-          </details>
-
-          <p v-if="error" role="alert" class="error-message">
-            <NexusIcon name="info" :size="17" />{{ error }}
-          </p>
-          <button type="submit" :disabled="!ready" class="analyse-button">
-            <NexusIcon v-if="loading" name="spark" :size="19" class="loading-icon" /><span>{{
-              loading ? 'Analyse en cours…' : 'Explorer cette association'
-            }}</span
-            ><NexusIcon name="arrow" :size="20" />
-          </button>
-          <p class="selection-note">
-            <NexusIcon name="link" :size="13" /> Les ingrédients sont identifiés à partir des
-            produits choisis.
-          </p>
-        </form>
-      </section>
-
-      <section
-        :class="['insight-panel', result?.status ?? 'empty']"
-        aria-label="Résultat de l’association"
-        aria-live="polite"
-        :aria-busy="loading"
+              <span
+                ><strong>{{ step.title }}</strong
+                ><small>{{ step.description }}</small></span
+              >
+            </button>
+          </li>
+        </ol>
+        <RouterLink to="/" class="sidebar-home"
+          ><NexusIcon name="book" :size="16" /> Comprendre le projet</RouterLink
+        >
+      </aside>
+      <div
+        ref="stageContent"
+        class="stage-content"
+        tabindex="-1"
+        :aria-label="`Étape ${currentStep} : ${steps[currentStep - 1]?.title}`"
       >
-        <div class="insight-heading">
-          <span><NexusIcon name="scan" :size="18" /> VOTRE VUE D’ENSEMBLE</span
-          ><span v-if="result" class="complete-badge"><span></span> Analyse terminée</span
-          ><span v-else class="waiting-badge">À vous de jouer</span>
+        <div v-if="currentStep > 1 && result" class="stage-actions">
+          <button type="button" @click="goToStep(1)">Modifier la sélection</button>
+          <button v-if="currentStep === 2" type="button" class="stage-next" @click="goToStep(3)">
+            Voir le résumé <NexusIcon name="arrow" :size="17" />
+          </button>
+          <button v-else type="button" class="stage-next" @click="goToStep(2)">
+            Revoir l’analyse <NexusIcon name="arrow" :size="17" />
+          </button>
         </div>
+        <section v-if="loading && currentStep > 1" class="stage-loading" role="status">
+          Analyse en cours…
+        </section>
+        <section v-if="currentStep === 1" class="selection-panel" aria-label="Produits et profil">
+          <div class="panel-heading">
+            <div>
+              <span class="section-kicker">VOTRE SÉLECTION</span>
+              <h2>Qu’est-ce qu’on associe ?</h2>
+            </div>
+            <span class="selection-count"
+              >{{ rows.filter((row) => row.drug).length }}<span>/ 5</span></span
+            >
+          </div>
+          <section class="example-strip" aria-label="Exemples d’associations">
+            <div class="example-buttons">
+              <button
+                v-for="(scenario, index) in scenarios"
+                :key="scenario.id"
+                type="button"
+                :disabled="loading"
+                :class="['example-button', { active: selectedScenario === scenario.id }]"
+                @click="loadScenario(scenario)"
+              >
+                <span class="example-number">0{{ index + 1 }}</span
+                >{{ scenario.title }}<NexusIcon name="arrow" :size="16" />
+              </button>
+            </div>
+          </section>
 
-        <div v-if="!result" class="empty-result">
-          <div class="connection-art" aria-hidden="true">
-            <svg viewBox="0 0 290 185">
-              <path
-                d="M63 48C200 7 85 190 231 138"
-                fill="none"
-                stroke="#b4a4df"
-                stroke-width="2"
-                stroke-dasharray="5 6"
-              /></svg
-            ><span class="orbit-pill"><NexusIcon name="pill" :size="35" /></span
-            ><span class="orbit-leaf"><NexusIcon name="leaf" :size="34" /></span
-            ><span class="orbit-flower"><NexusFlower :size="69" /></span
-            ><span class="orbit-spark">✳</span>
-          </div>
-          <h2>Et si on regardait<br /><span>l’ensemble ?</span></h2>
-          <p>Choisissez au moins deux produits.<br />Leurs associations prendront vie ici.</p>
-          <div class="empty-tags">
-            <span>Médicaments</span><span>Plantes</span><span>Compléments</span>
-          </div>
-          <div class="empty-tip">
-            <NexusIcon name="arrow" :size="16" /> Ou lancez l’un des exemples au-dessus.
-          </div>
-        </div>
+          <form @submit.prevent="checkCompatibility">
+            <div class="product-list">
+              <div
+                v-for="(row, index) in rows"
+                :key="row.id"
+                :class="['product-entry', `product-${index % 3}`]"
+              >
+                <div class="product-entry-top">
+                  <span class="product-index"
+                    ><NexusIcon
+                      :name="
+                        row.drug?.kind === 'medicine' || (!row.drug && index === 0)
+                          ? 'pill'
+                          : 'leaf'
+                      "
+                      :size="18" /></span
+                  ><span>{{
+                    row.drug?.display_kind ??
+                    (row.drug
+                      ? row.drug.kind === 'medicine'
+                        ? 'Médicament'
+                        : row.drug.kind === 'supplement'
+                          ? 'Complément'
+                          : 'Ingrédient'
+                      : `Produit ${index + 1}`)
+                  }}</span
+                  ><button
+                    v-if="rows.length > 2"
+                    type="button"
+                    class="remove-product"
+                    :aria-label="`Retirer le produit ${index + 1}`"
+                    @click="rows.splice(index, 1)"
+                  >
+                    <NexusIcon name="close" :size="15" /></button
+                  ><NexusIcon v-else-if="row.drug" name="check" :size="15" class="entry-check" />
+                </div>
+                <DrugPicker
+                  :id="`drug-${row.id}`"
+                  :selected="row.drug"
+                  :label="`Produit ${index + 1}`"
+                  @select="selectProduct(row.id, $event)"
+                />
+                <CompositionEditor
+                  v-if="row.drug"
+                  :drug="row.drug"
+                  :units="row.units"
+                  @quantity="(id, amount) => setQuantity(row.drug!, id, amount)"
+                  @units="row.units = $event"
+                />
+              </div>
+            </div>
+            <button
+              type="button"
+              :disabled="rows.length >= 5"
+              class="add-product"
+              @click="rows.push({ id: nextId++, drug: null, units: 1 })"
+            >
+              <NexusIcon name="plus" :size="16" /> Ajouter un produit
+              <span>Jusqu’à 5 produits</span>
+            </button>
 
-        <template v-else>
+            <details class="profile-panel">
+              <summary>
+                <span class="profile-symbol"><NexusIcon name="user" :size="17" /></span
+                ><span
+                  >Votre profil<small
+                    >{{ profile.age ?? '—' }} ans · {{ profile.weight_kg ?? '—' }} kg{{
+                      condition ? ` · ${condition}` : ''
+                    }}</small
+                  ></span
+                ><NexusIcon name="chevron" :size="16" class="profile-chevron" />
+              </summary>
+              <div class="profile-fields">
+                <label
+                  >Âge <span>ans</span
+                  ><input
+                    v-model.number="profile.age"
+                    aria-label="Âge (ans)"
+                    type="number"
+                    min="18"
+                    max="110" /></label
+                ><label
+                  >Poids <span>kg</span
+                  ><input
+                    v-model.number="profile.weight_kg"
+                    aria-label="Poids (kg)"
+                    type="number"
+                    min="30"
+                    max="250"
+                    step="0.1" /></label
+                ><label class="condition-field"
+                  >État du profil<select v-model="condition" aria-label="État du profil">
+                    <option value="">Aucun sélectionné</option>
+                    <option v-for="value in conditions" :key="value" :value="value">
+                      {{ value }}
+                    </option>
+                  </select></label
+                >
+              </div>
+            </details>
+
+            <p v-if="error" role="alert" class="error-message">
+              <NexusIcon name="info" :size="17" />{{ error }}
+            </p>
+            <button type="submit" :disabled="!ready" class="analyse-button">
+              <NexusIcon v-if="loading" name="spark" :size="19" class="loading-icon" /><span>{{
+                loading ? 'Analyse en cours…' : 'Analyser cette association'
+              }}</span
+              ><NexusIcon name="arrow" :size="20" />
+            </button>
+          </form>
+        </section>
+
+        <section
+          v-if="currentStep === 2 && result"
+          :class="['insight-panel', result?.status ?? 'empty']"
+          aria-label="Résultat de l’association"
+          aria-live="polite"
+          :aria-busy="loading"
+        >
+          <div class="insight-heading">
+            <span><NexusIcon name="scan" :size="18" /> ANALYSE DES ASSOCIATIONS</span
+            ><span class="complete-badge"><span></span> Analyse terminée</span>
+          </div>
+
           <div class="result-overview" :key="result.status">
             <div class="alert-symbol" aria-hidden="true">
               <NexusIcon :name="result.status === 'low' ? 'check' : 'info'" :size="48" />
@@ -516,147 +549,194 @@ onBeforeUnmount(() => controller?.abort())
               ></span
             ><NexusIcon name="arrow" :size="20" />
           </button>
-        </template>
-      </section>
-    </div>
-
-    <section v-if="result" class="details-section">
-      <details
-        v-if="result.ingredient_relations.length"
-        class="association-details ingredient-details"
-        open
-      >
-        <summary>
-          <span class="detail-icon lavender"><NexusIcon name="link" :size="20" /></span>
-          <span
-            >Les ingrédients en relation<small
-              >Quantités journalières et niveau d’alerte de chaque relation.</small
-            ></span
+        </section>
+        <section v-if="currentStep === 2 && result" class="details-section">
+          <details
+            v-if="result.ingredient_relations.length"
+            class="association-details ingredient-details"
+            open
           >
-          <NexusIcon name="chevron" :size="18" class="details-chevron" />
-        </summary>
-        <div class="ingredient-edges">
-          <article
-            v-for="relation in result.ingredient_relations"
-            :key="relation.id"
-            class="ingredient-edge"
-          >
-            <div class="edge-pair">
+            <summary>
+              <span class="detail-icon lavender"><NexusIcon name="link" :size="20" /></span>
               <span
-                ><strong>{{ relation.substance.name }}</strong
-                ><small>{{ amountLabel(relation.substance.daily_mg) }}</small></span
+                >Les ingrédients en relation<small
+                  >Quantités journalières et niveau d’alerte de chaque relation.</small
+                ></span
               >
-              <NexusIcon name="link" :size="20" />
-              <span
-                ><strong>{{ relation.ingredient.name }}</strong
-                ><small>{{ amountLabel(relation.ingredient.daily_mg) }}</small></span
+              <NexusIcon name="chevron" :size="18" class="details-chevron" />
+            </summary>
+            <div class="ingredient-edges">
+              <article
+                v-for="relation in result.ingredient_relations"
+                :key="relation.id"
+                class="ingredient-edge"
               >
-              <b :class="['edge-alert', relation.status]">{{ alertLabels[relation.status] }}</b>
-            </div>
-            <p>{{ relation.mechanism }}</p>
-            <p class="edge-quantity">
-              {{
-                relation.quantity_complete
-                  ? 'Quantités prises en compte dans l’évaluation simulée.'
-                  : 'Quantités ou référence manquantes : pondération non calculée.'
-              }}
-            </p>
-            <small>{{ relation.rule_id }} · {{ relation.mapping_note }}</small>
-          </article>
-        </div>
-      </details>
-      <details class="association-details" open>
-        <summary>
-          <span class="detail-icon lavender"><NexusIcon name="link" :size="20" /></span
-          ><span
-            >Les associations, une par une<small
-              >Retrouvez le niveau d’alerte de chaque paire de produits.</small
-            ></span
-          ><NexusIcon name="chevron" :size="18" class="details-chevron" />
-        </summary>
-        <div class="matrix-wrap" tabindex="0" aria-label="Tableau des associations">
-          <table>
-            <caption>
-              Une relation absente ne permet pas de conclure à l’absence de danger.
-            </caption>
-            <thead>
-              <tr>
-                <th scope="col">Vos produits</th>
-                <th v-for="drug in result.drugs" :key="drug.id" scope="col">{{ drug.name }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(drug, i) in result.drugs" :key="drug.id">
-                <th scope="row">{{ drug.name }}</th>
-                <td v-for="(cell, j) in result.risk_matrix[i]" :key="j">
+                <div class="edge-pair">
                   <span
-                    :class="['matrix-cell', i === j ? 'diagonal' : (cell?.status ?? 'unknown')]"
-                    >{{ i === j ? '—' : cellLabel(cell) }}</span
+                    ><strong>{{ relation.substance.name }}</strong
+                    ><small>{{ amountLabel(relation.substance.daily_mg) }}</small></span
                   >
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </details>
-
-      <details class="association-details source-details">
-        <summary>
-          <span class="detail-icon peach"><NexusIcon name="book" :size="20" /></span
-          ><span
-            >Quelles informations ont été utilisées ?<small
-              >Ingrédients, mécanismes décrits et provenance des règles.</small
-            ></span
-          ><span class="rule-count"
-            >{{ result.calculation.matched_rule_count }}
-            {{ result.calculation.matched_rule_count > 1 ? 'règles' : 'règle' }}</span
-          ><NexusIcon name="chevron" :size="18" class="details-chevron" />
-        </summary>
-        <div class="source-content">
-          <article
-            v-for="pair in result.pairs"
-            :key="`${pair.drug_a.id}-${pair.drug_b.id}`"
-            class="pair-details"
-          >
-            <h3>{{ pair.drug_a.name }} <span>+</span> {{ pair.drug_b.name }}</h3>
-            <p v-if="!pair.rules.length" class="muted">
-              Aucune règle correspondante. Aucune conclusion de sécurité.
-            </p>
-            <div v-for="rule in pair.rules" :key="rule.id" class="rule-card">
-              <div>
-                <strong>{{ rule.ingredient }}</strong
-                ><span :class="['rule-severity', severityStatus(rule.severity)]">{{
-                  alertLabels[severityStatus(rule.severity)]
-                }}</span>
-              </div>
-              <p class="rule-target">{{ rule.target }}</p>
-              <p>{{ rule.mechanism }}</p>
-              <p><strong>Conséquence décrite :</strong> {{ rule.consequence }}</p>
-              <small
-                >{{ rule.reference.sheet }}!{{ rule.reference.range }} · Niveau indiqué :
-                {{ rule.evidence_level }} · {{ rule.source_label }} (référence non vérifiée)</small
-              >
+                  <NexusIcon name="link" :size="20" />
+                  <span
+                    ><strong>{{ relation.ingredient.name }}</strong
+                    ><small>{{ amountLabel(relation.ingredient.daily_mg) }}</small></span
+                  >
+                  <b :class="['edge-alert', relation.status]">{{ alertLabels[relation.status] }}</b>
+                </div>
+                <p>{{ relation.mechanism }}</p>
+                <p class="edge-quantity">
+                  {{
+                    relation.quantity_complete
+                      ? 'Quantités prises en compte dans l’évaluation simulée.'
+                      : 'Quantités ou référence manquantes : pondération non calculée.'
+                  }}
+                </p>
+                <small>{{ relation.rule_id }} · {{ relation.mapping_note }}</small>
+              </article>
             </div>
-          </article>
-          <div v-if="result.profile_alerts.length" class="profile-alerts">
-            <h3>Règles liées au profil</h3>
-            <p v-for="alert in result.profile_alerts" :key="alert.id">
-              {{ alert.ingredient }} + {{ alert.condition }} : {{ alert.risk }} ({{
-                alertLabels[severityStatus(alert.severity)]
-              }}
-              dans le classeur).
+          </details>
+          <details class="association-details" open>
+            <summary>
+              <span class="detail-icon lavender"><NexusIcon name="link" :size="20" /></span
+              ><span
+                >Les associations, une par une<small
+                  >Retrouvez le niveau d’alerte de chaque paire de produits.</small
+                ></span
+              ><NexusIcon name="chevron" :size="18" class="details-chevron" />
+            </summary>
+            <div class="matrix-wrap" tabindex="0" aria-label="Tableau des associations">
+              <table>
+                <caption>
+                  Une relation absente ne permet pas de conclure à l’absence de danger.
+                </caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Vos produits</th>
+                    <th v-for="drug in result.drugs" :key="drug.id" scope="col">{{ drug.name }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(drug, i) in result.drugs" :key="drug.id">
+                    <th scope="row">{{ drug.name }}</th>
+                    <td v-for="(cell, j) in result.risk_matrix[i]" :key="j">
+                      <span
+                        :class="['matrix-cell', i === j ? 'diagonal' : (cell?.status ?? 'unknown')]"
+                        >{{ i === j ? '—' : cellLabel(cell) }}</span
+                      >
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </details>
+
+          <details class="association-details source-details">
+            <summary>
+              <span class="detail-icon peach"><NexusIcon name="book" :size="20" /></span
+              ><span
+                >Quelles informations ont été utilisées ?<small
+                  >Ingrédients, mécanismes décrits et provenance des règles.</small
+                ></span
+              ><span class="rule-count"
+                >{{ result.calculation.matched_rule_count }}
+                {{ result.calculation.matched_rule_count > 1 ? 'règles' : 'règle' }}</span
+              ><NexusIcon name="chevron" :size="18" class="details-chevron" />
+            </summary>
+            <div class="source-content">
+              <article
+                v-for="pair in result.pairs"
+                :key="`${pair.drug_a.id}-${pair.drug_b.id}`"
+                class="pair-details"
+              >
+                <h3>{{ pair.drug_a.name }} <span>+</span> {{ pair.drug_b.name }}</h3>
+                <p v-if="!pair.rules.length" class="muted">
+                  Aucune règle correspondante. Aucune conclusion de sécurité.
+                </p>
+                <div v-for="rule in pair.rules" :key="rule.id" class="rule-card">
+                  <div>
+                    <strong>{{ rule.ingredient }}</strong
+                    ><span :class="['rule-severity', severityStatus(rule.severity)]">{{
+                      alertLabels[severityStatus(rule.severity)]
+                    }}</span>
+                  </div>
+                  <p class="rule-target">{{ rule.target }}</p>
+                  <p>{{ rule.mechanism }}</p>
+                  <p><strong>Conséquence décrite :</strong> {{ rule.consequence }}</p>
+                  <small
+                    >{{ rule.reference.sheet }}!{{ rule.reference.range }} · Niveau indiqué :
+                    {{ rule.evidence_level }} · {{ rule.source_label }} (référence non
+                    vérifiée)</small
+                  >
+                </div>
+              </article>
+              <div v-if="result.profile_alerts.length" class="profile-alerts">
+                <h3>Règles liées au profil</h3>
+                <p v-for="alert in result.profile_alerts" :key="alert.id">
+                  {{ alert.ingredient }} + {{ alert.condition }} : {{ alert.risk }} ({{
+                    alertLabels[severityStatus(alert.severity)]
+                  }}
+                  dans le classeur).
+                </p>
+              </div>
+              <a class="source-download" :href="workbookUrl(result.source.workbook_url)"
+                ><NexusIcon name="book" :size="16" /> Consulter le classeur source
+                <NexusIcon name="arrow" :size="15"
+              /></a>
+            </div>
+          </details>
+        </section>
+
+        <section
+          v-if="currentStep === 3 && result"
+          :class="['summary-panel', result.status]"
+          aria-labelledby="summary-title"
+        >
+          <span class="section-kicker">VOTRE RÉSUMÉ</span>
+          <h2 id="summary-title">L’essentiel de votre association</h2>
+          <div :class="['summary-alert', result.status]">
+            <NexusIcon :name="result.status === 'low' ? 'check' : 'info'" :size="26" />{{
+              alertLabels[result.status]
+            }}
+          </div>
+          <p v-if="result.status === 'unknown'">
+            Les données disponibles ne permettent pas de classer cette association.
+          </p>
+          <p v-else>
+            Ce niveau repose sur les règles identifiées, le profil et les quantités disponibles.
+          </p>
+          <div class="summary-profile">
+            <NexusIcon name="user" :size="18" /><span
+              >{{ profile.age ?? 'Âge non renseigné' }}{{ profile.age == null ? '' : ' ans' }} ·
+              {{ profile.weight_kg ?? 'Poids non renseigné'
+              }}{{ profile.weight_kg == null ? '' : ' kg'
+              }}{{ condition ? ` · ${condition}` : '' }}</span
+            >
+          </div>
+          <ul class="summary-products">
+            <li v-for="drug in result.drugs" :key="drug.id">
+              <strong>{{ drug.name }}</strong
+              ><span v-for="component in drug.components" :key="component.id"
+                >{{ component.name }} · {{ amountLabel(component.daily_mg) }}</span
+              >
+            </li>
+          </ul>
+          <div class="summary-coverage">
+            <strong
+              >{{ result.coverage.classified_pairs }} /
+              {{ result.coverage.total_pairs }} associations documentées dans les données
+              disponibles</strong
+            >
+            <p v-if="result.coverage.unknown_pairs">
+              {{ result.coverage.unknown_pairs }} association(s) sans données suffisantes.
+              L’évaluation reste incomplète.
             </p>
           </div>
-          <a class="source-download" :href="workbookUrl(result.source.workbook_url)"
-            ><NexusIcon name="book" :size="16" /> Consulter le classeur source
-            <NexusIcon name="arrow" :size="15"
-          /></a>
-        </div>
-      </details>
-    </section>
-    <div v-else class="explore-bottom">
-      <span><NexusFlower :size="23" /> Une marque. Ses ingrédients. Leurs connexions.</span
-      ><span>La vue d’ensemble commence ici.</span>
+          <p class="summary-notice">
+            Une interaction non détectée ne signifie pas une absence de danger. Ce prototype ne
+            remplace pas l’avis d’un professionnel de santé.
+          </p>
+        </section>
+      </div>
     </div>
   </div>
 </template>
@@ -1973,6 +2053,376 @@ td {
   }
   .complete-badge {
     font-size: 7px;
+  }
+}
+
+/* Utilisation: one visible stage, a persistent step navigator. */
+.explorer {
+  padding-top: 0;
+}
+.usage-heading {
+  padding: 36px 0 30px;
+}
+.usage-heading h1 {
+  max-width: 1000px;
+  margin: 0;
+  font-size: clamp(26px, 2.6vw, 35px);
+  line-height: 1.3;
+  letter-spacing: -1.1px;
+  font-weight: 650;
+}
+.usage-heading p {
+  margin: 13px 0 0;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--muted);
+}
+.utilization-layout {
+  display: grid;
+  grid-template-columns: 210px minmax(0, 1fr);
+  gap: 30px;
+  align-items: start;
+}
+.usage-sidebar {
+  position: sticky;
+  top: 25px;
+  padding: 22px 0;
+}
+.sidebar-title {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 1.6px;
+  font-weight: 700;
+  color: var(--muted);
+  margin: 0 0 22px 14px;
+}
+.usage-steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 9px;
+}
+.usage-steps button {
+  display: flex;
+  gap: 13px;
+  align-items: center;
+  width: 100%;
+  text-align: left;
+  border: 1px solid transparent;
+  padding: 15px 12px;
+  border-radius: 14px;
+  color: #77717f;
+  background: transparent;
+}
+.usage-steps button.active {
+  background: var(--lavender);
+  border-color: #e1d8fb;
+  color: var(--purple);
+}
+.usage-steps button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+.usage-steps strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 650;
+}
+.usage-steps small {
+  display: block;
+  font-size: 10px;
+  line-height: 1.6;
+  margin-top: 3px;
+}
+.step-number {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 31px;
+  height: 31px;
+  background: #eeece8;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 650;
+}
+.active .step-number {
+  color: white;
+  background: var(--purple);
+}
+.completed .step-number {
+  background: #e2edce;
+  color: #587332;
+}
+.sidebar-home {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  border-top: 1px solid var(--line);
+  margin-top: 24px;
+  padding: 23px 12px 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.6;
+}
+.stage-content {
+  min-width: 0;
+  scroll-margin-top: 24px;
+  outline: none;
+}
+.stage-content .selection-panel {
+  width: 100%;
+  padding: 28px;
+}
+.stage-content .example-strip {
+  border: 0;
+  margin: 0 0 24px;
+  padding: 0;
+  display: block;
+}
+.stage-content .example-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.stage-content .example-button {
+  padding: 10px 12px;
+  font-size: 10px;
+  flex: 1;
+}
+.stage-content .product-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+.stage-content .product-entry {
+  min-width: 0;
+}
+.stage-content .profile-panel {
+  margin-top: 8px;
+}
+.stage-content .analyse-button {
+  max-width: 100%;
+}
+.stage-content .insight-panel {
+  min-height: 0;
+}
+.stage-content .details-section {
+  margin-top: 18px;
+}
+.stage-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.stage-actions button {
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  padding: 11px 15px;
+  background: white;
+  font-size: 12px;
+  color: var(--muted);
+}
+.stage-actions .stage-next {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  background: var(--purple);
+  border-color: var(--purple);
+  color: white;
+}
+.stage-loading {
+  padding: 48px;
+  border-radius: 20px;
+  background: var(--lavender);
+  color: var(--purple);
+  text-align: center;
+}
+.summary-panel {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  padding: 32px;
+}
+.summary-panel h2 {
+  margin: 14px 0 24px;
+  font-size: 29px;
+  letter-spacing: -0.8px;
+  font-weight: 650;
+}
+.summary-alert {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  border-radius: 14px;
+  padding: 16px 20px;
+  background: #f9ebca;
+  color: #966718;
+  font-size: 22px;
+  font-weight: 650;
+  margin-bottom: 14px;
+}
+.summary-alert.critical {
+  background: #ffe4e1;
+  color: #b53f3b;
+}
+.summary-alert.low {
+  background: #e3efd7;
+  color: #426d31;
+}
+.summary-alert.unknown {
+  background: #ece7f3;
+  color: #756284;
+}
+.summary-panel > p {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.8;
+}
+.summary-profile {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  font-size: 12px;
+  color: var(--muted);
+  padding: 16px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  margin: 22px 0;
+}
+.summary-products {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+.summary-products li {
+  padding: 18px;
+  background: #f6f3fe;
+  border-radius: 14px;
+}
+.summary-products li:nth-child(even) {
+  background: #f1f5e8;
+}
+.summary-products strong {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+.summary-products li > span {
+  display: block;
+  font-size: 11px;
+  line-height: 1.8;
+  color: var(--muted);
+}
+.summary-coverage {
+  padding: 20px 0;
+  margin-top: 12px;
+  font-size: 12px;
+  line-height: 1.7;
+}
+.summary-coverage strong {
+  font-weight: 600;
+}
+.summary-coverage p {
+  margin: 8px 0 0;
+  color: var(--muted);
+}
+.summary-panel .summary-notice {
+  margin-bottom: 0;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+  font-size: 11px;
+}
+@media (max-width: 1000px) {
+  .utilization-layout {
+    grid-template-columns: 175px minmax(0, 1fr);
+    gap: 18px;
+  }
+  .stage-content .product-list {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 760px) {
+  .utilization-layout {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .usage-sidebar {
+    position: static;
+    padding: 0;
+  }
+  .sidebar-title,
+  .sidebar-home {
+    display: none;
+  }
+  .usage-steps {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px;
+  }
+  .usage-steps button {
+    gap: 8px;
+    padding: 12px 8px;
+  }
+  .usage-steps small {
+    display: none;
+  }
+  .usage-steps strong {
+    font-size: 12px;
+  }
+  .step-number {
+    width: 25px;
+    height: 25px;
+    border-radius: 8px;
+    font-size: 11px;
+  }
+  .stage-content .selection-panel {
+    padding: 22px;
+  }
+  .stage-content .result-overview {
+    flex-direction: row;
+    text-align: left;
+  }
+  .usage-heading {
+    padding: 26px 0 22px;
+  }
+  .usage-heading h1 {
+    font-size: 27px;
+  }
+  .summary-panel {
+    padding: 23px;
+  }
+  .summary-panel h2 {
+    font-size: 25px;
+  }
+}
+@media (max-width: 480px) {
+  .stage-actions {
+    align-items: stretch;
+  }
+  .stage-actions button {
+    font-size: 10px;
+    padding: 10px;
+  }
+  .stage-content .example-buttons {
+    flex-direction: column;
+  }
+  .stage-content .reasons-grid,
+  .summary-products {
+    grid-template-columns: 1fr;
+  }
+  .stage-content .result-summary h2 {
+    font-size: 25px;
+  }
+  .stage-content .contribution-heading > span {
+    display: none;
+  }
+  .usage-heading h1 {
+    font-size: 25px;
   }
 }
 </style>
