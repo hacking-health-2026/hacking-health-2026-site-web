@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import BillyMascot from '@/components/BillyMascot.vue'
 import NexusIcon from '@/components/NexusIcon.vue'
 import GameCoach from '@/components/GameCoach.vue'
 import { workbookUrl } from '@/services/api'
@@ -133,9 +134,7 @@ function restart() {
         </p>
       </div>
       <div class="mission-badge">
-        <NexusIcon name="spark" :size="25" /><span
-          >Votre mission<strong>5 liens à retrouver</strong></span
-        >
+        <BillyMascot :size="135" /><span>Votre mission<strong>5 liens à retrouver</strong></span>
       </div>
     </header>
 
@@ -466,6 +465,7 @@ function restart() {
         ></i>
       </div>
       <div class="victory-content">
+        <BillyMascot :size="180" />
         <div class="victory-medal" aria-hidden="true">
           <NexusIcon name="spark" :size="58" /><span>5/5</span>
         </div>
@@ -511,7 +511,7 @@ function restart() {
   color: var(--coral);
 }
 .game-intro > div > p:last-child {
-  font-size: 18px;
+  font-size: 22px;
   line-height: 1.6;
   color: #726b7e;
   margin: 0;
@@ -526,7 +526,7 @@ function restart() {
   transform: rotate(4deg);
 }
 .mission-badge > span {
-  font-size: 16px;
+  font-size: 20px;
   line-height: 1.6;
 }
 .mission-badge strong {
@@ -562,7 +562,7 @@ function restart() {
   box-shadow: 0 0 0 5px #7155e811;
 }
 .progress > span {
-  font-size: 17px;
+  font-size: 21px;
   font-weight: 750;
   color: var(--purple);
   white-space: nowrap;
@@ -582,7 +582,7 @@ function restart() {
   box-shadow: 0 0 0 3px #39a45e15;
 }
 .instructions {
-  font-size: 16px;
+  font-size: 20px;
   line-height: 1.7;
   color: #77707e;
   margin: 14px 0 19px;
@@ -603,17 +603,17 @@ function restart() {
   flex-shrink: 0;
   background: var(--purple);
   color: white;
-  font-size: 14px;
+  font-size: 18px;
   font-weight: 800;
   border-radius: 10px;
   width: 34px;
   height: 34px;
 }
 .clue-panel strong {
-  font-size: 17px;
+  font-size: 21px;
 }
 .clue-panel p {
-  font-size: 16px;
+  font-size: 20px;
   line-height: 1.5;
   margin: 4px 0 0;
   color: #756486;
@@ -661,12 +661,12 @@ function restart() {
   display: flex;
   align-items: center;
   gap: 7px;
-  font-size: 16px;
+  font-size: 20px;
   font-weight: 750;
   color: #65528f;
 }
 .scene-caption small {
-  font-size: 13px;
+  font-size: 17px;
   color: #92869e;
 }
 .lab-lights {
@@ -743,7 +743,7 @@ function restart() {
 .sample-number {
   align-self: flex-start;
   margin-bottom: 10px;
-  font-size: 11px;
+  font-size: 15px;
   letter-spacing: 1px;
   font-weight: 750;
   color: #7d688e;
@@ -780,11 +780,11 @@ function restart() {
 }
 .sample-card strong {
   line-height: 1.25;
-  font-size: 16px;
+  font-size: 20px;
   overflow-wrap: anywhere;
 }
 .sample-card > small {
-  font-size: 12px;
+  font-size: 16px;
   line-height: 1.5;
   color: #74617f;
 }
@@ -793,7 +793,7 @@ function restart() {
   align-items: center;
   justify-content: center;
   gap: 4px;
-  font-size: 12px;
+  font-size: 16px;
   font-weight: 650;
   margin-top: auto;
   min-height: 18px;
@@ -862,7 +862,7 @@ function restart() {
   align-items: center;
   gap: 10px;
   color: #af9ebf;
-  font-size: 12px;
+  font-size: 16px;
   letter-spacing: 1.4px;
   text-transform: uppercase;
   z-index: 1;
@@ -910,7 +910,8 @@ function restart() {
 .fruit-card {
   position: relative;
   width: 100%;
-  height: 117px;
+  min-height: 140px;
+  height: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1000,11 +1001,13 @@ function restart() {
   transform: rotate(25deg);
 }
 .fruit-card strong {
-  font-size: 17px;
+  overflow-wrap: anywhere;
+  line-height: 1.25;
+  font-size: 21px;
   position: relative;
 }
 .fruit-card > small {
-  font-size: 12px;
+  font-size: 16px;
 }
 .fruit-card > svg {
   width: 20px;
@@ -1036,11 +1039,11 @@ function restart() {
   color: #736641;
 }
 .tree-sign strong {
-  font-size: 14px;
+  font-size: 18px;
   display: block;
 }
 .tree-sign small {
-  font-size: 12px;
+  font-size: 16px;
   display: block;
   margin-top: 3px;
 }
@@ -1050,7 +1053,7 @@ function restart() {
   left: 0;
   width: 100%;
   text-align: center;
-  font-size: 12px;
+  font-size: 16px;
   color: #7c896c;
   margin: 0;
   padding: 0 15px;
@@ -1127,7 +1130,7 @@ function restart() {
   gap: 10px;
   background: #f5f2fa;
   border-radius: 12px;
-  font-size: 16px;
+  font-size: 20px;
   line-height: 1.6;
   padding: 20px;
   color: #96899f;
@@ -1156,10 +1159,10 @@ function restart() {
   color: #98493c;
 }
 .instant-feedback strong {
-  font-size: 17px;
+  font-size: 21px;
 }
 .instant-feedback p {
-  font-size: 16px;
+  font-size: 20px;
   line-height: 1.7;
   margin: 7px 0;
 }
@@ -1167,7 +1170,7 @@ function restart() {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  font-size: 13px;
+  font-size: 17px;
   text-decoration: underline;
 }
 .game-actions {
@@ -1178,7 +1181,7 @@ function restart() {
   margin-top: 20px;
 }
 .game-actions p {
-  font-size: 13px;
+  font-size: 17px;
   color: #81778b;
   margin: 0;
   line-height: 1.7;
@@ -1199,7 +1202,7 @@ function restart() {
 }
 .game-actions small {
   display: block;
-  font-size: 12px;
+  font-size: 16px;
 }
 .game-primary {
   display: inline-flex;
@@ -1211,7 +1214,7 @@ function restart() {
   border-radius: 12px;
   background: var(--purple);
   color: white;
-  font-size: 16px;
+  font-size: 20px;
   font-weight: 650;
 }
 .game-primary:hover {
@@ -1271,7 +1274,7 @@ function restart() {
 }
 .victory-content .eyebrow {
   justify-content: center;
-  font-size: 13px;
+  font-size: 17px;
 }
 .victory-content h2 {
   font-size: 44px;
@@ -1284,7 +1287,7 @@ function restart() {
   display: block;
 }
 .victory-content > p:not(.eyebrow) {
-  font-size: 17px;
+  font-size: 21px;
   color: #86798f;
   line-height: 1.9;
   margin-bottom: 18px;
@@ -1308,7 +1311,7 @@ function restart() {
   background: var(--lavender);
   color: #68528e;
   border-radius: 12px;
-  font-size: 16px;
+  font-size: 20px;
 }
 .victory-summary strong {
   color: var(--purple);
@@ -1316,7 +1319,7 @@ function restart() {
 }
 .victory-content .game-primary {
   width: 100%;
-  font-size: 17px;
+  font-size: 21px;
   padding: 17px;
 }
 .victory-replay {
@@ -1325,7 +1328,7 @@ function restart() {
   border: 0;
   background: transparent;
   color: #8a7d98;
-  font-size: 16px;
+  font-size: 20px;
   padding: 18px 10px 0;
 }
 .victory-replay:hover {
@@ -1426,7 +1429,7 @@ function restart() {
     max-width: 220px;
   }
   .mission-badge strong {
-    font-size: 17px;
+    font-size: 21px;
   }
   .lab-scene {
     padding-left: 17px;
@@ -1441,13 +1444,13 @@ function restart() {
     gap: 9px;
   }
   .sample-card strong {
-    font-size: 14px;
+    font-size: 18px;
   }
   .sample-card > small {
-    font-size: 11px;
+    font-size: 15px;
   }
   .scene-caption small {
-    font-size: 12px;
+    font-size: 16px;
   }
 }
 @media (max-width: 740px) {
@@ -1455,12 +1458,12 @@ function restart() {
     display: flex;
     gap: 7px;
     align-items: center;
-    font-size: 13px;
+    font-size: 17px;
     color: #9b88b1;
     margin: -8px 0 12px;
   }
   .game-toolbar strong {
-    font-size: 18px;
+    font-size: 22px;
   }
   .progress > div {
     gap: 3px;
@@ -1483,7 +1486,7 @@ function restart() {
     letter-spacing: -2px;
   }
   .game-intro > div > p:last-child {
-    font-size: 16px;
+    font-size: 20px;
   }
   .mission-badge {
     display: none;
@@ -1497,7 +1500,7 @@ function restart() {
     gap: 12px;
   }
   .game-toolbar strong {
-    font-size: 17px;
+    font-size: 21px;
   }
   .game-toolbar .live-dot {
     display: none;
@@ -1510,13 +1513,13 @@ function restart() {
     gap: 10px;
   }
   .clue-panel p {
-    font-size: 14px;
+    font-size: 18px;
   }
   .clue-panel > svg {
     display: none;
   }
   .instructions {
-    font-size: 14px;
+    font-size: 18px;
   }
   .game-actions {
     flex-direction: column;
@@ -1526,10 +1529,10 @@ function restart() {
     width: 100%;
   }
   .game-actions p {
-    font-size: 13px;
+    font-size: 17px;
   }
   .feedback-idle {
-    font-size: 14px;
+    font-size: 18px;
     text-align: center;
     padding: 16px;
   }
@@ -1541,7 +1544,7 @@ function restart() {
     gap: 8px;
   }
   .instant-feedback p {
-    font-size: 14px;
+    font-size: 18px;
   }
   .victory-content {
     padding: 35px 22px 22px;
@@ -1562,7 +1565,7 @@ function restart() {
     font-size: 25px;
   }
   .victory-content > p:not(.eyebrow) {
-    font-size: 16px;
+    font-size: 20px;
   }
   .victory-stars {
     font-size: 21px;

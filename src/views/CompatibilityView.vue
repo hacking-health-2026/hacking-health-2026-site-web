@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
+import BillyMascot from '@/components/BillyMascot.vue'
+import AnalysisExport from '@/components/AnalysisExport.vue'
+import { decodeAnalysis } from '@/services/analysisShare'
 import DrugPicker from '@/components/DrugPicker.vue'
 import CompositionEditor from '@/components/CompositionEditor.vue'
 import NexusIcon from '@/components/NexusIcon.vue'
@@ -117,6 +120,24 @@ onMounted(async () => {
   const [examples, options] = await Promise.allSettled([fetchScenarios(), fetchProfileOptions()])
   if (examples.status === 'fulfilled' && examples.value.length) scenarios.value = examples.value
   if (options.status === 'fulfilled') conditions.value = options.value.conditions
+  if (route.hash.startsWith('#analyse=')) {
+    try {
+      const shared = decodeAnalysis(route.hash.slice('#analyse='.length))
+      rows.value = shared.products.map(({ product, units }) => ({
+        id: nextId++,
+        drug: product,
+        units,
+      }))
+      profile.age = shared.profile.age
+      profile.weight_kg = shared.profile.weight_kg
+      condition.value = shared.profile.conditions[0] ?? ''
+      await checkCompatibility()
+      if (result.value) currentStep.value = 3
+    } catch (cause) {
+      error.value = cause instanceof Error ? cause.message : 'Lien d’analyse invalide.'
+    }
+    return
+  }
   if (examples.status === 'rejected' && options.status === 'rejected') {
     error.value =
       'Le serveur d’analyse est indisponible. Les deux exemples restent consultables ; le calcul nécessite un backend connecté.'
@@ -253,6 +274,7 @@ onBeforeUnmount(() => controller?.abort())
     <header class="usage-heading">
       <h1>Reliez les informations, repérez les associations et comprenez le niveau d’alerte.</h1>
       <p>Une interaction non détectée ne signifie pas une absence de danger.</p>
+      <BillyMascot :size="145" message="On regarde ensemble ce que vos produits ont en commun ?" />
     </header>
     <div class="utilization-layout">
       <aside class="usage-sidebar" aria-label="Étapes d’utilisation">
@@ -723,6 +745,25 @@ onBeforeUnmount(() => controller?.abort())
               L’évaluation reste incomplète.
             </p>
           </div>
+          <AnalysisExport
+            v-if="result.status === 'critical' || result.status === 'watch'"
+            :result="result"
+            :profile="{
+              age: profile.age,
+              weight_kg: profile.weight_kg,
+              conditions: condition ? [condition] : [],
+            }"
+            :intakes="
+              rows.map((row) => ({
+                product_id: row.drug!.id,
+                units_per_day: row.units,
+                components: row.drug!.components.map((c) => ({
+                  component_id: c.id,
+                  amount_mg: c.amount_mg,
+                })),
+              }))
+            "
+          />
           <p class="summary-notice">
             Une interaction non détectée ne signifie pas une absence de danger. Ce prototype ne
             remplace pas l’avis d’un professionnel de santé.
@@ -757,7 +798,7 @@ onBeforeUnmount(() => controller?.abort())
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 11px;
+  font-size: 15px;
   color: var(--muted);
 }
 .alert-legend i {
@@ -791,7 +832,7 @@ onBeforeUnmount(() => controller?.abort())
   flex-shrink: 0;
   padding: 10px 12px;
   border-radius: 12px;
-  font-size: 12px;
+  font-size: 16px;
   line-height: 1.4;
   background: #f9e9c8;
   color: #835c13;
@@ -807,7 +848,7 @@ onBeforeUnmount(() => controller?.abort())
 }
 .reason-tile > small {
   display: block;
-  font-size: 11px;
+  font-size: 15px;
   line-height: 1.6;
   color: #625d6c;
 }
@@ -826,11 +867,11 @@ onBeforeUnmount(() => controller?.abort())
   }
   .edge-alert {
     flex-shrink: 1;
-    font-size: 11px;
+    font-size: 15px;
   }
 }
 .quantity-explanation {
-  font-size: 11px;
+  font-size: 15px;
   line-height: 1.6;
   color: var(--muted);
   margin: 12px 0;
@@ -867,22 +908,22 @@ onBeforeUnmount(() => controller?.abort())
 }
 .edge-pair strong {
   display: block;
-  font-size: 14px;
+  font-size: 18px;
 }
 .edge-pair small {
   display: block;
-  font-size: 11px;
+  font-size: 15px;
   margin-top: 5px;
   color: var(--muted);
 }
 .ingredient-edge p {
-  font-size: 12px;
+  font-size: 16px;
   line-height: 1.6;
   margin: 12px 0 6px;
 }
 .ingredient-edge > small {
   display: block;
-  font-size: 10px;
+  font-size: 15px;
   line-height: 1.5;
   color: var(--muted);
 }
@@ -898,7 +939,7 @@ onBeforeUnmount(() => controller?.abort())
     flex-wrap: wrap;
   }
   .edge-pair strong {
-    font-size: 12px;
+    font-size: 16px;
   }
 }
 .explorer {
@@ -923,7 +964,7 @@ onBeforeUnmount(() => controller?.abort())
 }
 .explorer-heading p {
   color: var(--muted);
-  font-size: 13px;
+  font-size: 17px;
   line-height: 1.6;
   margin: 0;
 }
@@ -949,7 +990,7 @@ onBeforeUnmount(() => controller?.abort())
   align-items: center;
   gap: 8px;
   color: #817a8a;
-  font-size: 11px;
+  font-size: 15px;
   white-space: nowrap;
 }
 .example-label svg {
@@ -968,7 +1009,7 @@ onBeforeUnmount(() => controller?.abort())
   background: #fff;
   border-radius: 12px;
   padding: 10px 13px;
-  font-size: 11px;
+  font-size: 15px;
   font-weight: 600;
   transition:
     border-color 0.2s,
@@ -991,7 +1032,7 @@ onBeforeUnmount(() => controller?.abort())
   width: 24px;
   height: 24px;
   border-radius: 8px;
-  font-size: 9px;
+  font-size: 14px;
 }
 .example-button:nth-child(2) .example-number {
   background: #eef3d7;
@@ -1018,7 +1059,7 @@ onBeforeUnmount(() => controller?.abort())
 }
 .section-kicker {
   color: #9a95a4;
-  font-size: 9px;
+  font-size: 14px;
   letter-spacing: 1.5px;
   font-weight: 700;
 }
@@ -1036,11 +1077,11 @@ onBeforeUnmount(() => controller?.abort())
   border-radius: 9px;
   padding: 9px 10px;
   color: var(--purple);
-  font-size: 15px;
+  font-size: 19px;
   font-weight: 700;
 }
 .selection-count > span {
-  font-size: 10px;
+  font-size: 15px;
   color: #aaa1be;
   font-weight: 500;
 }
@@ -1067,7 +1108,7 @@ onBeforeUnmount(() => controller?.abort())
   align-items: center;
   gap: 8px;
   color: #8872b7;
-  font-size: 9px;
+  font-size: 14px;
   letter-spacing: 0.5px;
   font-weight: 650;
   margin-bottom: 6px;
@@ -1098,7 +1139,7 @@ onBeforeUnmount(() => controller?.abort())
 }
 .product-substance {
   color: #8e849d;
-  font-size: 9px;
+  font-size: 14px;
   line-height: 1.6;
   margin: 4px 0 0;
   overflow-wrap: anywhere;
@@ -1111,7 +1152,7 @@ onBeforeUnmount(() => controller?.abort())
   align-items: center;
   gap: 7px;
   color: var(--purple);
-  font-size: 11px;
+  font-size: 15px;
   font-weight: 600;
   background: transparent;
   border: 0;
@@ -1120,7 +1161,7 @@ onBeforeUnmount(() => controller?.abort())
 }
 .add-product > span {
   margin-left: auto;
-  font-size: 9px;
+  font-size: 14px;
   font-weight: 400;
   color: #aaa3b3;
 }
@@ -1136,7 +1177,7 @@ onBeforeUnmount(() => controller?.abort())
   list-style: none;
   cursor: pointer;
   padding: 15px 0;
-  font-size: 12px;
+  font-size: 16px;
   font-weight: 600;
 }
 .profile-panel summary::-webkit-details-marker {
@@ -1153,7 +1194,7 @@ onBeforeUnmount(() => controller?.abort())
 }
 .profile-panel summary small {
   display: block;
-  font-size: 9px;
+  font-size: 14px;
   font-weight: 400;
   color: var(--muted);
   margin-top: 4px;
@@ -1177,7 +1218,7 @@ onBeforeUnmount(() => controller?.abort())
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 7px;
-  font-size: 10px;
+  font-size: 15px;
   font-weight: 650;
   color: #777080;
 }
@@ -1195,7 +1236,7 @@ onBeforeUnmount(() => controller?.abort())
   border-radius: 9px;
   padding: 10px;
   color: var(--ink);
-  font-size: 12px;
+  font-size: 16px;
 }
 .condition-field {
   grid-column: 1 / -1;
@@ -1210,7 +1251,7 @@ onBeforeUnmount(() => controller?.abort())
   border: 0;
   border-radius: 12px;
   padding: 16px 18px;
-  font-size: 12px;
+  font-size: 16px;
   font-weight: 650;
   box-shadow: 0 5px 15px #ed724222;
   transition:
@@ -1235,7 +1276,7 @@ onBeforeUnmount(() => controller?.abort())
   align-items: center;
   justify-content: center;
   gap: 5px;
-  font-size: 8px;
+  font-size: 14px;
   color: #a39ba9;
   margin: 13px 0 0;
   line-height: 1.6;
@@ -1244,7 +1285,7 @@ onBeforeUnmount(() => controller?.abort())
 .error-message {
   display: flex;
   gap: 8px;
-  font-size: 11px;
+  font-size: 15px;
   color: #a63f45;
   background: #fff0ef;
   border-radius: 9px;
@@ -1288,7 +1329,7 @@ onBeforeUnmount(() => controller?.abort())
   align-items: center;
   gap: 7px;
   color: #97705f;
-  font-size: 9px;
+  font-size: 14px;
   letter-spacing: 1.1px;
   font-weight: 650;
 }
@@ -1299,7 +1340,7 @@ onBeforeUnmount(() => controller?.abort())
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 8px;
+  font-size: 14px;
   background: #ffffffaa;
   border-radius: 20px;
   padding: 6px 9px;
@@ -1313,7 +1354,7 @@ onBeforeUnmount(() => controller?.abort())
   background: #9ba65e;
 }
 .waiting-badge {
-  font-size: 9px;
+  font-size: 14px;
   color: #9b88bb;
   border: 1px solid #daceed;
   border-radius: 20px;
@@ -1390,7 +1431,7 @@ onBeforeUnmount(() => controller?.abort())
   color: var(--purple);
 }
 .empty-result > p {
-  font-size: 12px;
+  font-size: 16px;
   line-height: 1.8;
   color: #9684ad;
   margin-bottom: 22px;
@@ -1404,7 +1445,7 @@ onBeforeUnmount(() => controller?.abort())
 .empty-tags > span {
   padding: 6px 10px;
   border-radius: 20px;
-  font-size: 9px;
+  font-size: 14px;
   color: #937eaf;
   background: #ffffff66;
   border: 1px solid #e4daf5;
@@ -1418,7 +1459,7 @@ onBeforeUnmount(() => controller?.abort())
   padding-top: 20px;
   border-top: 1px solid #ded4f0;
   color: #9b87b8;
-  font-size: 9px;
+  font-size: 14px;
 }
 .result-overview {
   display: flex;
@@ -1434,7 +1475,7 @@ onBeforeUnmount(() => controller?.abort())
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  font-size: 10px;
+  font-size: 15px;
   font-weight: 650;
   color: #b15f47;
   background: #ffe0d3;
@@ -1463,7 +1504,7 @@ onBeforeUnmount(() => controller?.abort())
   line-height: 1.15;
 }
 .result-summary p {
-  font-size: 12px;
+  font-size: 16px;
   color: #8b7569;
   line-height: 1.8;
   margin: 0;
@@ -1481,13 +1522,13 @@ onBeforeUnmount(() => controller?.abort())
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  font-size: 10px;
+  font-size: 15px;
   color: #9c7c6e;
   max-width: 100%;
   overflow-wrap: anywhere;
 }
 .result-products b {
-  font-size: 12px;
+  font-size: 16px;
   font-weight: 400;
   color: #c29f8c;
   margin: 0 4px;
@@ -1500,12 +1541,12 @@ onBeforeUnmount(() => controller?.abort())
   margin-bottom: 12px;
 }
 .contribution-heading h3 {
-  font-size: 14px;
+  font-size: 18px;
   font-weight: 650;
   margin: 0;
 }
 .contribution-heading > span {
-  font-size: 8px;
+  font-size: 14px;
   color: #b59f91;
 }
 .reasons-grid {
@@ -1527,7 +1568,7 @@ onBeforeUnmount(() => controller?.abort())
   justify-content: space-between;
 }
 .reason-tile > div:first-child > span {
-  font-size: 8px;
+  font-size: 14px;
   color: #baa9d1;
 }
 .reason-tile strong {
@@ -1537,7 +1578,7 @@ onBeforeUnmount(() => controller?.abort())
   letter-spacing: -0.8px;
 }
 .reason-tile p {
-  font-size: 11px;
+  font-size: 15px;
   color: #74627f;
   margin: 7px 0 10px;
 }
@@ -1588,12 +1629,12 @@ onBeforeUnmount(() => controller?.abort())
   display: flex;
   align-items: center;
   gap: 9px;
-  font-size: 9px;
+  font-size: 14px;
   font-weight: 600;
 }
 .try-profile small {
   display: block;
-  font-size: 8px;
+  font-size: 14px;
   font-weight: 400;
   margin-top: 4px;
   color: #b49a88;
@@ -1601,7 +1642,7 @@ onBeforeUnmount(() => controller?.abort())
 .unknown-message {
   display: flex;
   gap: 9px;
-  font-size: 12px;
+  font-size: 16px;
   padding: 20px 0;
   color: #84768c;
 }
@@ -1623,7 +1664,7 @@ onBeforeUnmount(() => controller?.abort())
   padding: 19px 23px;
   list-style: none;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 17px;
   font-weight: 600;
 }
 .association-details summary::-webkit-details-marker {
@@ -1648,7 +1689,7 @@ onBeforeUnmount(() => controller?.abort())
 .association-details summary small {
   display: block;
   color: #a59cab;
-  font-size: 9px;
+  font-size: 14px;
   font-weight: 400;
   margin-top: 5px;
 }
@@ -1663,7 +1704,7 @@ onBeforeUnmount(() => controller?.abort())
 .rule-count {
   margin-left: auto;
   color: #a396ae;
-  font-size: 9px;
+  font-size: 14px;
   background: #f4f0f8;
   padding: 6px 9px;
   border-radius: 20px;
@@ -1679,12 +1720,12 @@ table {
   width: 100%;
   border-collapse: collapse;
   text-align: left;
-  font-size: 10px;
+  font-size: 15px;
 }
 caption {
   caption-side: bottom;
   text-align: left;
-  font-size: 8px;
+  font-size: 14px;
   color: #aba1b1;
   padding-top: 13px;
 }
@@ -1694,7 +1735,7 @@ td {
   border-bottom: 1px solid #f0edf3;
 }
 thead th {
-  font-size: 9px;
+  font-size: 14px;
   color: #a59baa;
   font-weight: 500;
 }
@@ -1709,7 +1750,7 @@ td {
   border-radius: 7px;
   min-width: 80px;
   padding: 8px 10px;
-  font-size: 9px;
+  font-size: 14px;
 }
 .matrix-cell.critical,
 .rule-severity.critical {
@@ -1737,7 +1778,7 @@ td {
   margin-top: 9px;
 }
 .pair-details h3 {
-  font-size: 13px;
+  font-size: 17px;
   font-weight: 600;
   margin-bottom: 13px;
 }
@@ -1746,14 +1787,14 @@ td {
   margin: 0 7px;
 }
 .pair-details > p {
-  font-size: 11px;
+  font-size: 15px;
 }
 .rule-card {
   border: 1px solid #ece6f3;
   border-radius: 12px;
   padding: 17px;
   margin-bottom: 10px;
-  font-size: 11px;
+  font-size: 15px;
   line-height: 1.8;
   color: #82738f;
 }
@@ -1768,34 +1809,34 @@ td {
 }
 .rule-target {
   color: #b2a1bf;
-  font-size: 10px;
+  font-size: 15px;
 }
 .rule-card small {
   display: block;
-  font-size: 9px;
+  font-size: 14px;
   color: #b09dbb;
 }
 .rule-severity {
   padding: 3px 9px;
   border-radius: 20px;
-  font-size: 9px;
+  font-size: 14px;
 }
 .profile-alerts {
   background: #fff2d3;
   border-radius: 12px;
   padding: 16px;
-  font-size: 11px;
+  font-size: 15px;
   line-height: 1.7;
 }
 .profile-alerts h3 {
-  font-size: 12px;
+  font-size: 16px;
 }
 .source-download {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   color: var(--purple);
-  font-size: 10px;
+  font-size: 15px;
   margin-top: 15px;
 }
 .explore-bottom {
@@ -1804,7 +1845,7 @@ td {
   justify-content: space-between;
   padding: 24px 0 0;
   color: #aaa1b5;
-  font-size: 10px;
+  font-size: 15px;
   gap: 15px;
 }
 .explore-bottom > span:first-child {
@@ -1848,10 +1889,10 @@ td {
     gap: 12px;
   }
   .example-label {
-    font-size: 10px;
+    font-size: 15px;
   }
   .example-button {
-    font-size: 10px;
+    font-size: 15px;
     gap: 7px;
     padding: 9px;
   }
@@ -1881,7 +1922,7 @@ td {
     padding: 17px;
   }
   .panel-heading h2 {
-    font-size: 17px;
+    font-size: 21px;
   }
   .insight-panel {
     padding: 21px 17px;
@@ -1923,7 +1964,7 @@ td {
     margin-left: 0;
   }
   .explorer-heading p {
-    font-size: 12px;
+    font-size: 16px;
     max-width: 290px;
   }
   .example-buttons {
@@ -1959,15 +2000,15 @@ td {
     justify-content: start;
   }
   .result-summary p {
-    font-size: 12px;
+    font-size: 16px;
   }
   .association-details summary {
     padding: 16px;
     gap: 10px;
-    font-size: 12px;
+    font-size: 16px;
   }
   .association-details summary small {
-    font-size: 8px;
+    font-size: 14px;
     line-height: 1.6;
   }
   .matrix-wrap {
@@ -2008,7 +2049,7 @@ td {
     justify-content: center;
   }
   .insight-heading > span:first-child {
-    font-size: 8px;
+    font-size: 14px;
   }
   .complete-badge {
     font-size: 7px;
@@ -2032,7 +2073,7 @@ td {
 }
 .usage-heading p {
   margin: 13px 0 0;
-  font-size: 12px;
+  font-size: 16px;
   line-height: 1.7;
   color: var(--muted);
 }
@@ -2049,7 +2090,7 @@ td {
 }
 .sidebar-title {
   display: block;
-  font-size: 10px;
+  font-size: 15px;
   letter-spacing: 1.6px;
   font-weight: 700;
   color: var(--muted);
@@ -2085,12 +2126,12 @@ td {
 }
 .usage-steps strong {
   display: block;
-  font-size: 14px;
+  font-size: 18px;
   font-weight: 650;
 }
 .usage-steps small {
   display: block;
-  font-size: 10px;
+  font-size: 15px;
   line-height: 1.6;
   margin-top: 3px;
 }
@@ -2102,7 +2143,7 @@ td {
   height: 31px;
   background: #eeece8;
   border-radius: 10px;
-  font-size: 12px;
+  font-size: 16px;
   font-weight: 650;
 }
 .active .step-number {
@@ -2121,7 +2162,7 @@ td {
   margin-top: 24px;
   padding: 23px 12px 0;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 15px;
   line-height: 1.6;
 }
 .stage-content {
@@ -2146,7 +2187,7 @@ td {
 }
 .stage-content .example-button {
   padding: 10px 12px;
-  font-size: 10px;
+  font-size: 15px;
   flex: 1;
 }
 .stage-content .product-list {
@@ -2181,7 +2222,7 @@ td {
   border-radius: 11px;
   padding: 11px 15px;
   background: white;
-  font-size: 12px;
+  font-size: 16px;
   color: var(--muted);
 }
 .stage-actions .stage-next {
@@ -2237,14 +2278,14 @@ td {
 }
 .summary-panel > p {
   color: var(--muted);
-  font-size: 13px;
+  font-size: 17px;
   line-height: 1.8;
 }
 .summary-profile {
   display: flex;
   gap: 10px;
   align-items: center;
-  font-size: 12px;
+  font-size: 16px;
   color: var(--muted);
   padding: 16px 0;
   border-top: 1px solid var(--line);
@@ -2269,19 +2310,19 @@ td {
 }
 .summary-products strong {
   display: block;
-  font-size: 14px;
+  font-size: 18px;
   margin-bottom: 10px;
 }
 .summary-products li > span {
   display: block;
-  font-size: 11px;
+  font-size: 15px;
   line-height: 1.8;
   color: var(--muted);
 }
 .summary-coverage {
   padding: 20px 0;
   margin-top: 12px;
-  font-size: 12px;
+  font-size: 16px;
   line-height: 1.7;
 }
 .summary-coverage strong {
@@ -2295,7 +2336,7 @@ td {
   margin-bottom: 0;
   padding-top: 18px;
   border-top: 1px solid var(--line);
-  font-size: 11px;
+  font-size: 15px;
 }
 @media (max-width: 1000px) {
   .utilization-layout {
@@ -2331,13 +2372,13 @@ td {
     display: none;
   }
   .usage-steps strong {
-    font-size: 12px;
+    font-size: 16px;
   }
   .step-number {
     width: 25px;
     height: 25px;
     border-radius: 8px;
-    font-size: 11px;
+    font-size: 15px;
   }
   .stage-content .selection-panel {
     padding: 22px;
@@ -2364,7 +2405,7 @@ td {
     align-items: stretch;
   }
   .stage-actions button {
-    font-size: 10px;
+    font-size: 15px;
     padding: 10px;
   }
   .stage-content .example-buttons {

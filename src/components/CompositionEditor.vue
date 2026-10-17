@@ -98,7 +98,7 @@ function format(value: number) {
   display: flex;
   justify-content: space-between;
   gap: 10px;
-  font-size: 11px;
+  font-size: 15px;
   margin-bottom: 8px;
 }
 .composition-heading span {
@@ -113,13 +113,13 @@ function format(value: number) {
 }
 .component-row label {
   flex: 1;
-  font-size: 12px;
+  font-size: 16px;
   line-height: 1.4;
 }
 .component-row small {
   display: block;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 15px;
 }
 input {
   width: 91px;
@@ -130,7 +130,7 @@ input {
   padding: 8px;
   color: var(--ink);
   font: inherit;
-  font-size: 12px;
+  font-size: 16px;
   text-align: right;
 }
 input:focus {
@@ -142,30 +142,30 @@ input:focus {
   justify-content: space-between;
   align-items: center;
   margin-top: 12px;
-  font-size: 12px;
+  font-size: 16px;
   font-weight: 600;
 }
 .daily-units small {
   display: block;
-  font-size: 10px;
+  font-size: 15px;
   font-weight: 400;
   color: var(--muted);
   margin-top: 3px;
 }
 .daily-total {
-  font-size: 10px;
+  font-size: 15px;
   line-height: 1.6;
   margin: 10px 0;
 }
 .composition-note {
-  font-size: 10px;
+  font-size: 15px;
   line-height: 1.5;
   color: var(--muted);
   margin: 8px 0;
 }
 .composition-source {
   display: block;
-  font-size: 10px;
+  font-size: 15px;
   color: var(--purple);
   line-height: 1.5;
 }

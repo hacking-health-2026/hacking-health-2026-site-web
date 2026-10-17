@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
+import BillyMascot from '@/components/BillyMascot.vue'
 import NexusFlower from '@/components/NexusFlower.vue'
 import NexusIcon from '@/components/NexusIcon.vue'
 </script>
@@ -21,6 +22,7 @@ import NexusIcon from '@/components/NexusIcon.vue'
           >Utiliser <NexusIcon name="arrow" :size="16"
         /></RouterLink>
       </nav>
+      <BillyMascot class="header-mascot" :size="72" />
       <span class="event-tag"><span></span> Hacking Health 2026</span>
     </div>
   </header>
@@ -28,7 +30,7 @@ import NexusIcon from '@/components/NexusIcon.vue'
   <footer class="site-footer">
     <div class="footer-inner">
       <span class="footer-signature"
-        ><NexusFlower :size="19" /> Herbal Nexus <span>· Besançon 2026</span></span
+        ><BillyMascot :size="70" /> Herbal Nexus <span>· Besançon 2026</span></span
       >
       <p>Prototype de présentation · Évaluation simulée, non validée pour un usage médical.</p>
     </div>

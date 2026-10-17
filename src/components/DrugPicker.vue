@@ -198,7 +198,7 @@ input {
   border: 0;
   background: transparent;
   padding: 6px 0;
-  font-size: 17px;
+  font-size: 21px;
   font-weight: 600;
   letter-spacing: -0.5px;
   line-height: 1.4;
@@ -206,7 +206,7 @@ input {
   border-radius: 4px;
 }
 input::placeholder {
-  font-size: 13px;
+  font-size: 17px;
   letter-spacing: 0;
   color: #b3a5c7;
   font-weight: 400;
@@ -216,7 +216,7 @@ input:focus {
   box-shadow: 0 2px 0 #b49add;
 }
 .hint {
-  font-size: 10px;
+  font-size: 15px;
   color: #93849e;
   line-height: 1.6;
 }
@@ -257,7 +257,7 @@ input:focus {
   gap: 7px;
   align-items: center;
   padding: 12px 14px;
-  font-size: 10px;
+  font-size: 15px;
   font-weight: 700;
   color: #8a70a8;
   border-bottom: 1px solid #f0eaf7;
@@ -265,7 +265,7 @@ input:focus {
 }
 .dropdown-heading strong {
   margin-left: auto;
-  font-size: 10px;
+  font-size: 15px;
   background: #ede5f7;
   padding: 3px 7px;
   border-radius: 20px;
@@ -315,19 +315,19 @@ input:focus {
   flex: 1;
 }
 .option-text strong {
-  font-size: 12px;
+  font-size: 16px;
   line-height: 1.4;
   font-weight: 650;
   color: #50415f;
 }
 .option-text small {
-  font-size: 10px;
+  font-size: 15px;
   line-height: 1.5;
   color: #9b8da7;
   overflow-wrap: anywhere;
 }
 .option-kind {
-  font-size: 9px;
+  font-size: 14px;
   line-height: 1.4;
   max-width: 85px;
   text-align: right;
@@ -350,7 +350,7 @@ input:focus {
     display: none;
   }
   input {
-    font-size: 15px;
+    font-size: 19px;
   }
 }
 @media (prefers-reduced-motion: reduce) {

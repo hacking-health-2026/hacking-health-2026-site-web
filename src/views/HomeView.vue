@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import BillyMascot from '@/components/BillyMascot.vue'
 import NexusIcon from '@/components/NexusIcon.vue'
 import NexusFlower from '@/components/NexusFlower.vue'
 
@@ -77,6 +78,7 @@ const cases = [
           Une plante, un complément, un médicament.<br class="desktop-break" />
           Leurs effets peuvent se croiser dans le même organisme.
         </p>
+        <BillyMascot :size="150" message="Un petit réflexe : vérifier avant d’associer !" />
         <div class="hero-actions">
           <a href="#cas-documentes" class="primary-button"
             >Voir les cas documentés <NexusIcon name="arrow"
@@ -235,6 +237,9 @@ const cases = [
 </template>
 
 <style scoped>
+.hero-copy > .billy-guide {
+  margin: 22px 0;
+}
 .home-hero {
   display: grid;
   grid-template-columns: 1.1fr 1fr;
@@ -253,7 +258,7 @@ const cases = [
   color: var(--purple);
 }
 .hero-copy > p {
-  font-size: 16px;
+  font-size: 20px;
   line-height: 1.8;
   color: #777480;
   margin-bottom: 27px;
@@ -268,7 +273,7 @@ const cases = [
   display: flex;
   gap: 8px;
   align-items: center;
-  font-size: 12px;
+  font-size: 16px;
   color: var(--purple);
   font-weight: 600;
 }
@@ -277,7 +282,7 @@ const cases = [
   align-items: center;
   gap: 8px;
   margin: 22px 0 0;
-  font-size: 11px;
+  font-size: 15px;
   line-height: 1.6;
 }
 .hero-note svg {
@@ -294,7 +299,7 @@ const cases = [
   position: absolute;
   left: 30px;
   top: 29px;
-  font-size: 10px;
+  font-size: 15px;
   letter-spacing: 2px;
   font-weight: 700;
   color: #8974bd;
@@ -318,7 +323,7 @@ const cases = [
   z-index: 2;
 }
 .floating-product small {
-  font-size: 8px;
+  font-size: 14px;
   letter-spacing: 1.1px;
   font-weight: 700;
   color: var(--muted);
@@ -330,7 +335,7 @@ const cases = [
   margin: 4px 0;
 }
 .floating-product div > span {
-  font-size: 10px;
+  font-size: 15px;
   color: var(--muted);
 }
 .product-symbol {
@@ -388,7 +393,7 @@ const cases = [
   position: absolute;
   bottom: 29px;
   left: 30px;
-  font-size: 11px;
+  font-size: 15px;
   font-weight: 650;
   color: #5e469b;
 }
@@ -424,7 +429,7 @@ const cases = [
 }
 .section-intro > p {
   max-width: 365px;
-  font-size: 13px;
+  font-size: 17px;
   line-height: 1.8;
   color: var(--muted);
   margin: 0 0 3px;
@@ -458,7 +463,7 @@ const cases = [
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  font-size: 10px;
+  font-size: 15px;
   color: var(--muted);
 }
 .case-top > span:first-child {
@@ -476,7 +481,7 @@ const cases = [
   gap: 7px;
   align-items: center;
   margin: 22px 0;
-  font-size: 11px;
+  font-size: 15px;
 }
 .case-association > span {
   display: flex;
@@ -509,7 +514,7 @@ const cases = [
   white-space: nowrap;
 }
 .case-figure > span {
-  font-size: 12px;
+  font-size: 16px;
   line-height: 1.6;
   max-width: 150px;
 }
@@ -522,7 +527,7 @@ const cases = [
   font-weight: 650;
 }
 .case-observation {
-  font-size: 13px;
+  font-size: 17px;
   line-height: 1.8;
   color: #686573;
   margin-bottom: 20px;
@@ -533,7 +538,7 @@ const cases = [
   gap: 8px;
   align-items: center;
   color: var(--case-accent);
-  font-size: 11px;
+  font-size: 15px;
   font-weight: 600;
   padding-bottom: 19px;
   border-bottom: 1px solid var(--line);
@@ -551,7 +556,7 @@ const cases = [
   gap: 10px;
   padding: 18px 0;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 16px;
   list-style: none;
 }
 .case-context summary::-webkit-details-marker {
@@ -561,7 +566,7 @@ const cases = [
   transform: rotate(180deg);
 }
 .case-context p {
-  font-size: 12px;
+  font-size: 16px;
   line-height: 1.8;
   color: var(--muted);
   margin-bottom: 18px;
@@ -577,12 +582,12 @@ const cases = [
 }
 .case-source strong {
   display: block;
-  font-size: 12px;
+  font-size: 16px;
   font-weight: 600;
 }
 .case-source small {
   display: block;
-  font-size: 10px;
+  font-size: 15px;
   color: var(--muted);
   line-height: 1.6;
   margin-top: 4px;
@@ -597,7 +602,7 @@ const cases = [
   gap: 35px;
   margin-top: 21px;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 15px;
   line-height: 1.8;
 }
 .research-caption p {
@@ -607,7 +612,7 @@ const cases = [
 .research-caption > span {
   text-align: right;
   flex-shrink: 0;
-  font-size: 10px;
+  font-size: 15px;
 }
 .reading-section {
   display: grid;
@@ -644,12 +649,12 @@ const cases = [
 }
 .reading-points > div > span {
   color: var(--purple);
-  font-size: 11px;
+  font-size: 15px;
   font-weight: 700;
   padding-top: 3px;
 }
 .reading-points p {
-  font-size: 12px;
+  font-size: 16px;
   line-height: 1.8;
   color: #6c6676;
   margin: 0;
@@ -658,7 +663,7 @@ const cases = [
   display: block;
   color: var(--ink);
   font-weight: 600;
-  font-size: 14px;
+  font-size: 18px;
   margin-bottom: 4px;
 }
 .bottom-invitation {
@@ -673,7 +678,7 @@ const cases = [
   overflow: hidden;
 }
 .bottom-invitation span {
-  font-size: 12px;
+  font-size: 16px;
   color: #5c6d34;
 }
 .bottom-invitation h2 {
@@ -683,7 +688,7 @@ const cases = [
   font-weight: 650;
 }
 .bottom-invitation p {
-  font-size: 12px;
+  font-size: 16px;
   line-height: 1.7;
   margin: 0;
   max-width: 350px;
@@ -760,7 +765,7 @@ const cases = [
     font-size: clamp(39px, 8vw, 60px);
   }
   .hero-copy > p {
-    font-size: 14px;
+    font-size: 18px;
   }
   .hero-art {
     min-height: 410px;

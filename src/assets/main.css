@@ -78,7 +78,7 @@ a svg {
   align-items: center;
   gap: 8px;
   color: var(--purple);
-  font-size: 11px;
+  font-size: 15px;
   font-weight: 750;
   letter-spacing: 1.8px;
   text-transform: uppercase;
@@ -162,7 +162,7 @@ a svg {
   gap: 7px;
   padding: 10px 20px;
   border-radius: 30px;
-  font-size: 13px;
+  font-size: 17px;
   font-weight: 600;
   color: #6d6c75;
   transition:
@@ -201,7 +201,7 @@ a svg {
   display: flex;
   align-items: center;
   gap: 7px;
-  font-size: 11px;
+  font-size: 15px;
   font-weight: 650;
   white-space: nowrap;
 }
@@ -224,7 +224,7 @@ a svg {
   justify-content: space-between;
   gap: 20px;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 15px;
 }
 .footer-inner p {
   margin: 0;
@@ -255,7 +255,7 @@ a svg {
   border: 0;
   border-radius: 14px;
   padding: 17px 23px;
-  font-size: 14px;
+  font-size: 18px;
   font-weight: 650;
   transition:
     transform 0.2s,
@@ -269,7 +269,7 @@ a svg {
   display: inline-flex;
   gap: 9px;
   align-items: center;
-  font-size: 13px;
+  font-size: 17px;
   font-weight: 600;
   color: var(--ink);
 }
@@ -279,7 +279,7 @@ a svg {
   gap: 6px;
   border-radius: 30px;
   padding: 7px 11px;
-  font-size: 11px;
+  font-size: 15px;
   font-weight: 600;
   background: white;
 }
@@ -356,7 +356,7 @@ a svg {
   }
   .main-nav a {
     padding: 9px 19px;
-    font-size: 12px;
+    font-size: 16px;
   }
   .page-width {
     padding-left: 18px;
@@ -399,9 +399,27 @@ a svg {
   }
   .main-nav a {
     padding: 10px 12px;
-    font-size: 12px;
+    font-size: 16px;
   }
   .main-nav .nav-use {
     padding: 11px 14px;
+  }
+}
+
+.header-mascot {
+  flex-shrink: 0;
+}
+@media (max-width: 1000px) {
+  .site-header .nav-wrap .header-mascot {
+    display: none;
+  }
+}
+
+@media (min-width: 1001px) {
+  .nav-wrap {
+    grid-template-columns: auto 1fr auto auto;
+  }
+  .main-nav {
+    justify-self: center;
   }
 }

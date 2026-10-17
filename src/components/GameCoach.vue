@@ -5,7 +5,7 @@ import type { GameCase } from '@/data/game'
 
 const props = defineProps<{ medicine: GameCase; component: GameCase; attempt: number }>()
 const emit = defineEmits<{ dismiss: []; retry: [] }>()
-const mascotUrl = `${import.meta.env.BASE_URL}billy-mascot.png`
+const mascotUrl = `${import.meta.env.BASE_URL}billy-mascot-transparent.png`
 const severe = computed(() => props.medicine.severity === 'Rouge')
 const popup = ref<HTMLDialogElement>()
 const closeButton = ref<HTMLButtonElement>()
@@ -134,11 +134,11 @@ const cheer = computed(() => cheers[(props.attempt - 1) % cheers.length])
 .coach-mascot img {
   width: 190px;
   height: 220px;
-  object-fit: cover;
+  object-fit: contain;
   object-position: center 72%;
   display: block;
   border-radius: 20px;
-  background: white;
+  background: transparent;
   animation: coach-sway 3s ease-in-out infinite;
 }
 .coach-bubble {
@@ -160,7 +160,7 @@ const cheer = computed(() => cheers[(props.attempt - 1) % cheers.length])
 .coach-label {
   text-transform: uppercase;
   letter-spacing: 1.4px;
-  font-size: 12px;
+  font-size: 16px;
   color: #8d7569;
   font-weight: 700;
   margin: 0 25px 9px 0;
@@ -169,7 +169,7 @@ const cheer = computed(() => cheers[(props.attempt - 1) % cheers.length])
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 14px;
+  font-size: 18px;
   font-weight: 750;
   color: var(--coach-color);
   background: var(--coach-tint);
@@ -185,7 +185,7 @@ h2 {
   letter-spacing: -0.5px;
 }
 .coach-message {
-  font-size: 16px;
+  font-size: 20px;
   line-height: 1.65;
   color: #6b5c57;
 }
@@ -217,7 +217,7 @@ h2 {
 }
 .coach-message small {
   display: block;
-  font-size: 12px;
+  font-size: 16px;
   line-height: 1.6;
 }
 .coach-actions {
@@ -227,7 +227,7 @@ h2 {
   margin-top: 16px;
 }
 .coach-actions button {
-  font-size: 14px;
+  font-size: 18px;
   font-weight: 700;
   padding: 11px 14px;
   border-radius: 12px;
@@ -245,7 +245,7 @@ h2 {
   gap: 7px;
 }
 .coach-note {
-  font-size: 12px;
+  font-size: 16px;
   line-height: 1.5;
   color: #8b7e79;
   margin: 13px 0 0;
