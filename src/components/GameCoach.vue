@@ -6,18 +6,22 @@ import type { GameCase } from '@/data/game'
 const props = defineProps<{ medicine: GameCase; component: GameCase; attempt: number }>()
 const emit = defineEmits<{ dismiss: []; retry: [] }>()
 const reveal = ref(false)
-const popup = ref<HTMLElement>()
+const mascotUrl = `${import.meta.env.BASE_URL}billy-mascot.png`
+const severe = computed(() => props.medicine.severity === 'Rouge')
+const popup = ref<HTMLDialogElement>()
 const closeButton = ref<HTMLButtonElement>()
 let previousFocus: HTMLElement | null = null
 onMounted(() => {
   previousFocus = document.activeElement as HTMLElement | null
+  popup.value?.showModal()
   closeButton.value?.focus({ preventScroll: true })
 })
 onBeforeUnmount(() => {
-  if (popup.value?.contains(document.activeElement)) previousFocus?.focus({ preventScroll: true })
+  popup.value?.close()
+  previousFocus?.focus({ preventScroll: true })
 })
 const cheers = [
-  'Oups, mes pétales ont frémi !',
+  'Oups, les molécules s’emmêlent !',
   'Presque ! On mène l’enquête ?',
   'Un détour, c’est aussi une découverte !',
   'Le labo n’a pas dit son dernier mot !',
@@ -26,54 +30,33 @@ const cheer = computed(() => cheers[(props.attempt - 1) % cheers.length])
 </script>
 
 <template>
-  <aside
+  <dialog
     ref="popup"
     class="coach-popup"
     role="dialog"
-    aria-modal="false"
+    :class="{ severe }"
+    @cancel.prevent="emit('dismiss')"
     aria-labelledby="coach-title"
     @keydown.esc.stop="emit('dismiss')"
   >
-    <div class="coach-mascot" aria-hidden="true">
-      <svg viewBox="0 0 140 145" fill="none">
-        <ellipse cx="70" cy="135" rx="38" ry="6" fill="#7155e8" opacity=".12" />
-        <path d="M69 99v29" stroke="#688754" stroke-width="8" stroke-linecap="round" />
-        <path d="M66 119C39 122 35 102 40 99c20-3 30 9 26 20Z" fill="#a9cb79" />
-        <path d="M74 124c26-1 31-17 25-22-19-2-29 12-25 22Z" fill="#bddb8e" />
-        <g class="coach-flower">
-          <path
-            d="M70 19C84-3 107 9 104 29c24-4 37 20 19 35 20 16 8 40-15 37-3 24-31 29-40 9-19 17-43 1-34-20-25 1-34-26-13-38C6 32 24 11 44 22 47 2 66 1 70 19Z"
-            fill="#9775ec"
-          />
-          <circle cx="70" cy="62" r="32" fill="#fff0b8" />
-          <ellipse cx="57" cy="62" rx="3.5" ry="5" fill="#433455" />
-          <ellipse cx="82" cy="62" rx="3.5" ry="5" fill="#433455" />
-          <path d="M61 75q9 10 18 0" stroke="#433455" stroke-width="3" stroke-linecap="round" />
-          <ellipse cx="48" cy="73" rx="6" ry="3.5" fill="#f7a898" />
-          <ellipse cx="91" cy="73" rx="6" ry="3.5" fill="#f7a898" />
-        </g>
-        <path
-          class="coach-wave"
-          d="M111 86q18-12 15-28m0 0-6 2m6-2 4 5"
-          stroke="#688754"
-          stroke-width="5"
-          stroke-linecap="round"
-        />
-        <path d="m17 9 2 6 6 2-6 2-2 6-2-6-6-2 6-2Z" fill="#edb546" />
-      </svg>
-      <span>Nexus</span>
+    <div class="coach-mascot">
+      <img :src="mascotUrl" alt="La mascotte Billy, votre complice du labo" />
     </div>
     <div class="coach-bubble">
       <button
         ref="closeButton"
         class="coach-close"
         type="button"
-        aria-label="Fermer la bulle de Nexus"
+        aria-label="Fermer la bulle de la mascotte"
         @click="emit('dismiss')"
       >
         <NexusIcon name="close" :size="18" />
       </button>
       <p class="coach-label">Votre complice du labo</p>
+      <p class="coach-severity">
+        <NexusIcon name="info" :size="15" />{{ severe ? 'Danger' : 'Risque modéré' }} · duo à
+        retrouver
+      </p>
       <h2 id="coach-title">{{ cheer }}</h2>
       <div class="coach-message" aria-live="polite">
         <p>
@@ -106,61 +89,65 @@ const cheer = computed(() => cheers[(props.attempt - 1) % cheers.length])
         </button>
       </div>
       <p class="coach-note">
-        Ici, le rouge indique une réponse au jeu, pas une preuve d’absence d’interaction.
+        La couleur de cette bulle indique la gravité du duo à retrouver dans le classeur, pas celle
+        du lien incorrect.
       </p>
     </div>
-  </aside>
+  </dialog>
 </template>
 
 <style scoped>
 .coach-popup {
+  --coach-color: #a64b11;
+  --coach-tint: #fff0df;
+  --coach-border: #f2bc82;
   position: fixed;
-  z-index: 80;
-  bottom: 24px;
-  right: 24px;
-  width: min(440px, calc(100vw - 32px));
-  animation: coach-enter 0.3s ease-out;
-  filter: drop-shadow(0 15px 28px #39215a24);
+  inset: 0;
+  margin: auto;
+  width: min(740px, calc(100vw - 32px));
+  max-width: none;
+  max-height: calc(100dvh - 32px);
+  border: 2px solid var(--coach-border);
+  border-radius: 28px;
+  padding: 24px;
+  background: #fffdf9;
+  color: #493b35;
+  overflow-y: auto;
+  box-sizing: border-box;
+  box-shadow: 0 25px 100px #2d17374d;
+  animation: coach-enter 0.25s ease-out;
+}
+.coach-popup[open] {
+  display: grid;
+  grid-template-columns: 190px minmax(0, 1fr);
+  align-items: center;
+  gap: 22px;
+}
+.coach-popup.severe {
+  --coach-color: #b62c36;
+  --coach-tint: #fff0ef;
+  --coach-border: #eea2a5;
+}
+.coach-popup::backdrop {
+  background: #24183066;
+  backdrop-filter: blur(4px);
 }
 .coach-mascot {
-  position: absolute;
-  width: 115px;
-  height: 130px;
-  top: -110px;
-  left: 10px;
-  pointer-events: none;
+  align-self: start;
+  padding-top: 35px;
 }
-.coach-mascot svg {
-  width: 100%;
-  height: 100%;
-}
-.coach-mascot span {
-  position: absolute;
-  bottom: 0;
-  left: 30px;
+.coach-mascot img {
+  width: 190px;
+  height: 220px;
+  object-fit: cover;
+  object-position: center 72%;
+  display: block;
   border-radius: 20px;
-  padding: 4px 12px;
-  background: #7155e8;
-  color: white;
-  font-size: 10px;
-  font-weight: 700;
-}
-.coach-flower {
-  transform-origin: 70px 100px;
-  animation: coach-sway 2.8s ease-in-out infinite;
-}
-.coach-wave {
-  transform-origin: 111px 86px;
-  animation: coach-wave 1.4s ease-in-out 2;
+  background: white;
+  animation: coach-sway 3s ease-in-out infinite;
 }
 .coach-bubble {
-  position: relative;
-  border: 2px solid #d7c7f4;
-  border-radius: 24px;
-  background: #fffdf7;
-  padding: 23px;
-  max-height: min(560px, calc(100dvh - 160px));
-  overflow-y: auto;
+  min-width: 0;
 }
 .coach-close {
   position: absolute;
@@ -172,28 +159,40 @@ const cheer = computed(() => cheers[(props.attempt - 1) % cheers.length])
   border-radius: 50%;
   width: 30px;
   height: 30px;
-  background: #eee7fa;
-  color: #7155e8;
+  background: var(--coach-tint);
+  color: var(--coach-color);
 }
 .coach-label {
   text-transform: uppercase;
   letter-spacing: 1.4px;
   font-size: 9px;
-  color: #9070b5;
+  color: #8d7569;
   font-weight: 700;
-  margin: 0 30px 8px 0;
+  margin: 0 25px 9px 0;
+}
+.coach-severity {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 750;
+  color: var(--coach-color);
+  background: var(--coach-tint);
+  border-radius: 30px;
+  padding: 7px 10px;
+  margin: 0 0 12px;
 }
 h2 {
-  font-size: 21px;
+  font-size: 23px;
   line-height: 1.2;
-  color: #49345e;
-  margin: 0 16px 14px 0;
+  color: #493b35;
+  margin: 0 12px 14px 0;
   letter-spacing: -0.5px;
 }
 .coach-message {
   font-size: 12px;
   line-height: 1.65;
-  color: #6b5c78;
+  color: #6b5c57;
 }
 .coach-message p {
   margin: 0 0 12px;
@@ -202,23 +201,24 @@ h2 {
   display: flex;
   align-items: flex-start;
   gap: 9px;
-  background: #eef4df;
+  background: var(--coach-tint);
   padding: 12px;
   border-radius: 13px;
   margin: 12px 0;
 }
 .coach-discovery svg {
   flex-shrink: 0;
-  color: #6b8850;
+  color: var(--coach-color);
   margin-top: 3px;
 }
 .coach-discovery p {
   margin: 0;
 }
 .coach-answer {
-  background: #f0eafb;
+  background: var(--coach-tint);
   padding: 12px;
   border-radius: 13px;
+  border-left: 3px solid var(--coach-color);
 }
 .coach-message small {
   display: block;
@@ -239,11 +239,11 @@ h2 {
   border: 0;
 }
 .coach-hint {
-  background: #eee7fa;
-  color: #7155e8;
+  background: var(--coach-tint);
+  color: var(--coach-color);
 }
 .coach-retry {
-  background: #7155e8;
+  background: var(--coach-color);
   color: white;
   display: flex;
   align-items: center;
@@ -252,17 +252,17 @@ h2 {
 .coach-note {
   font-size: 9px;
   line-height: 1.5;
-  color: #8b7e94;
+  color: #8b7e79;
   margin: 13px 0 0;
 }
 button:focus-visible {
-  outline: 3px solid #fb704b;
+  outline: 3px solid var(--coach-color);
   outline-offset: 3px;
 }
 @keyframes coach-enter {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(12px);
   }
   to {
     opacity: 1;
@@ -271,36 +271,33 @@ button:focus-visible {
 }
 @keyframes coach-sway {
   50% {
-    transform: rotate(5deg);
-  }
-}
-@keyframes coach-wave {
-  50% {
-    transform: rotate(-16deg);
+    transform: rotate(3deg);
   }
 }
 @media (max-width: 600px) {
   .coach-popup {
-    bottom: 12px;
-    right: 16px;
-  }
-  .coach-bubble {
     padding: 20px;
-    max-height: calc(100dvh - 155px);
+  }
+  .coach-popup[open] {
+    grid-template-columns: 1fr;
+    gap: 4px;
   }
   .coach-mascot {
-    width: 95px;
-    height: 108px;
-    top: -90px;
+    padding: 0;
+    justify-self: center;
+  }
+  .coach-mascot img {
+    width: 135px;
+    height: 125px;
+    object-position: center 65%;
   }
   h2 {
-    font-size: 19px;
+    font-size: 20px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
   .coach-popup,
-  .coach-flower,
-  .coach-wave {
+  .coach-mascot img {
     animation: none;
   }
 }

@@ -4,6 +4,7 @@ export type GameId = string
 export interface GameCase {
   id: GameId
   medicineId: string
+  severity: string
   ruleId: string
   medicine: string
   active: string
@@ -38,6 +39,7 @@ for (const pair of dataset.pairs) {
       id,
       medicineId: medicine.id,
       ruleId: rule.id,
+      severity: rule.severity,
       medicine: medicine.name,
       active: medicine.active_substance || medicine.name,
       role: medicine.drug_class || '',
