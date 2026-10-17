@@ -27,17 +27,19 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      - run: npm run test:demo
       - run: npm run build
         env:
           VITE_BASE_PATH: ${{ steps.pages.outputs.base_path }}/
           VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+          VITE_STATIC_DEMO: ${{ vars.VITE_API_BASE_URL == '' }}
       - name: Check static path mappings
         run: node scripts/check-paths.mjs
         env:
           VITE_BASE_PATH: ${{ steps.pages.outputs.base_path }}/
       - name: Report API configuration
         if: ${{ vars.VITE_API_BASE_URL == '' }}
-        run: echo "::warning::VITE_API_BASE_URL is empty. Pages and bundled presets will deploy, but product search and analysis require a separately hosted backend and matching CORS_ORIGINS."
+        run: echo "::notice::No remote API configured. Pages uses the browser PoC for the four products in the two presets. Configure VITE_API_BASE_URL for the full backend catalogue."
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

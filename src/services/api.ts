@@ -1,3 +1,6 @@
+import { assessStaticProducts, searchStaticProducts, staticProfileOptions } from './staticDemo'
+import presets from '../data/presets.json'
+
 export interface Component {
   id: string
   name: string
@@ -97,6 +100,7 @@ export interface Scenario {
 }
 
 const baseUrl = (import.meta.env.VITE_API_BASE_URL ?? '').trim().replace(/\/+$/, '')
+const staticDemo = import.meta.env.VITE_STATIC_DEMO === 'true' && !baseUrl
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const response = await fetch(`${baseUrl}/api${path}`, options)
@@ -108,6 +112,10 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 }
 
 export function searchDrugs(query: string, signal: AbortSignal) {
+  if (staticDemo) {
+    signal.throwIfAborted()
+    return Promise.resolve(searchStaticProducts(query))
+  }
   return request<Drug[]>(`/drugs?q=${encodeURIComponent(query)}`, { signal })
 }
 export function assessDrugs(
@@ -116,6 +124,10 @@ export function assessDrugs(
   signal: AbortSignal,
   intakes: Intake[] = [],
 ) {
+  if (staticDemo) {
+    signal.throwIfAborted()
+    return Promise.resolve(assessStaticProducts(drugIds, profile, intakes))
+  }
   return request<Assessment>('/assess', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -124,11 +136,14 @@ export function assessDrugs(
   })
 }
 export function fetchScenarios() {
+  if (staticDemo) return Promise.resolve(structuredClone(presets as Scenario[]))
   return request<Scenario[]>('/scenarios')
 }
 export function fetchProfileOptions() {
+  if (staticDemo) return Promise.resolve(staticProfileOptions())
   return request<{ conditions: string[] }>('/profile-options')
 }
 export function workbookUrl(path: string) {
+  if (staticDemo) return `${import.meta.env.BASE_URL}demo-source.xlsx`
   return `${baseUrl}${path}`
 }

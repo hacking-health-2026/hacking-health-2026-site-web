@@ -1,0 +1,1183 @@
+{
+  "scope": "The four products of the two presentation presets only.",
+  "source": {
+    "name": "Herbal_Nexus_Donnees_Agent1.xlsx",
+    "sha256": "1c62e82823d556cefa0925ebb3a4a7e6348125d975a2d416a22a44be73111e3d",
+    "imported_at": "2026-10-17T07:38:16.999208+00:00",
+    "is_clinically_validated": false,
+    "reference_note": "Source names in the workbook are unverified labels, not verified citations.",
+    "counts": {
+      "interactions": 36,
+      "medicines": 50,
+      "supplements": 50,
+      "food_notes": 16,
+      "profile_rules": 25
+    },
+    "mode": "demo",
+    "workbook_url": "/api/source/workbook"
+  },
+  "algorithm": {
+    "version": "herbal-demo-v3",
+    "simulated": true,
+    "coefficient_origin": "Invented for the demo; not fitted to observations or clinically validated.",
+    "formula": "score = min(100, base + additional_rules + age_bonus + weight_bonus + quantity_bonus)",
+    "quantity_formula": "per edge: round(min(20, max(0, 10 * (sqrt((daily_a/reference_a) * (daily_b/reference_b)) - 1)))); overall quantity_bonus = max(edge bonuses)",
+    "quantity_note": "Invented exposure heuristic. Reference = one selected presentation unit, not a therapeutic dose. No dose-response evidence. Missing amounts or normalization: quantity bonus not computed. Lower quantities never remove a workbook alert.",
+    "coefficients": {
+      "Rouge": 80,
+      "Orange": 45,
+      "Vert": 15,
+      "per_additional_rule": 5,
+      "additional_rules_cap": 15,
+      "age_threshold": 65,
+      "age_bonus": 10,
+      "weight_threshold_kg": 55,
+      "weight_bonus": 5
+    },
+    "thresholds": {
+      "critical": 60,
+      "watch": 30,
+      "low": 1
+    },
+    "alert_labels": {
+      "critical": "Danger",
+      "watch": "Risque modéré",
+      "low": "Risque faible",
+      "unknown": "Informations insuffisantes"
+    },
+    "units": "fictional demo points, not a probability or percentage"
+  },
+  "notice": "DÉMONSTRATION SIMULÉE. Score fictif, non entraîné et non validé cliniquement. Les sources du classeur ne sont pas vérifiées. Aucun usage médical.",
+  "products": [
+    {
+      "id": "MED-005",
+      "name": "Leeloo Gé",
+      "kind": "medicine",
+      "active_substance": "Lévonorgestrel + éthinylestradiol",
+      "drug_class": "Contraceptifs œstroprogestatifs",
+      "note": "Pilule combinée 2e gén.",
+      "reference": {
+        "sheet": "Médicaments",
+        "row": 5,
+        "range": "A5:D5"
+      },
+      "components": [
+        {
+          "id": "MED-005:1",
+          "name": "Lévonorgestrel",
+          "amount_mg": 0.1,
+          "demo_reference_mg": 0.1,
+          "basis": "substance",
+          "quantity_origin": "bdpm"
+        },
+        {
+          "id": "MED-005:2",
+          "name": "Éthinylestradiol",
+          "amount_mg": 0.02,
+          "demo_reference_mg": 0.02,
+          "basis": "substance",
+          "quantity_origin": "bdpm"
+        }
+      ],
+      "display_kind": null,
+      "unit_label": "comprimé",
+      "formulation": "LEELOO 0,1 mg / 0,02 mg · comprimé",
+      "composition_source": {
+        "label": "BDPM · RCP LEELOO",
+        "url": "https://base-donnees-publique.medicaments.gouv.fr/medicament/66819566/extrait",
+        "formulation": "LEELOO 0,1 mg / 0,02 mg · comprimé",
+        "updated_at": "2025-05-14",
+        "accessed_at": "2026-10-17",
+        "unit_label": "comprimé"
+      },
+      "composition_note": "Présentation choisie pour l’exemple ; vérifier le dosage de la boîte.",
+      "composition_simulated": false
+    },
+    {
+      "id": "SUP-006",
+      "name": "Arkogélules Millepertuis",
+      "kind": "supplement",
+      "declared_ingredients": "Millepertuis (Hypericum perforatum)",
+      "matched_ingredients": ["Millepertuis"],
+      "note": "Mono-ingrédient — match direct",
+      "reference": {
+        "sheet": "Compléments",
+        "row": 6,
+        "range": "A6:E6"
+      },
+      "components": [
+        {
+          "id": "SUP-006:1",
+          "name": "Millepertuis",
+          "amount_mg": 175,
+          "demo_reference_mg": 175,
+          "basis": "plant_extract",
+          "quantity_origin": "bdpm"
+        }
+      ],
+      "display_kind": "Médicament à base de plantes",
+      "unit_label": "gélule",
+      "formulation": "ARKOGELULES MILLEPERTUIS · gélule à 175 mg d’extrait sec",
+      "composition_source": {
+        "label": "BDPM · RCP ARKOGELULES MILLEPERTUIS",
+        "url": "https://base-donnees-publique.medicaments.gouv.fr/medicament/60448702/extrait",
+        "formulation": "ARKOGELULES MILLEPERTUIS · gélule à 175 mg d’extrait sec",
+        "updated_at": "2026-07-03",
+        "accessed_at": "2026-10-17",
+        "unit_label": "gélule",
+        "note": "Présentation médicamenteuse de l’exemple, signalée indisponible dans la BDPM. Masse d’extrait sec, pas masse d’hyperforine."
+      },
+      "composition_note": "Présentation médicamenteuse de l’exemple, signalée indisponible dans la BDPM. Masse d’extrait sec, pas masse d’hyperforine.",
+      "composition_simulated": false
+    },
+    {
+      "id": "MED-041",
+      "name": "Xanax",
+      "kind": "medicine",
+      "active_substance": "Alprazolam",
+      "drug_class": "Sédatifs / benzodiazépines",
+      "note": "Anxiolytique",
+      "reference": {
+        "sheet": "Médicaments",
+        "row": 41,
+        "range": "A41:D41"
+      },
+      "components": [
+        {
+          "id": "MED-041:1",
+          "name": "Alprazolam",
+          "amount_mg": 0.25,
+          "demo_reference_mg": 0.25,
+          "basis": "substance",
+          "quantity_origin": "bdpm"
+        }
+      ],
+      "display_kind": null,
+      "unit_label": "comprimé",
+      "formulation": "XANAX 0,25 mg · comprimé sécable",
+      "composition_source": {
+        "label": "BDPM · RCP XANAX",
+        "url": "https://base-donnees-publique.medicaments.gouv.fr/medicament/69847791/extrait",
+        "formulation": "XANAX 0,25 mg · comprimé sécable",
+        "updated_at": "2025-04-30",
+        "accessed_at": "2026-10-17",
+        "unit_label": "comprimé"
+      },
+      "composition_note": "Présentation choisie pour l’exemple ; vérifier le dosage de la boîte.",
+      "composition_simulated": false
+    },
+    {
+      "id": "SUP-029",
+      "name": "Sommeil Fort Mélatonine+",
+      "kind": "supplement",
+      "declared_ingredients": "Mélatonine + Valériane + Mélisse",
+      "matched_ingredients": ["Mélatonine", "Valériane"],
+      "note": "2 ingrédients à risque",
+      "reference": {
+        "sheet": "Compléments",
+        "row": 29,
+        "range": "A29:E29"
+      },
+      "components": [
+        {
+          "id": "SUP-029:1",
+          "name": "Mélatonine",
+          "amount_mg": 1,
+          "demo_reference_mg": 1,
+          "basis": "declared_ingredient",
+          "quantity_origin": "simulated"
+        },
+        {
+          "id": "SUP-029:2",
+          "name": "Valériane",
+          "amount_mg": 200,
+          "demo_reference_mg": 200,
+          "basis": "plant_extract",
+          "quantity_origin": "simulated"
+        },
+        {
+          "id": "SUP-029:3",
+          "name": "Mélisse",
+          "amount_mg": 100,
+          "demo_reference_mg": 100,
+          "basis": "plant_extract",
+          "quantity_origin": "simulated"
+        }
+      ],
+      "display_kind": null,
+      "unit_label": "unité",
+      "formulation": "Sommeil Fort Mélatonine+",
+      "composition_source": null,
+      "composition_note": "Quantités d’exemple inventées ; composition qualitative issue du classeur.",
+      "composition_simulated": true
+    }
+  ],
+  "conditions": [
+    "allaitement",
+    "chirurgie programmée",
+    "Diabète",
+    "Grossesse",
+    "Hémochromatose",
+    "Hypertension",
+    "Hyperthyroïdie",
+    "Hypotension",
+    "Insuffisance rénale (sous traitement)",
+    "Maladie hépatique",
+    "Phénylcétonurie",
+    "pré-partum",
+    "Ulcère gastroduodénal"
+  ],
+  "pairs": [
+    {
+      "drug_a": {
+        "id": "MED-005",
+        "name": "Leeloo Gé",
+        "kind": "medicine",
+        "active_substance": "Lévonorgestrel + éthinylestradiol",
+        "drug_class": "Contraceptifs œstroprogestatifs",
+        "note": "Pilule combinée 2e gén.",
+        "reference": {
+          "sheet": "Médicaments",
+          "row": 5,
+          "range": "A5:D5"
+        },
+        "components": [
+          {
+            "id": "MED-005:1",
+            "name": "Lévonorgestrel",
+            "amount_mg": 0.1,
+            "demo_reference_mg": 0.1,
+            "basis": "substance",
+            "quantity_origin": "bdpm",
+            "daily_mg": 0.1,
+            "input_origin": "bdpm"
+          },
+          {
+            "id": "MED-005:2",
+            "name": "Éthinylestradiol",
+            "amount_mg": 0.02,
+            "demo_reference_mg": 0.02,
+            "basis": "substance",
+            "quantity_origin": "bdpm",
+            "daily_mg": 0.02,
+            "input_origin": "bdpm"
+          }
+        ],
+        "display_kind": null,
+        "unit_label": "comprimé",
+        "formulation": "LEELOO 0,1 mg / 0,02 mg · comprimé",
+        "composition_source": {
+          "label": "BDPM · RCP LEELOO",
+          "url": "https://base-donnees-publique.medicaments.gouv.fr/medicament/66819566/extrait",
+          "formulation": "LEELOO 0,1 mg / 0,02 mg · comprimé",
+          "updated_at": "2025-05-14",
+          "accessed_at": "2026-10-17",
+          "unit_label": "comprimé"
+        },
+        "composition_note": "Présentation choisie pour l’exemple ; vérifier le dosage de la boîte.",
+        "composition_simulated": false,
+        "units_per_day": 1
+      },
+      "drug_b": {
+        "id": "SUP-006",
+        "name": "Arkogélules Millepertuis",
+        "kind": "supplement",
+        "declared_ingredients": "Millepertuis (Hypericum perforatum)",
+        "matched_ingredients": ["Millepertuis"],
+        "note": "Mono-ingrédient — match direct",
+        "reference": {
+          "sheet": "Compléments",
+          "row": 6,
+          "range": "A6:E6"
+        },
+        "components": [
+          {
+            "id": "SUP-006:1",
+            "name": "Millepertuis",
+            "amount_mg": 175,
+            "demo_reference_mg": 175,
+            "basis": "plant_extract",
+            "quantity_origin": "bdpm",
+            "daily_mg": 175,
+            "input_origin": "bdpm"
+          }
+        ],
+        "display_kind": "Médicament à base de plantes",
+        "unit_label": "gélule",
+        "formulation": "ARKOGELULES MILLEPERTUIS · gélule à 175 mg d’extrait sec",
+        "composition_source": {
+          "label": "BDPM · RCP ARKOGELULES MILLEPERTUIS",
+          "url": "https://base-donnees-publique.medicaments.gouv.fr/medicament/60448702/extrait",
+          "formulation": "ARKOGELULES MILLEPERTUIS · gélule à 175 mg d’extrait sec",
+          "updated_at": "2026-07-03",
+          "accessed_at": "2026-10-17",
+          "unit_label": "gélule",
+          "note": "Présentation médicamenteuse de l’exemple, signalée indisponible dans la BDPM. Masse d’extrait sec, pas masse d’hyperforine."
+        },
+        "composition_note": "Présentation médicamenteuse de l’exemple, signalée indisponible dans la BDPM. Masse d’extrait sec, pas masse d’hyperforine.",
+        "composition_simulated": false,
+        "units_per_day": 1
+      },
+      "dangerous": true,
+      "status": "critical",
+      "rules": [
+        {
+          "id": "INT-001",
+          "ingredient": "Millepertuis",
+          "target": "Contraceptifs œstroprogestatifs",
+          "severity": "Rouge",
+          "mechanism": "Induction enzymatique (CYP3A4) → baisse des concentrations hormonales",
+          "consequence": "Échec contraceptif → risque de grossesse non désirée",
+          "source_label": "ANSM",
+          "evidence_level": "1",
+          "reference": {
+            "sheet": "Interactions",
+            "row": 4,
+            "range": "A4:H4"
+          },
+          "source_verified": false,
+          "matched_product": "Arkogélules Millepertuis",
+          "matched_medicine": "Leeloo Gé",
+          "matched_class": "Contraceptifs œstroprogestatifs",
+          "matching_mode": "hand_authored_demo_class_mapping"
+        }
+      ],
+      "ingredient_relations": [
+        {
+          "id": "INT-001:MED-005:1:SUP-006:1",
+          "rule_id": "INT-001",
+          "medicine_id": "MED-005",
+          "botanical_id": "SUP-006",
+          "substance": {
+            "id": "MED-005:1",
+            "name": "Lévonorgestrel",
+            "amount_mg": 0.1,
+            "demo_reference_mg": 0.1,
+            "basis": "substance",
+            "quantity_origin": "bdpm",
+            "daily_mg": 0.1,
+            "input_origin": "bdpm"
+          },
+          "ingredient": {
+            "id": "SUP-006:1",
+            "name": "Millepertuis",
+            "amount_mg": 175,
+            "demo_reference_mg": 175,
+            "basis": "plant_extract",
+            "quantity_origin": "bdpm",
+            "daily_mg": 175,
+            "input_origin": "bdpm"
+          },
+          "mapping_mode": "workbook_ingredient_to_medicine_class_projection",
+          "mapping_note": "Projection de la règle de classe du classeur ; pas une observation propre à cette paire de molécules.",
+          "severity": "Rouge",
+          "mechanism": "Induction enzymatique (CYP3A4) → baisse des concentrations hormonales",
+          "reference": {
+            "sheet": "Interactions",
+            "row": 4,
+            "range": "A4:H4"
+          },
+          "quantity_complete": true,
+          "exposure_factor": 1.0,
+          "quantity_points": 0,
+          "score": 80,
+          "status": "critical",
+          "simulated": true
+        },
+        {
+          "id": "INT-001:MED-005:2:SUP-006:1",
+          "rule_id": "INT-001",
+          "medicine_id": "MED-005",
+          "botanical_id": "SUP-006",
+          "substance": {
+            "id": "MED-005:2",
+            "name": "Éthinylestradiol",
+            "amount_mg": 0.02,
+            "demo_reference_mg": 0.02,
+            "basis": "substance",
+            "quantity_origin": "bdpm",
+            "daily_mg": 0.02,
+            "input_origin": "bdpm"
+          },
+          "ingredient": {
+            "id": "SUP-006:1",
+            "name": "Millepertuis",
+            "amount_mg": 175,
+            "demo_reference_mg": 175,
+            "basis": "plant_extract",
+            "quantity_origin": "bdpm",
+            "daily_mg": 175,
+            "input_origin": "bdpm"
+          },
+          "mapping_mode": "workbook_ingredient_to_medicine_class_projection",
+          "mapping_note": "Projection de la règle de classe du classeur ; pas une observation propre à cette paire de molécules.",
+          "severity": "Rouge",
+          "mechanism": "Induction enzymatique (CYP3A4) → baisse des concentrations hormonales",
+          "reference": {
+            "sheet": "Interactions",
+            "row": 4,
+            "range": "A4:H4"
+          },
+          "quantity_complete": true,
+          "exposure_factor": 1.0,
+          "quantity_points": 0,
+          "score": 80,
+          "status": "critical",
+          "simulated": true
+        }
+      ],
+      "calculation": {
+        "score": 80,
+        "status": "critical",
+        "simulated": true,
+        "formula": "score = min(100, base + additional_rules + age_bonus + weight_bonus + quantity_bonus)",
+        "substitution": "min(100, 80 + 0 + 0 + 0) = 80",
+        "matched_rule_count": 1,
+        "steps": [
+          {
+            "label": "Base : gravité maximale du classeur",
+            "value": 80,
+            "origin": "Barème fictif : Rouge = 80, Orange = 45, Vert = 15"
+          },
+          {
+            "label": "Règles supplémentaires",
+            "value": 0,
+            "origin": "Coefficient fictif : +5 par règle après la première, maximum +15"
+          },
+          {
+            "label": "Modificateur âge",
+            "value": 0,
+            "origin": "Coefficient fictif : +10 à partir de 65 ans"
+          },
+          {
+            "label": "Modificateur poids",
+            "value": 0,
+            "origin": "Coefficient fictif : +5 sous 55 kg"
+          },
+          {
+            "label": "Quantités croisées",
+            "value": 0,
+            "origin": "Invented exposure heuristic. Reference = one selected presentation unit, not a therapeutic dose. No dose-response evidence. Missing amounts or normalization: quantity bonus not computed. Lower quantities never remove a workbook alert."
+          }
+        ]
+      }
+    },
+    {
+      "drug_a": {
+        "id": "MED-005",
+        "name": "Leeloo Gé",
+        "kind": "medicine",
+        "active_substance": "Lévonorgestrel + éthinylestradiol",
+        "drug_class": "Contraceptifs œstroprogestatifs",
+        "note": "Pilule combinée 2e gén.",
+        "reference": {
+          "sheet": "Médicaments",
+          "row": 5,
+          "range": "A5:D5"
+        },
+        "components": [
+          {
+            "id": "MED-005:1",
+            "name": "Lévonorgestrel",
+            "amount_mg": 0.1,
+            "demo_reference_mg": 0.1,
+            "basis": "substance",
+            "quantity_origin": "bdpm",
+            "daily_mg": 0.1,
+            "input_origin": "bdpm"
+          },
+          {
+            "id": "MED-005:2",
+            "name": "Éthinylestradiol",
+            "amount_mg": 0.02,
+            "demo_reference_mg": 0.02,
+            "basis": "substance",
+            "quantity_origin": "bdpm",
+            "daily_mg": 0.02,
+            "input_origin": "bdpm"
+          }
+        ],
+        "display_kind": null,
+        "unit_label": "comprimé",
+        "formulation": "LEELOO 0,1 mg / 0,02 mg · comprimé",
+        "composition_source": {
+          "label": "BDPM · RCP LEELOO",
+          "url": "https://base-donnees-publique.medicaments.gouv.fr/medicament/66819566/extrait",
+          "formulation": "LEELOO 0,1 mg / 0,02 mg · comprimé",
+          "updated_at": "2025-05-14",
+          "accessed_at": "2026-10-17",
+          "unit_label": "comprimé"
+        },
+        "composition_note": "Présentation choisie pour l’exemple ; vérifier le dosage de la boîte.",
+        "composition_simulated": false,
+        "units_per_day": 1
+      },
+      "drug_b": {
+        "id": "MED-041",
+        "name": "Xanax",
+        "kind": "medicine",
+        "active_substance": "Alprazolam",
+        "drug_class": "Sédatifs / benzodiazépines",
+        "note": "Anxiolytique",
+        "reference": {
+          "sheet": "Médicaments",
+          "row": 41,
+          "range": "A41:D41"
+        },
+        "components": [
+          {
+            "id": "MED-041:1",
+            "name": "Alprazolam",
+            "amount_mg": 0.25,
+            "demo_reference_mg": 0.25,
+            "basis": "substance",
+            "quantity_origin": "bdpm",
+            "daily_mg": 0.25,
+            "input_origin": "bdpm"
+          }
+        ],
+        "display_kind": null,
+        "unit_label": "comprimé",
+        "formulation": "XANAX 0,25 mg · comprimé sécable",
+        "composition_source": {
+          "label": "BDPM · RCP XANAX",
+          "url": "https://base-donnees-publique.medicaments.gouv.fr/medicament/69847791/extrait",
+          "formulation": "XANAX 0,25 mg · comprimé sécable",
+          "updated_at": "2025-04-30",
+          "accessed_at": "2026-10-17",
+          "unit_label": "comprimé"
+        },
+        "composition_note": "Présentation choisie pour l’exemple ; vérifier le dosage de la boîte.",
+        "composition_simulated": false,
+        "units_per_day": 1
+      },
+      "dangerous": null,
+      "status": "unknown",
+      "rules": [],
+      "ingredient_relations": [],
+      "calculation": {
+        "score": null,
+        "status": "unknown",
+        "simulated": true,
+        "formula": "score = min(100, base + additional_rules + age_bonus + weight_bonus + quantity_bonus)",
+        "substitution": "Aucune règle applicable : score non calculé.",
+        "steps": [],
+        "matched_rule_count": 0
+      }
+    },
+    {
+      "drug_a": {
+        "id": "MED-005",
+        "name": "Leeloo Gé",
+        "kind": "medicine",
+        "active_substance": "Lévonorgestrel + éthinylestradiol",
+        "drug_class": "Contraceptifs œstroprogestatifs",
+        "note": "Pilule combinée 2e gén.",
+        "reference": {
+          "sheet": "Médicaments",
+          "row": 5,
+          "range": "A5:D5"
+        },
+        "components": [
+          {
+            "id": "MED-005:1",
+            "name": "Lévonorgestrel",
+            "amount_mg": 0.1,
+            "demo_reference_mg": 0.1,
+            "basis": "substance",
+            "quantity_origin": "bdpm",
+            "daily_mg": 0.1,
+            "input_origin": "bdpm"
+          },
+          {
+            "id": "MED-005:2",
+            "name": "Éthinylestradiol",
+            "amount_mg": 0.02,
+            "demo_reference_mg": 0.02,
+            "basis": "substance",
+            "quantity_origin": "bdpm",
+            "daily_mg": 0.02,
+            "input_origin": "bdpm"
+          }
+        ],
+        "display_kind": null,
+        "unit_label": "comprimé",
+        "formulation": "LEELOO 0,1 mg / 0,02 mg · comprimé",
+        "composition_source": {
+          "label": "BDPM · RCP LEELOO",
+          "url": "https://base-donnees-publique.medicaments.gouv.fr/medicament/66819566/extrait",
+          "formulation": "LEELOO 0,1 mg / 0,02 mg · comprimé",
+          "updated_at": "2025-05-14",
+          "accessed_at": "2026-10-17",
+          "unit_label": "comprimé"
+        },
+        "composition_note": "Présentation choisie pour l’exemple ; vérifier le dosage de la boîte.",
+        "composition_simulated": false,
+        "units_per_day": 1
+      },
+      "drug_b": {
+        "id": "SUP-029",
+        "name": "Sommeil Fort Mélatonine+",
+        "kind": "supplement",
+        "declared_ingredients": "Mélatonine + Valériane + Mélisse",
+        "matched_ingredients": ["Mélatonine", "Valériane"],
+        "note": "2 ingrédients à risque",
+        "reference": {
+          "sheet": "Compléments",
+          "row": 29,
+          "range": "A29:E29"
+        },
+        "components": [
+          {
+            "id": "SUP-029:1",
+            "name": "Mélatonine",
+            "amount_mg": 1,
+            "demo_reference_mg": 1,
+            "basis": "declared_ingredient",
+            "quantity_origin": "simulated",
+            "daily_mg": 1,
+            "input_origin": "simulated"
+          },
+          {
+            "id": "SUP-029:2",
+            "name": "Valériane",
+            "amount_mg": 200,
+            "demo_reference_mg": 200,
+            "basis": "plant_extract",
+            "quantity_origin": "simulated",
+            "daily_mg": 200,
+            "input_origin": "simulated"
+          },
+          {
+            "id": "SUP-029:3",
+            "name": "Mélisse",
+            "amount_mg": 100,
+            "demo_reference_mg": 100,
+            "basis": "plant_extract",
+            "quantity_origin": "simulated",
+            "daily_mg": 100,
+            "input_origin": "simulated"
+          }
+        ],
+        "display_kind": null,
+        "unit_label": "unité",
+        "formulation": "Sommeil Fort Mélatonine+",
+        "composition_source": null,
+        "composition_note": "Quantités d’exemple inventées ; composition qualitative issue du classeur.",
+        "composition_simulated": true,
+        "units_per_day": 1
+      },
+      "dangerous": null,
+      "status": "unknown",
+      "rules": [],
+      "ingredient_relations": [],
+      "calculation": {
+        "score": null,
+        "status": "unknown",
+        "simulated": true,
+        "formula": "score = min(100, base + additional_rules + age_bonus + weight_bonus + quantity_bonus)",
+        "substitution": "Aucune règle applicable : score non calculé.",
+        "steps": [],
+        "matched_rule_count": 0
+      }
+    },
+    {
+      "drug_a": {
+        "id": "SUP-006",
+        "name": "Arkogélules Millepertuis",
+        "kind": "supplement",
+        "declared_ingredients": "Millepertuis (Hypericum perforatum)",
+        "matched_ingredients": ["Millepertuis"],
+        "note": "Mono-ingrédient — match direct",
+        "reference": {
+          "sheet": "Compléments",
+          "row": 6,
+          "range": "A6:E6"
+        },
+        "components": [
+          {
+            "id": "SUP-006:1",
+            "name": "Millepertuis",
+            "amount_mg": 175,
+            "demo_reference_mg": 175,
+            "basis": "plant_extract",
+            "quantity_origin": "bdpm",
+            "daily_mg": 175,
+            "input_origin": "bdpm"
+          }
+        ],
+        "display_kind": "Médicament à base de plantes",
+        "unit_label": "gélule",
+        "formulation": "ARKOGELULES MILLEPERTUIS · gélule à 175 mg d’extrait sec",
+        "composition_source": {
+          "label": "BDPM · RCP ARKOGELULES MILLEPERTUIS",
+          "url": "https://base-donnees-publique.medicaments.gouv.fr/medicament/60448702/extrait",
+          "formulation": "ARKOGELULES MILLEPERTUIS · gélule à 175 mg d’extrait sec",
+          "updated_at": "2026-07-03",
+          "accessed_at": "2026-10-17",
+          "unit_label": "gélule",
+          "note": "Présentation médicamenteuse de l’exemple, signalée indisponible dans la BDPM. Masse d’extrait sec, pas masse d’hyperforine."
+        },
+        "composition_note": "Présentation médicamenteuse de l’exemple, signalée indisponible dans la BDPM. Masse d’extrait sec, pas masse d’hyperforine.",
+        "composition_simulated": false,
+        "units_per_day": 1
+      },
+      "drug_b": {
+        "id": "MED-041",
+        "name": "Xanax",
+        "kind": "medicine",
+        "active_substance": "Alprazolam",
+        "drug_class": "Sédatifs / benzodiazépines",
+        "note": "Anxiolytique",
+        "reference": {
+          "sheet": "Médicaments",
+          "row": 41,
+          "range": "A41:D41"
+        },
+        "components": [
+          {
+            "id": "MED-041:1",
+            "name": "Alprazolam",
+            "amount_mg": 0.25,
+            "demo_reference_mg": 0.25,
+            "basis": "substance",
+            "quantity_origin": "bdpm",
+            "daily_mg": 0.25,
+            "input_origin": "bdpm"
+          }
+        ],
+        "display_kind": null,
+        "unit_label": "comprimé",
+        "formulation": "XANAX 0,25 mg · comprimé sécable",
+        "composition_source": {
+          "label": "BDPM · RCP XANAX",
+          "url": "https://base-donnees-publique.medicaments.gouv.fr/medicament/69847791/extrait",
+          "formulation": "XANAX 0,25 mg · comprimé sécable",
+          "updated_at": "2025-04-30",
+          "accessed_at": "2026-10-17",
+          "unit_label": "comprimé"
+        },
+        "composition_note": "Présentation choisie pour l’exemple ; vérifier le dosage de la boîte.",
+        "composition_simulated": false,
+        "units_per_day": 1
+      },
+      "dangerous": null,
+      "status": "unknown",
+      "rules": [],
+      "ingredient_relations": [],
+      "calculation": {
+        "score": null,
+        "status": "unknown",
+        "simulated": true,
+        "formula": "score = min(100, base + additional_rules + age_bonus + weight_bonus + quantity_bonus)",
+        "substitution": "Aucune règle applicable : score non calculé.",
+        "steps": [],
+        "matched_rule_count": 0
+      }
+    },
+    {
+      "drug_a": {
+        "id": "SUP-006",
+        "name": "Arkogélules Millepertuis",
+        "kind": "supplement",
+        "declared_ingredients": "Millepertuis (Hypericum perforatum)",
+        "matched_ingredients": ["Millepertuis"],
+        "note": "Mono-ingrédient — match direct",
+        "reference": {
+          "sheet": "Compléments",
+          "row": 6,
+          "range": "A6:E6"
+        },
+        "components": [
+          {
+            "id": "SUP-006:1",
+            "name": "Millepertuis",
+            "amount_mg": 175,
+            "demo_reference_mg": 175,
+            "basis": "plant_extract",
+            "quantity_origin": "bdpm",
+            "daily_mg": 175,
+            "input_origin": "bdpm"
+          }
+        ],
+        "display_kind": "Médicament à base de plantes",
+        "unit_label": "gélule",
+        "formulation": "ARKOGELULES MILLEPERTUIS · gélule à 175 mg d’extrait sec",
+        "composition_source": {
+          "label": "BDPM · RCP ARKOGELULES MILLEPERTUIS",
+          "url": "https://base-donnees-publique.medicaments.gouv.fr/medicament/60448702/extrait",
+          "formulation": "ARKOGELULES MILLEPERTUIS · gélule à 175 mg d’extrait sec",
+          "updated_at": "2026-07-03",
+          "accessed_at": "2026-10-17",
+          "unit_label": "gélule",
+          "note": "Présentation médicamenteuse de l’exemple, signalée indisponible dans la BDPM. Masse d’extrait sec, pas masse d’hyperforine."
+        },
+        "composition_note": "Présentation médicamenteuse de l’exemple, signalée indisponible dans la BDPM. Masse d’extrait sec, pas masse d’hyperforine.",
+        "composition_simulated": false,
+        "units_per_day": 1
+      },
+      "drug_b": {
+        "id": "SUP-029",
+        "name": "Sommeil Fort Mélatonine+",
+        "kind": "supplement",
+        "declared_ingredients": "Mélatonine + Valériane + Mélisse",
+        "matched_ingredients": ["Mélatonine", "Valériane"],
+        "note": "2 ingrédients à risque",
+        "reference": {
+          "sheet": "Compléments",
+          "row": 29,
+          "range": "A29:E29"
+        },
+        "components": [
+          {
+            "id": "SUP-029:1",
+            "name": "Mélatonine",
+            "amount_mg": 1,
+            "demo_reference_mg": 1,
+            "basis": "declared_ingredient",
+            "quantity_origin": "simulated",
+            "daily_mg": 1,
+            "input_origin": "simulated"
+          },
+          {
+            "id": "SUP-029:2",
+            "name": "Valériane",
+            "amount_mg": 200,
+            "demo_reference_mg": 200,
+            "basis": "plant_extract",
+            "quantity_origin": "simulated",
+            "daily_mg": 200,
+            "input_origin": "simulated"
+          },
+          {
+            "id": "SUP-029:3",
+            "name": "Mélisse",
+            "amount_mg": 100,
+            "demo_reference_mg": 100,
+            "basis": "plant_extract",
+            "quantity_origin": "simulated",
+            "daily_mg": 100,
+            "input_origin": "simulated"
+          }
+        ],
+        "display_kind": null,
+        "unit_label": "unité",
+        "formulation": "Sommeil Fort Mélatonine+",
+        "composition_source": null,
+        "composition_note": "Quantités d’exemple inventées ; composition qualitative issue du classeur.",
+        "composition_simulated": true,
+        "units_per_day": 1
+      },
+      "dangerous": null,
+      "status": "unknown",
+      "rules": [],
+      "ingredient_relations": [],
+      "calculation": {
+        "score": null,
+        "status": "unknown",
+        "simulated": true,
+        "formula": "score = min(100, base + additional_rules + age_bonus + weight_bonus + quantity_bonus)",
+        "substitution": "Aucune règle applicable : score non calculé.",
+        "steps": [],
+        "matched_rule_count": 0
+      }
+    },
+    {
+      "drug_a": {
+        "id": "MED-041",
+        "name": "Xanax",
+        "kind": "medicine",
+        "active_substance": "Alprazolam",
+        "drug_class": "Sédatifs / benzodiazépines",
+        "note": "Anxiolytique",
+        "reference": {
+          "sheet": "Médicaments",
+          "row": 41,
+          "range": "A41:D41"
+        },
+        "components": [
+          {
+            "id": "MED-041:1",
+            "name": "Alprazolam",
+            "amount_mg": 0.25,
+            "demo_reference_mg": 0.25,
+            "basis": "substance",
+            "quantity_origin": "bdpm",
+            "daily_mg": 0.25,
+            "input_origin": "bdpm"
+          }
+        ],
+        "display_kind": null,
+        "unit_label": "comprimé",
+        "formulation": "XANAX 0,25 mg · comprimé sécable",
+        "composition_source": {
+          "label": "BDPM · RCP XANAX",
+          "url": "https://base-donnees-publique.medicaments.gouv.fr/medicament/69847791/extrait",
+          "formulation": "XANAX 0,25 mg · comprimé sécable",
+          "updated_at": "2025-04-30",
+          "accessed_at": "2026-10-17",
+          "unit_label": "comprimé"
+        },
+        "composition_note": "Présentation choisie pour l’exemple ; vérifier le dosage de la boîte.",
+        "composition_simulated": false,
+        "units_per_day": 1
+      },
+      "drug_b": {
+        "id": "SUP-029",
+        "name": "Sommeil Fort Mélatonine+",
+        "kind": "supplement",
+        "declared_ingredients": "Mélatonine + Valériane + Mélisse",
+        "matched_ingredients": ["Mélatonine", "Valériane"],
+        "note": "2 ingrédients à risque",
+        "reference": {
+          "sheet": "Compléments",
+          "row": 29,
+          "range": "A29:E29"
+        },
+        "components": [
+          {
+            "id": "SUP-029:1",
+            "name": "Mélatonine",
+            "amount_mg": 1,
+            "demo_reference_mg": 1,
+            "basis": "declared_ingredient",
+            "quantity_origin": "simulated",
+            "daily_mg": 1,
+            "input_origin": "simulated"
+          },
+          {
+            "id": "SUP-029:2",
+            "name": "Valériane",
+            "amount_mg": 200,
+            "demo_reference_mg": 200,
+            "basis": "plant_extract",
+            "quantity_origin": "simulated",
+            "daily_mg": 200,
+            "input_origin": "simulated"
+          },
+          {
+            "id": "SUP-029:3",
+            "name": "Mélisse",
+            "amount_mg": 100,
+            "demo_reference_mg": 100,
+            "basis": "plant_extract",
+            "quantity_origin": "simulated",
+            "daily_mg": 100,
+            "input_origin": "simulated"
+          }
+        ],
+        "display_kind": null,
+        "unit_label": "unité",
+        "formulation": "Sommeil Fort Mélatonine+",
+        "composition_source": null,
+        "composition_note": "Quantités d’exemple inventées ; composition qualitative issue du classeur.",
+        "composition_simulated": true,
+        "units_per_day": 1
+      },
+      "dangerous": false,
+      "status": "watch",
+      "rules": [
+        {
+          "id": "INT-021",
+          "ingredient": "Mélatonine",
+          "target": "Sédatifs / alcool",
+          "severity": "Orange",
+          "mechanism": "Effet sédatif additif",
+          "consequence": "Somnolence accrue",
+          "source_label": "EFSA",
+          "evidence_level": "2",
+          "reference": {
+            "sheet": "Interactions",
+            "row": 24,
+            "range": "A24:H24"
+          },
+          "source_verified": false,
+          "matched_product": "Sommeil Fort Mélatonine+",
+          "matched_medicine": "Xanax",
+          "matched_class": "Sédatifs / benzodiazépines",
+          "matching_mode": "hand_authored_demo_class_mapping"
+        },
+        {
+          "id": "INT-022",
+          "ingredient": "Valériane",
+          "target": "Sédatifs / benzodiazépines",
+          "severity": "Orange",
+          "mechanism": "Effet sédatif additif",
+          "consequence": "Somnolence, baisse de vigilance",
+          "source_label": "NatMedPro",
+          "evidence_level": "2",
+          "reference": {
+            "sheet": "Interactions",
+            "row": 25,
+            "range": "A25:H25"
+          },
+          "source_verified": false,
+          "matched_product": "Sommeil Fort Mélatonine+",
+          "matched_medicine": "Xanax",
+          "matched_class": "Sédatifs / benzodiazépines",
+          "matching_mode": "hand_authored_demo_class_mapping"
+        }
+      ],
+      "ingredient_relations": [
+        {
+          "id": "INT-021:MED-041:1:SUP-029:1",
+          "rule_id": "INT-021",
+          "medicine_id": "MED-041",
+          "botanical_id": "SUP-029",
+          "substance": {
+            "id": "MED-041:1",
+            "name": "Alprazolam",
+            "amount_mg": 0.25,
+            "demo_reference_mg": 0.25,
+            "basis": "substance",
+            "quantity_origin": "bdpm",
+            "daily_mg": 0.25,
+            "input_origin": "bdpm"
+          },
+          "ingredient": {
+            "id": "SUP-029:1",
+            "name": "Mélatonine",
+            "amount_mg": 1,
+            "demo_reference_mg": 1,
+            "basis": "declared_ingredient",
+            "quantity_origin": "simulated",
+            "daily_mg": 1,
+            "input_origin": "simulated"
+          },
+          "mapping_mode": "workbook_ingredient_to_medicine_class_projection",
+          "mapping_note": "Projection de la règle de classe du classeur ; pas une observation propre à cette paire de molécules.",
+          "severity": "Orange",
+          "mechanism": "Effet sédatif additif",
+          "reference": {
+            "sheet": "Interactions",
+            "row": 24,
+            "range": "A24:H24"
+          },
+          "quantity_complete": true,
+          "exposure_factor": 1.0,
+          "quantity_points": 0,
+          "score": 45,
+          "status": "watch",
+          "simulated": true
+        },
+        {
+          "id": "INT-022:MED-041:1:SUP-029:2",
+          "rule_id": "INT-022",
+          "medicine_id": "MED-041",
+          "botanical_id": "SUP-029",
+          "substance": {
+            "id": "MED-041:1",
+            "name": "Alprazolam",
+            "amount_mg": 0.25,
+            "demo_reference_mg": 0.25,
+            "basis": "substance",
+            "quantity_origin": "bdpm",
+            "daily_mg": 0.25,
+            "input_origin": "bdpm"
+          },
+          "ingredient": {
+            "id": "SUP-029:2",
+            "name": "Valériane",
+            "amount_mg": 200,
+            "demo_reference_mg": 200,
+            "basis": "plant_extract",
+            "quantity_origin": "simulated",
+            "daily_mg": 200,
+            "input_origin": "simulated"
+          },
+          "mapping_mode": "workbook_ingredient_to_medicine_class_projection",
+          "mapping_note": "Projection de la règle de classe du classeur ; pas une observation propre à cette paire de molécules.",
+          "severity": "Orange",
+          "mechanism": "Effet sédatif additif",
+          "reference": {
+            "sheet": "Interactions",
+            "row": 25,
+            "range": "A25:H25"
+          },
+          "quantity_complete": true,
+          "exposure_factor": 1.0,
+          "quantity_points": 0,
+          "score": 45,
+          "status": "watch",
+          "simulated": true
+        }
+      ],
+      "calculation": {
+        "score": 50,
+        "status": "watch",
+        "simulated": true,
+        "formula": "score = min(100, base + additional_rules + age_bonus + weight_bonus + quantity_bonus)",
+        "substitution": "min(100, 45 + 5 + 0 + 0) = 50",
+        "matched_rule_count": 2,
+        "steps": [
+          {
+            "label": "Base : gravité maximale du classeur",
+            "value": 45,
+            "origin": "Barème fictif : Rouge = 80, Orange = 45, Vert = 15"
+          },
+          {
+            "label": "Règles supplémentaires",
+            "value": 5,
+            "origin": "Coefficient fictif : +5 par règle après la première, maximum +15"
+          },
+          {
+            "label": "Modificateur âge",
+            "value": 0,
+            "origin": "Coefficient fictif : +10 à partir de 65 ans"
+          },
+          {
+            "label": "Modificateur poids",
+            "value": 0,
+            "origin": "Coefficient fictif : +5 sous 55 kg"
+          },
+          {
+            "label": "Quantités croisées",
+            "value": 0,
+            "origin": "Invented exposure heuristic. Reference = one selected presentation unit, not a therapeutic dose. No dose-response evidence. Missing amounts or normalization: quantity bonus not computed. Lower quantities never remove a workbook alert."
+          }
+        ]
+      }
+    }
+  ],
+  "profile_alerts": {
+    "MED-005": [],
+    "SUP-006": [
+      {
+        "ingredient": "Millepertuis",
+        "condition": "Grossesse",
+        "condition_type": "Physiologique",
+        "risk": "Données de sécurité insuffisantes ; interactions hormonales",
+        "conduct": "Déconseillé — avis médical",
+        "severity": "Rouge",
+        "source_label": "ANSM",
+        "id": "STATE-006",
+        "reference": {
+          "sheet": "États à risque",
+          "row": 6,
+          "range": "A6:G6"
+        },
+        "source_verified": false,
+        "matched_product": "Arkogélules Millepertuis"
+      },
+      {
+        "ingredient": "Millepertuis",
+        "condition": "Allaitement",
+        "condition_type": "Physiologique",
+        "risk": "Passage dans le lait — données insuffisantes",
+        "conduct": "Déconseillé",
+        "severity": "Orange",
+        "source_label": "EFSA",
+        "id": "STATE-017",
+        "reference": {
+          "sheet": "États à risque",
+          "row": 17,
+          "range": "A17:G17"
+        },
+        "source_verified": false,
+        "matched_product": "Arkogélules Millepertuis"
+      }
+    ],
+    "MED-041": [],
+    "SUP-029": []
+  }
+}
