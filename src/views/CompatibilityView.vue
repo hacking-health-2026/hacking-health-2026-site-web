@@ -489,25 +489,6 @@ onBeforeUnmount(() => controller?.abort())
               }}<b v-if="index < result.drugs.length - 1">+</b></span
             >
           </div>
-          <div class="result-metrics">
-            <div>
-              <strong>{{ result.drugs.length.toString().padStart(2, '0') }}</strong
-              ><span>produits croisés</span>
-            </div>
-            <div>
-              <strong
-                >{{ result.coverage.classified_pairs
-                }}<small> / {{ result.coverage.total_pairs }}</small></strong
-              ><span>paires reconnues</span>
-            </div>
-            <div>
-              <strong>{{
-                result.calculation.matched_rule_count.toString().padStart(2, '0')
-              }}</strong
-              ><span>règles retenues</span>
-            </div>
-          </div>
-
           <div class="contribution-heading">
             <h3>
               {{
@@ -1510,39 +1491,6 @@ onBeforeUnmount(() => controller?.abort())
   font-weight: 400;
   color: #c29f8c;
   margin: 0 4px;
-}
-.result-metrics {
-  display: flex;
-  justify-content: space-around;
-  background: #ffffff75;
-  border-radius: 12px;
-  padding: 14px 0;
-  margin: 17px 0 20px;
-}
-.result-metrics > div {
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  flex: 1;
-  border-right: 1px solid #eadbd3;
-}
-.result-metrics > div:last-child {
-  border: 0;
-}
-.result-metrics strong {
-  font-size: 21px;
-  font-weight: 600;
-  letter-spacing: -0.7px;
-}
-.result-metrics strong small {
-  font-size: 12px;
-  color: #baa79d;
-  font-weight: 400;
-}
-.result-metrics > div > span {
-  font-size: 10px;
-  color: #8e7c72;
 }
 .contribution-heading {
   display: flex;
