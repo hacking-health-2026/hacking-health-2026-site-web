@@ -160,12 +160,14 @@ const cases = [
             ><span>{{ item.unit }}</span>
           </div>
           <h3>{{ item.title }}</h3>
+          <p class="case-observation">{{ item.observation }}</p>
           <div class="case-outcome">
             <NexusIcon name="info" :size="17" /><span>{{ item.outcome }}</span>
           </div>
           <details class="case-context">
-            <summary>Lire les faits et le contexte <NexusIcon name="chevron" :size="16" /></summary>
-            <p class="case-observation">{{ item.observation }}</p>
+            <summary>
+              En savoir plus sur le contexte <NexusIcon name="chevron" :size="16" />
+            </summary>
             <p>{{ item.context }}</p>
           </details>
           <a
@@ -449,7 +451,7 @@ const cases = [
   flex-wrap: wrap;
   gap: 7px;
   align-items: center;
-  margin: 14px 0;
+  margin: 18px 0;
   font-size: 15px;
 }
 .case-association > span {
@@ -469,7 +471,7 @@ const cases = [
   display: flex;
   align-items: center;
   gap: 15px;
-  padding: 12px 14px;
+  padding: 15px 16px;
   background: var(--case-soft);
   border-radius: 14px;
   min-height: 0;
@@ -491,13 +493,13 @@ const cases = [
   font-size: 21px;
   line-height: 1.35;
   letter-spacing: -0.6px;
-  margin: 16px 0 12px;
+  margin: 20px 0 12px;
 
   font-weight: 650;
 }
 .case-observation {
   font-size: 17px;
-  line-height: 1.8;
+  line-height: 1.6;
   color: #686573;
   margin-bottom: 20px;
 }
