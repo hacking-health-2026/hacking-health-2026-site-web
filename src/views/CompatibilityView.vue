@@ -2,6 +2,8 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import BillyMascot from '@/components/BillyMascot.vue'
 import AnalysisExport from '@/components/AnalysisExport.vue'
+import AnalysisCalculations from '@/components/AnalysisCalculations.vue'
+import AssociationTable from '@/components/AssociationTable.vue'
 import { decodeAnalysis } from '@/services/analysisShare'
 import DrugPicker from '@/components/DrugPicker.vue'
 import CompositionEditor from '@/components/CompositionEditor.vue'
@@ -17,7 +19,6 @@ import {
   type Assessment,
   type Drug,
   type Scenario,
-  type Status,
 } from '@/services/api'
 
 const route = useRoute()
@@ -55,47 +56,6 @@ const error = ref('')
 const loading = ref(false)
 let controller: AbortController | undefined
 const ready = computed(() => rows.value.every((row) => row.drug !== null) && !loading.value)
-const reasons = computed(() => {
-  if (!result.value || result.value.status === 'unknown') return []
-  const assessment = result.value
-  return [
-    {
-      label: 'Interaction identifiée',
-      detail: 'Une règle du classeur correspond à cette association.',
-    },
-    {
-      label: 'Règles croisées',
-      detail:
-        assessment.calculation.matched_rule_count > 1
-          ? 'Plusieurs règles sont prises en compte.'
-          : 'Une règle est prise en compte.',
-    },
-    {
-      label: 'Âge du profil',
-      detail:
-        profile.age == null
-          ? 'Âge non renseigné.'
-          : assessment.calculation.steps[2]?.value
-            ? 'Facteur de vigilance supplémentaire dans cette simulation.'
-            : 'Âge renseigné, sans majoration dans cette simulation.',
-    },
-    {
-      label: 'Poids du profil',
-      detail:
-        profile.weight_kg == null
-          ? 'Poids non renseigné.'
-          : assessment.calculation.steps[3]?.value
-            ? 'Facteur de vigilance supplémentaire dans cette simulation.'
-            : 'Poids renseigné, sans majoration dans cette simulation.',
-    },
-    {
-      label: 'Quantités croisées',
-      detail: assessment.quantity_coverage.calculated_relations
-        ? 'Les quantités disponibles sont prises en compte.'
-        : 'Quantités ou références insuffisantes pour une pondération.',
-    },
-  ]
-})
 
 function clearResult() {
   controller?.abort()
@@ -231,12 +191,6 @@ function loadScenario(scenario: Scenario) {
   selectedScenario.value = scenario.id
 }
 
-async function seniorProfile() {
-  profile.age = 72
-  profile.weight_kg = 50
-  await checkCompatibility()
-}
-
 function setQuantity(drug: Drug, id: string, amount: number | null) {
   const component = drug.components.find((component) => component.id === id)
   if (component) component.amount_mg = amount
@@ -253,19 +207,12 @@ function selectProduct(rowId: number, drug: Drug | null) {
     }
   }
 }
-async function doubleQuantities() {
-  for (const row of rows.value) row.units = Math.min(100, row.units * 2)
-  await checkCompatibility()
-}
 function amountLabel(value: number | null | undefined) {
   return value == null
     ? 'Quantité inconnue'
     : `${value.toLocaleString('fr-FR', { maximumFractionDigits: 5 })} mg/j`
 }
 
-function cellLabel(cell: { status: Status } | null | undefined) {
-  return alertLabels[cell?.status ?? 'unknown']
-}
 onBeforeUnmount(() => controller?.abort())
 </script>
 
@@ -511,137 +458,27 @@ onBeforeUnmount(() => controller?.abort())
               }}<b v-if="index < result.drugs.length - 1">+</b></span
             >
           </div>
-          <div class="contribution-heading">
-            <h3>
-              {{
-                result.status === 'unknown' ? 'Évaluation indisponible' : 'Pourquoi cette alerte ?'
-              }}
-            </h3>
-            <span>Les éléments pris en compte.</span>
-          </div>
-          <div v-if="reasons.length" class="reasons-grid">
-            <div
-              v-for="(reason, index) in reasons"
-              :key="reason.label"
-              :class="['reason-tile', `reason-${index}`]"
-            >
-              <p>{{ reason.label }}</p>
-              <small>{{ reason.detail }}</small>
-            </div>
-          </div>
-          <p v-if="result.ingredient_relations.length" class="quantity-explanation">
-            {{ result.quantity_coverage.calculated_relations }} /
-            {{ result.quantity_coverage.total_relations }}
-            relations avec quantités pondérées. Pondération simulée ; une quantité inférieure ne
-            supprime pas l’alerte.
-          </p>
-          <button
-            v-if="result.quantity_coverage.calculated_relations"
-            type="button"
-            class="try-profile quantity-compare"
-            @click="doubleQuantities"
-          >
-            <span
-              ><NexusIcon name="spark" :size="17" /><span
-                >Variation des quantités<small>Comparer ×2 · simulation</small></span
-              ></span
-            >
-            <NexusIcon name="arrow" :size="20" />
-          </button>
-          <div v-if="!result.calculation.steps.length" class="unknown-message">
-            <NexusIcon name="info" :size="18" /> Une relation non reconnue reste inconnue.
-          </div>
-          <button
-            v-if="result.calculation.steps.length"
-            type="button"
-            class="try-profile"
-            @click="seniorProfile"
-          >
-            <span
-              ><NexusIcon name="user" :size="17" /><span
-                >Et avec un autre profil ?<small>Essayer 72 ans et 50 kg</small></span
-              ></span
-            ><NexusIcon name="arrow" :size="20" />
-          </button>
+          <AnalysisCalculations
+            :result="result"
+            :intakes="
+              rows
+                .filter((r) => r.drug)
+                .map((r) => ({ product_id: r.drug!.id, units_per_day: r.units }))
+            "
+          />
         </section>
         <section v-if="currentStep === 2 && result" class="details-section">
-          <details
-            v-if="result.ingredient_relations.length"
-            class="association-details ingredient-details"
-            open
-          >
+          <details class="association-details" open>
             <summary>
               <span class="detail-icon lavender"><NexusIcon name="link" :size="20" /></span>
               <span
-                >Les ingrédients en relation<small
-                  >Quantités journalières et niveau d’alerte de chaque relation.</small
+                >Les associations et leurs principes actifs<small
+                  >Produits, quantités et mécanismes réunis dans un seul tableau.</small
                 ></span
               >
               <NexusIcon name="chevron" :size="18" class="details-chevron" />
             </summary>
-            <div class="ingredient-edges">
-              <article
-                v-for="relation in result.ingredient_relations"
-                :key="relation.id"
-                class="ingredient-edge"
-              >
-                <div class="edge-pair">
-                  <span
-                    ><strong>{{ relation.substance.name }}</strong
-                    ><small>{{ amountLabel(relation.substance.daily_mg) }}</small></span
-                  >
-                  <NexusIcon name="link" :size="20" />
-                  <span
-                    ><strong>{{ relation.ingredient.name }}</strong
-                    ><small>{{ amountLabel(relation.ingredient.daily_mg) }}</small></span
-                  >
-                  <b :class="['edge-alert', relation.status]">{{ alertLabels[relation.status] }}</b>
-                </div>
-                <p>{{ relation.mechanism }}</p>
-                <p class="edge-quantity">
-                  {{
-                    relation.quantity_complete
-                      ? 'Quantités prises en compte dans l’évaluation simulée.'
-                      : 'Quantités ou référence manquantes : pondération non calculée.'
-                  }}
-                </p>
-                <small>{{ relation.rule_id }} · {{ relation.mapping_note }}</small>
-              </article>
-            </div>
-          </details>
-          <details class="association-details" open>
-            <summary>
-              <span class="detail-icon lavender"><NexusIcon name="link" :size="20" /></span
-              ><span
-                >Les associations, une par une<small
-                  >Retrouvez le niveau d’alerte de chaque paire de produits.</small
-                ></span
-              ><NexusIcon name="chevron" :size="18" class="details-chevron" />
-            </summary>
-            <div class="matrix-wrap" tabindex="0" aria-label="Tableau des associations">
-              <table>
-                <caption>
-                  Une relation absente ne permet pas de conclure à l’absence de danger.
-                </caption>
-                <thead>
-                  <tr>
-                    <th scope="col">Vos produits</th>
-                    <th v-for="drug in result.drugs" :key="drug.id" scope="col">{{ drug.name }}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(drug, i) in result.drugs" :key="drug.id">
-                    <th scope="row">{{ drug.name }}</th>
-                    <td v-for="(cell, j) in result.risk_matrix[i]" :key="j">
-                      <span
-                        :class="['matrix-cell', i === j ? 'diagonal' : (cell?.status ?? 'unknown')]"
-                        >{{ i === j ? '—' : cellLabel(cell) }}</span
-                      >
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+            <AssociationTable :result="result" />
           </details>
 
           <details class="association-details source-details">
@@ -846,12 +683,6 @@ onBeforeUnmount(() => controller?.abort())
   background: #ece7f3;
   color: #756284;
 }
-.reason-tile > small {
-  display: block;
-  font-size: 15px;
-  line-height: 1.6;
-  color: #625d6c;
-}
 @media (max-width: 600px) {
   .alert-symbol {
     width: 72px;
@@ -869,20 +700,6 @@ onBeforeUnmount(() => controller?.abort())
     flex-shrink: 1;
     font-size: 15px;
   }
-}
-.quantity-explanation {
-  font-size: 15px;
-  line-height: 1.6;
-  color: var(--muted);
-  margin: 12px 0;
-}
-.reason-4 {
-  grid-column: 1 / -1;
-  background: #eee6fa;
-  color: #7551a8;
-}
-.quantity-compare {
-  margin-top: 12px;
 }
 .ingredient-details {
   margin-bottom: 16px;
@@ -1533,112 +1350,6 @@ onBeforeUnmount(() => controller?.abort())
   color: #c29f8c;
   margin: 0 4px;
 }
-.contribution-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 12px;
-}
-.contribution-heading h3 {
-  font-size: 18px;
-  font-weight: 650;
-  margin: 0;
-}
-.contribution-heading > span {
-  font-size: 14px;
-  color: #b59f91;
-}
-.reasons-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 9px;
-}
-.reason-tile {
-  background: #f1ebff;
-  border: 1px solid #ede4fb;
-  border-radius: 12px;
-  padding: 12px;
-  --point-color: #8e6ee5;
-  --point-track: #eee8fb;
-}
-.reason-tile > div:first-child {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.reason-tile > div:first-child > span {
-  font-size: 14px;
-  color: #baa9d1;
-}
-.reason-tile strong {
-  font-size: 20px;
-  color: var(--point-color);
-  font-weight: 600;
-  letter-spacing: -0.8px;
-}
-.reason-tile p {
-  font-size: 15px;
-  color: #74627f;
-  margin: 7px 0 10px;
-}
-.reason-1 {
-  background: #fff0e3;
-  --point-color: #dd8b61;
-  --point-track: #fae9dd;
-  border-color: #f2dfd0;
-}
-.reason-1 p,
-.reason-1 > div:first-child > span {
-  color: #b49a83;
-}
-.reason-2 {
-  background: #eef5d9;
-  --point-color: #83a142;
-  --point-track: #eaf1d7;
-  border-color: #e0e9ca;
-}
-.reason-2 p,
-.reason-2 > div:first-child > span {
-  color: #9ca982;
-}
-.reason-3 {
-  background: #e6f2f4;
-  --point-color: #579faf;
-  --point-track: #e1f0f4;
-  border-color: #d8e9ed;
-}
-.reason-3 p,
-.reason-3 > div:first-child > span {
-  color: #90adb3;
-}
-.try-profile {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  text-align: left;
-  border: 0;
-  background: transparent;
-  border-top: 1px solid #eacfbc77;
-  padding: 15px 0 0;
-  margin-top: 17px;
-  color: #a57e69;
-}
-.try-profile > span {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  font-size: 14px;
-  font-weight: 600;
-}
-.try-profile small {
-  display: block;
-  font-size: 14px;
-  font-weight: 400;
-  margin-top: 4px;
-  color: #b49a88;
-}
 .unknown-message {
   display: flex;
   gap: 9px;
@@ -1895,9 +1606,6 @@ td {
     font-size: 15px;
     gap: 7px;
     padding: 9px;
-  }
-  .contribution-heading > span {
-    display: none;
   }
   .explorer-heading h1 {
     font-size: 36px;
@@ -2424,15 +2132,11 @@ td {
   .stage-content .example-buttons {
     flex-direction: column;
   }
-  .stage-content .reasons-grid,
   .summary-products {
     grid-template-columns: 1fr;
   }
   .stage-content .result-summary h2 {
     font-size: 25px;
-  }
-  .stage-content .contribution-heading > span {
-    display: none;
   }
   .usage-heading h1 {
     font-size: 25px;
