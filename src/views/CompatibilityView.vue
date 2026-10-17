@@ -2365,14 +2365,27 @@ td {
     gap: 7px;
   }
   .usage-steps button {
-    gap: 8px;
-    padding: 12px 8px;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    padding: 12px 5px;
+    text-align: center;
+    min-width: 0;
+  }
+  .usage-steps button > span:last-child {
+    min-width: 0;
+    max-width: 100%;
+  }
+  .usage-steps li {
+    min-width: 0;
   }
   .usage-steps small {
     display: none;
   }
   .usage-steps strong {
     font-size: 16px;
+    overflow-wrap: anywhere;
   }
   .step-number {
     width: 25px;

@@ -184,16 +184,6 @@ function restart() {
         Sélectionnez un échantillon dans le labo, puis un fruit de l’arbre. Retrouvez les cinq liens
         verts !
       </p>
-      <div class="clue-panel" aria-live="polite">
-        <span class="clue-number">{{
-          String(gameCases.findIndex((c) => c.id === selected) + 1).padStart(2, '0')
-        }}</span>
-        <div>
-          <strong>{{ selectedCase.medicine }}</strong>
-          <p>{{ selectedCase.clue }}</p>
-        </div>
-        <NexusIcon name="scan" :size="24" />
-      </div>
       <p class="mobile-hint">
         <NexusIcon name="arrow" :size="14" /> Faites glisser le plateau pour explorer les cinq
         échantillons.
@@ -629,42 +619,6 @@ function restart() {
   line-height: 1.7;
   color: #77707e;
   margin: 14px 0 19px;
-}
-.clue-panel {
-  display: flex;
-  align-items: center;
-  gap: 13px;
-  background: #f0eaff;
-  border: 1px solid #e3d9fa;
-  border-radius: 14px;
-  padding: 15px 18px;
-  margin-bottom: 22px;
-}
-.clue-number {
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-  background: var(--purple);
-  color: white;
-  font-size: 18px;
-  font-weight: 800;
-  border-radius: 10px;
-  width: 34px;
-  height: 34px;
-}
-.clue-panel strong {
-  font-size: 21px;
-}
-.clue-panel p {
-  font-size: 20px;
-  line-height: 1.5;
-  margin: 4px 0 0;
-  color: #756486;
-}
-.clue-panel > svg {
-  color: var(--purple);
-  margin-left: auto;
-  flex-shrink: 0;
 }
 .mobile-hint {
   display: none;
@@ -1570,16 +1524,6 @@ function restart() {
     display: none;
   }
   .progress > div {
-    display: none;
-  }
-  .clue-panel {
-    padding: 12px;
-    gap: 10px;
-  }
-  .clue-panel p {
-    font-size: 18px;
-  }
-  .clue-panel > svg {
     display: none;
   }
   .instructions {

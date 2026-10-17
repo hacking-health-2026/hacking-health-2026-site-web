@@ -2,12 +2,13 @@
 import { computed, ref, watch } from 'vue'
 import QRCode from 'qrcode'
 import BillyMascot from './BillyMascot.vue'
-import { analysisReport, encodeAnalysis } from '@/services/analysisShare'
+import { encodeAnalysis } from '@/services/analysisShare'
 import type { Assessment, Profile, Intake } from '@/services/api'
 const props = defineProps<{ result: Assessment; profile: Profile; intakes: Intake[] }>()
 const qr = ref('')
 const error = ref('')
 const copied = ref(false)
+const downloading = ref(false)
 const link = computed(() => {
   const local = ['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname)
   const base = local
@@ -41,15 +42,25 @@ watch(
   },
   { immediate: true },
 )
-function download() {
-  const url = URL.createObjectURL(
-    new Blob([analysisReport(props.result, props.profile)], { type: 'text/html;charset=utf-8' }),
-  )
-  const anchor = document.createElement('a')
-  anchor.href = url
-  anchor.download = 'bilan-herbal-nexus.html'
-  anchor.click()
-  setTimeout(() => URL.revokeObjectURL(url), 1000)
+async function download() {
+  downloading.value = true
+  error.value = ''
+  try {
+    const { analysisPdf } = await import('@/services/analysisPdf')
+    const bytes = await analysisPdf(props.result, props.profile)
+    const url = URL.createObjectURL(
+      new Blob([new Uint8Array(bytes).buffer], { type: 'application/pdf' }),
+    )
+    const anchor = document.createElement('a')
+    anchor.href = url
+    anchor.download = 'bilan-herbal-nexus.pdf'
+    anchor.click()
+    setTimeout(() => URL.revokeObjectURL(url), 1000)
+  } catch {
+    error.value = 'Le PDF n’a pas pu être généré. Réessayez le téléchargement.'
+  } finally {
+    downloading.value = false
+  }
 }
 async function copy() {
   try {
@@ -69,7 +80,8 @@ async function copy() {
         Scannez le QR code pour ouvrir ce résumé sur votre téléphone, ou téléchargez votre bilan.
       </p>
       <div class="export-actions">
-        <button type="button" @click="download">Télécharger le bilan</button
+        <button type="button" :disabled="downloading" @click="download">
+          {{ downloading ? 'Création du PDF…' : 'Télécharger le bilan PDF' }}</button
         ><button type="button" @click="copy">
           {{ copied ? 'Lien copié !' : 'Copier le lien' }}
         </button>

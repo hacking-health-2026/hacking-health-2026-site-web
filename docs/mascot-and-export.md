@@ -19,12 +19,11 @@ Le lien rouvre le résumé et recalcule l’analyse. Le format et l’empreinte 
 classeur sont vérifiés ; une autre version du classeur entraîne un message
 d’erreur. Les noms et références proviennent du catalogue, jamais d’un lien.
 Depuis localhost, le QR pointe vers GitHub Pages pour être utilisable sur téléphone.
-Le bilan HTML téléchargeable conserve le résultat, les quantités journalières,
-les alertes de profil et les règles avec leurs lignes sources. Le contenu est
-échappé et fonctionne sans serveur.
+Le bilan PDF téléchargeable conserve le résultat, les quantités journalières,
+les alertes de profil et les règles avec leurs lignes sources. Le PDF est mis en page automatiquement et fonctionne sans serveur.
 
 Les tests `scripts/analysis-share.test.mjs` vérifient la conservation des résultats,
-la capacité des QR, le rejet des liens invalides et l’échappement du bilan.
+la capacité des QR, le rejet des liens invalides et la validité du PDF.
 
 Consigne exacte envoyée à imagegen :
 

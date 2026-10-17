@@ -1,8 +1,10 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import QRCode from 'qrcode'
+import { analysisPdf } from '../src/services/analysisPdf.ts'
+import { PDFDocument } from 'pdf-lib'
 import fixtures from './fixtures/static-demo-parity.json' with { type: 'json' }
-import { encodeAnalysis, decodeAnalysis, analysisReport } from '../src/services/analysisShare.ts'
+import { encodeAnalysis, decodeAnalysis } from '../src/services/analysisShare.ts'
 import { assessStaticProducts } from '../src/services/staticDemo.ts'
 
 test('shared analyses preserve products, quantities, profile and assessment', () => {
@@ -67,16 +69,15 @@ test('invalid links, unknown product IDs, stale sources and invalid quantities f
   assert.throws(() => encodeAnalysis(input))
 })
 
-test('the portable report contains the actual result, evidence and escaped text', () => {
-  const fixture = fixtures[0]
-  const result = structuredClone(fixture.expected)
-  result.drugs[0].name = '<script>alert(1)</script>'
-  const report = analysisReport(result, fixture.input.profile)
-  assert.ok(report.includes('&lt;script&gt;'))
-  assert.ok(!report.includes('<script>'))
-  assert.ok(report.includes(result.source.sha256))
-  assert.ok(report.includes(result.pairs[0].rules[0].id))
-  assert.ok(report.includes('Évaluation simulée'))
+test('the downloaded report is a readable PDF for different profiles and quantities', async () => {
+  for (const fixture of [fixtures[0], fixtures[9], fixtures.at(-1)]) {
+    const bytes = await analysisPdf(fixture.expected, fixture.input.profile)
+    assert.equal(new TextDecoder().decode(bytes.slice(0, 5)), '%PDF-')
+    const document = await PDFDocument.load(bytes)
+    assert.ok(document.getPageCount() >= 1)
+    assert.equal(document.getTitle(), 'Bilan Herbal Nexus')
+    assert.ok(document.getSubject().includes(fixture.expected.status))
+  }
 })
 
 test('products with missing quantities remain shareable and invalid quantities are rejected', () => {
