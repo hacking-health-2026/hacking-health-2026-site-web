@@ -4,6 +4,7 @@ import NexusIcon from '@/components/NexusIcon.vue'
 import { clearIncorrectPairs, connectPair, gameCases, type GameId } from '@/data/game'
 
 const selected = ref<GameId>('ciclosporine')
+const errorCount = ref(0)
 const pairs = ref<Partial<Record<GameId, GameId>>>({})
 const order = ref([3, 0, 4, 1, 2])
 const lastAttempt = ref<{ medicine: GameId; ingredient: GameId }>()
@@ -94,6 +95,7 @@ function selectSample(id: GameId) {
 }
 function link(id: GameId) {
   const medicine = selected.value
+  if (medicine !== id) errorCount.value += 1
   pairs.value = connectPair(clearIncorrectPairs(pairs.value), medicine, id)
   lastAttempt.value = { medicine, ingredient: id }
   if (medicine === id) {
@@ -103,6 +105,7 @@ function link(id: GameId) {
 }
 function restart() {
   victory.value?.close()
+  errorCount.value = 0
   pairs.value = {}
   lastAttempt.value = undefined
   selected.value = 'ciclosporine'
@@ -375,7 +378,7 @@ function restart() {
       ref="victory"
       class="victory-dialog"
       aria-labelledby="victory-title"
-      aria-describedby="victory-description"
+      aria-describedby="victory-description victory-summary"
     >
       <div class="confetti" aria-hidden="true">
         <i
@@ -400,6 +403,10 @@ function restart() {
             >Les deux mondes sont connectés !</strong
           >
         </p>
+        <div id="victory-summary" class="victory-summary">
+          <strong>{{ errorCount }}</strong>
+          <span>{{ errorCount > 1 ? 'erreurs' : 'erreur' }} avant la solution</span>
+        </div>
         <div class="victory-stars" aria-hidden="true">✦ ✦ ✦ ✦ ✦</div>
         <button class="game-primary" @click="victory?.close()">
           Admirer mes connexions <NexusIcon name="arrow" :size="18" /></button
@@ -1189,6 +1196,21 @@ function restart() {
   letter-spacing: 9px;
   font-size: 25px;
   margin: 12px 0 25px;
+}
+.victory-summary {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 15px;
+  background: var(--lavender);
+  color: #68528e;
+  border-radius: 12px;
+  font-size: 12px;
+}
+.victory-summary strong {
+  color: var(--purple);
+  font-size: 24px;
 }
 .victory-content .game-primary {
   width: 100%;

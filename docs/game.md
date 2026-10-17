@@ -26,6 +26,9 @@ liens restent en place. Les couleurs sont accompagnées d’icônes et de libell
 Le cinquième lien correct ouvre un dialogue de victoire avec médaille, étoiles et
 confettis. Il permet de revenir au plateau ou de rejouer. Échap ferme le dialogue ;
 les animations sont désactivées avec `prefers-reduced-motion`. Aucun son n’est joué.
+Le bilan affiche aussi le nombre de tentatives incorrectes de la partie, y compris
+les erreurs effacées à la sélection suivante. Chaque mauvais lien compte une erreur ;
+sélectionner un échantillon n’en ajoute pas. Rejouer remet ce compteur à zéro.
 
 Vérifications : `node --test scripts/game.test.mjs`, vérification TypeScript,
 build et audit des chemins. Les tests de connexion utilisent Node 24.
