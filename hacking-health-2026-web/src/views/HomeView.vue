@@ -6,7 +6,7 @@
     <header class="header">
       <div class="container">
         <h1>Herbal Nexus · Hacking Health 2026</h1>
-        <p class="subtitle">Démonstration simulée des interactions plantes et médicaments</p>
+        <p class="subtitle">Explorer les associations entre plantes et médicaments</p>
       </div>
     </header>
 
@@ -14,17 +14,16 @@
       <section class="hero">
         <div class="container">
           <div class="hero-card">
-            <h2>Explorez un scénario de démonstration</h2>
+            <h2>Comprendre les produits pris ensemble</h2>
             <p>
               Sélectionnez un médicament et un complément du classeur Herbal Nexus.
-              Le prototype retrouve leurs ingrédients et leurs classes, puis applique un calcul fictif dont chaque étape est visible.
+              Retrouvez leurs ingrédients et leurs classes, puis consultez le détail du score et les associations retenues.
             </p>
             <p>
-              <strong>Mode démo :</strong> les scores et les modificateurs de profil sont inventés pour le hackathon.
-              Les références du classeur ne sont pas vérifiées. Aucun usage médical.
+              Un parcours simple pour visualiser les règles d’interaction et l’influence du profil sur le score présenté.
             </p>
             <div class="cta-group">
-              <RouterLink to="/compatibility" class="btn-primary">Ouvrir la démonstration</RouterLink>
+              <RouterLink to="/compatibility" class="btn-primary">Explorer une association</RouterLink>
               <a class="btn-secondary" href="/api/source/workbook">Consulter le classeur</a>
             </div>
           </div>
@@ -41,7 +40,7 @@
           <div class="feature-item">
             <div class="icon">⏱️</div>
             <h3>Calcul visible</h3>
-            <p>Suivez le barème fictif et faites varier l'âge et le poids du profil de démonstration.</p>
+            <p>Consultez les contributions au score et faites varier l'âge et le poids du profil.</p>
           </div>
           <div class="feature-item">
             <div class="icon">🛡️</div>
@@ -55,6 +54,7 @@
     <footer class="footer">
       <div class="container">
         <p>&copy; 2026 Hacking Health Besançon - Équipe Défi n°4</p>
+        <p>Prototype de présentation : score simulé, non validé pour un usage médical.</p>
       </div>
     </footer>
   </div>

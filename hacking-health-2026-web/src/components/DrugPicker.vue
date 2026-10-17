@@ -74,7 +74,7 @@ onBeforeUnmount(cancel)
         <button type="button" @click="select(drug)">{{ drug.name }} <small>{{ drug.kind === 'medicine' ? 'Médicament' : drug.kind === 'supplement' ? 'Complément' : 'Ingrédient' }} · {{ drug.id }}</small></button>
       </li>
     </ul>
-    <p v-else-if="searched && !selected" role="status" class="hint">Aucun produit trouvé dans le classeur de démonstration.</p>
+    <p v-else-if="searched && !selected" role="status" class="hint">Aucun produit trouvé dans le catalogue.</p>
   </div>
 </template>
 
