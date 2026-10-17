@@ -22,13 +22,14 @@ test('changing one connection preserves all unrelated connections', () => {
   )
 })
 
-test('five distinct cases provide sourced corrections and both answer types', () => {
+test('five distinct cases provide sourced ingredient discoveries', () => {
   assert.equal(gameCases.length, 5)
   assert.equal(new Set(gameCases.map((c) => c.id)).size, 5)
   assert.equal(new Set(gameCases.map((c) => c.ingredient)).size, 5)
   assert.deepEqual(new Set(gameCases.map((c) => c.risk)), new Set([true, false]))
   for (const item of gameCases) {
-    assert.ok(item.context && item.explanation && item.active)
+    assert.ok(item.foundIn && item.active)
     assert.equal(new URL(item.url).protocol, 'https:')
+    assert.equal(new URL(item.originUrl).protocol, 'https:')
   }
 })

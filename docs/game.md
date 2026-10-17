@@ -1,21 +1,19 @@
 # Jeu des associations
 
-La page `/jeu` fonctionne sans API, y compris sur GitHub Pages. Deux manches :
-relier cinq fiches à partir d’indices, puis répondre sur les cinq associations
-documentées. Les liens initiaux restent enregistrés pour la correction ; ils ne
-sont jamais interprétés comme de nouvelles associations médicales validées.
+La page `/jeu` fonctionne sans API, y compris sur GitHub Pages. On relie cinq
+fiches à partir d’indices. Chaque tentative donne immédiatement un retour vert
+(bon lien) ou rouge (lien incorrect), une explication et les produits où trouver
+l’ingrédient choisi, avec une source. Il n’y a plus de questions ni d’étape de validation.
 
 Les données et sources sont dans `src/data/game.ts`. Les plantes ne sont pas
-présentées comme des molécules isolées. Les trois réponses « oui » portent sur
-ciclosporine–millepertuis, sertraline–5-HTP et lévothyroxine–calcium. Les deux
-réponses « non » concernent uniquement les effets non observés dans les essais
-warfarine–gingembre et digoxine–extrait de chardon-Marie : elles ne signifient
-pas « sans danger ». Le contexte est visible avant de répondre, les limites
-et la publication primaire figurent dans chaque correction.
+présentées comme des molécules isolées. Les couleurs indiquent la correspondance
+avec l’indice, jamais la sécurité médicale du duo. Les anciens contextes d’études
+restent conservés dans les données mais ne servent plus à poser des questions.
 
-Les compteurs mesurent les réponses du joueur, jamais un risque médical. Les
-connexions peuvent être réattribuées, une seule fois par ingrédient. Rejouer
-efface liens et réponses et décale l’ordre des ingrédients.
+Le compteur mesure les liens corrects, jamais un risque médical. Une tentative
+incorrecte garde la même fiche sélectionnée pour réessayer. Un bon lien passe à
+la prochaine fiche à résoudre. Les connexions peuvent être réattribuées, une seule
+fois par ingrédient. Recommencer efface les liens et décale l’ordre des ingrédients.
 
 Vérifications : `node --test scripts/game.test.mjs`, vérification TypeScript,
 build et audit des chemins. Les tests de connexion utilisent Node 24.

@@ -6,6 +6,9 @@ export const gameCases = [
     active: 'Ciclosporine',
     clue: 'À relier à la plante aux fleurs jaunes, parfois utilisée pour l’humeur.',
     ingredient: 'Millepertuis',
+    foundIn:
+      'On le trouve dans des préparations de phytothérapie à base de millepertuis, notamment des gélules et des extraits.',
+    originUrl: 'https://www.nccih.nih.gov/health/st-johns-wort',
     ingredientNote: 'Extrait végétal · plusieurs substances actives',
     context:
       'Deux personnes greffées du cœur prennent ce traitement et un extrait de cette plante.',
@@ -22,6 +25,9 @@ export const gameCases = [
     active: 'Sertraline',
     clue: 'À relier au précurseur de la sérotonine, dont le nom contient « HTP ».',
     ingredient: '5-HTP',
+    foundIn:
+      'On le trouve dans certains compléments de 5-HTP ou de Griffonia simplicifolia : ses graines sont une source de 5-HTP.',
+    originUrl: 'https://www.mskcc.org/cancer-care/integrative-medicine/herbs/5-htp-01',
     ingredientNote: '5-hydroxytryptophane · précurseur de la sérotonine',
     context:
       'Un cas publié décrit la prise de cet antidépresseur avec ce complément, parmi plusieurs produits, après un effort intense.',
@@ -38,6 +44,9 @@ export const gameCases = [
     active: 'Lévothyroxine',
     clue: 'À relier au minéral souvent utilisé pour la santé des os.',
     ingredient: 'Calcium',
+    foundIn:
+      'On le trouve dans les compléments de calcium, certaines formules calcium + vitamine D et certains antiacides contenant du carbonate de calcium.',
+    originUrl: 'https://ods.od.nih.gov/factsheets/Calcium-Consumer/',
     ingredientNote: 'Sous forme de carbonate de calcium dans l’étude',
     context:
       'Vingt patients prennent leur lévothyroxine en même temps que du carbonate de calcium pendant trois mois.',
@@ -54,6 +63,9 @@ export const gameCases = [
     active: 'Warfarine',
     clue: 'À relier au rhizome épicé également utilisé contre les nausées.',
     ingredient: 'Gingembre',
+    foundIn:
+      'On le trouve comme aliment et dans des compléments à base de gingembre. Les préparations concentrées ne sont pas équivalentes à son usage en cuisine.',
+    originUrl: 'https://www.nccih.nih.gov/health/ginger',
     ingredientNote: 'Préparation végétale étudiée · plusieurs substances actives',
     context:
       'Essai de 2005 : douze hommes en bonne santé reçoivent une dose unique de warfarine avec une préparation de cette plante.',
@@ -70,6 +82,9 @@ export const gameCases = [
     active: 'Digoxine',
     clue: 'À relier à la silymarine, ensemble de substances issues du chardon-Marie.',
     ingredient: 'Silymarine',
+    foundIn:
+      'On la trouve dans des extraits de chardon-Marie commercialisés comme compléments alimentaires, notamment sous forme de gélules.',
+    originUrl: 'https://www.nccih.nih.gov/health/milk-thistle',
     ingredientNote: 'Mélange de substances · extrait de chardon-Marie étudié',
     context:
       'Essai chez seize volontaires sains : la digoxine est évaluée avant et après quatorze jours d’un extrait de chardon-Marie.',
