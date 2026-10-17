@@ -124,13 +124,11 @@ onBeforeUnmount(() => controller?.abort())
         <p v-if="error" role="alert" class="error">{{ error }}</p>
         <section v-if="result" aria-live="polite" class="results">
           <div :class="['result-box', result.status]">
-            <div class="score-heading"><h2>{{ titles[result.status] }}</h2><strong v-if="result.calculation.score !== null" class="score">{{ result.calculation.score }}<small>points fictifs / 100</small></strong></div>
+            <div class="score-heading"><h2>{{ titles[result.status] }}</h2><strong v-if="result.calculation.score !== null" class="score">{{ result.calculation.score }}<small>points / 100</small></strong></div>
             <p>{{ result.calculation.matched_rule_count }} règle(s) du classeur utilisée(s). {{ result.coverage.classified_pairs }} / {{ result.coverage.total_pairs }} paire(s) reconnue(s).</p>
-            <p>Ce résultat illustre le fonctionnement du prototype. Ce n’est ni une probabilité ni une évaluation clinique.</p>
           </div>
 
           <h2 class="section-title">Calcul de démonstration</h2>
-          <p class="equation">{{ result.calculation.substitution }}</p>
           <div v-if="result.calculation.steps.length" class="calculation">
             <div v-for="step in result.calculation.steps" :key="step.label" class="step"><div><strong>{{ step.label }}</strong><small>{{ step.origin }}</small></div><b>+{{ step.value }}</b></div>
             <p>Seuils fictifs : orange de 1 à 59, rouge à partir de 60. Maximum : 100 points.</p>
@@ -214,7 +212,6 @@ button:disabled { opacity: .5; cursor: not-allowed; }
 .unknown { background: #eaf0f4; color: #495d6e; }
 .diagonal { background: #f1f4f6; color: #667583; }
 .section-title { font-size: 1.1rem; margin: 1.7rem 0 1rem; color: #1d3557; }
-.equation { font-family: ui-monospace, monospace; background: #1d3557; color: white; padding: 1rem; border-radius: 8px; overflow-wrap: anywhere; }
 .calculation { border: 1px solid #d7e1e6; border-radius: 8px; padding: 1rem; }
 .step { display: flex; justify-content: space-between; gap: .7rem; padding: .65rem 0; border-bottom: 1px solid #e3e9ed; font-size: .86rem; }
 .step small { display: block; color: #657281; line-height: 1.6; margin-top: .25rem; }
