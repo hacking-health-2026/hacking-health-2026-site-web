@@ -3,7 +3,8 @@
 Vue frontend for the workbook-only FastAPI demo:
 https://github.com/hacking-health-2026/hacking-health-2026-backend.
 
-All scores are explicitly fictional. The workbook is the only active dataset.
+All scores are explicitly fictional. Interaction rules come from the workbook.
+Three explicit medicine formulations have a curated BDPM composition overlay.
 DDInter remains archived in the backend and is not used for demo results.
 
 ## Run
@@ -35,9 +36,12 @@ that origin in backend `CORS_ORIGINS`.
 1. Click **Leeloo Gé + Millepertuis**: 80 fictional points, simulated red.
 2. Click **Xanax + Sommeil Fort**: 50 points, simulated orange.
 3. Click **Essayer 72 ans et 50 kg**: 65 points, simulated red.
+4. Reload the sleep example, then **Comparer ×2**: 60 points. The quantity tile
+   adds 10 points. Editing only melatonin from 1 to 4 mg also gives 60; the
+   valerian relation stays unchanged. These are demo heuristics, not clinical dosing.
 
 The presentation interface uses a violet, coral and lime palette, product cards,
-a prominent score ring and four color-coded contribution tiles. Both examples
+a prominent score ring and five color-coded contribution tiles. Both examples
 run an analysis directly. The UI displays ingredient mappings, point contributions,
 the pair matrix and source worksheet cells. The numeric coefficients are invented.
 Age/weight modifiers are not derived from workbook observations. A source label
@@ -47,6 +51,14 @@ Editing products or the fictional profile clears stale results and cancels pendi
 analysis. Unknown associations have no score and are never shown as safe.
 The source workbook is downloadable from the result. Profile-risk rules come from
 the workbook; all numeric weighting is explicitly simulated.
+
+Each product lists its declared ingredients with editable mg per unit and units
+per day. Daily quantities are sent to the backend, which returns per-ingredient
+relations and a quantity-coverage count. BDPM links identify the exact selected
+formulation and RCP date. Other products have unknown amounts, except the clearly
+simulated Sommeil Fort example. A blank quantity stays unknown. Uncalibrated
+compositions do not receive an invented quantitative score. Botanical extract
+mass is labelled separately from isolated active-substance mass.
 
 ## Build checks
 

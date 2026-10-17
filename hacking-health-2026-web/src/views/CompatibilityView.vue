@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import DrugPicker from '@/components/DrugPicker.vue'
+import CompositionEditor from '@/components/CompositionEditor.vue'
 import NexusIcon from '@/components/NexusIcon.vue'
 import NexusFlower from '@/components/NexusFlower.vue'
 import { useRoute } from 'vue-router'
@@ -22,11 +23,12 @@ const stepLabels = [
   'Cumul des règles',
   'Âge du profil',
   'Poids du profil',
+  'Quantités croisées',
 ]
 let nextId = 3
-const rows = ref<{ id: number; drug: Drug | null }[]>([
-  { id: 1, drug: null },
-  { id: 2, drug: null },
+const rows = ref<{ id: number; drug: Drug | null; units: number }[]>([
+  { id: 1, drug: null, units: 1 },
+  { id: 2, drug: null, units: 1 },
 ])
 const profile = reactive<{ age: number | null; weight_kg: number | null }>({
   age: 35,
@@ -85,6 +87,25 @@ async function checkCompatibility() {
     error.value = 'Sélectionnez des produits différents dans les résultats du classeur.'
     return
   }
+  if (
+    rows.value.some(
+      (row) =>
+        !Number.isFinite(row.units) ||
+        row.units <= 0 ||
+        row.units > 100 ||
+        row.drug?.components.some(
+          (component) =>
+            component.amount_mg !== null &&
+            (!Number.isFinite(component.amount_mg) ||
+              component.amount_mg <= 0 ||
+              component.amount_mg > 1000000),
+        ),
+    )
+  ) {
+    error.value =
+      'Renseignez des quantités positives : jusqu’à 100 unités par jour et 1 000 000 mg par ingrédient.'
+    return
+  }
   const active = new AbortController()
   controller?.abort()
   controller = active
@@ -101,6 +122,14 @@ async function checkCompatibility() {
         conditions: condition.value ? [condition.value] : [],
       },
       active.signal,
+      rows.value.map((row) => ({
+        product_id: row.drug!.id,
+        units_per_day: row.units,
+        components: row.drug!.components.map((component) => ({
+          component_id: component.id,
+          amount_mg: component.amount_mg,
+        })),
+      })),
     )
     if (!active.signal.aborted) result.value = response
   } catch (cause) {
@@ -117,7 +146,11 @@ async function checkCompatibility() {
 }
 
 async function loadScenario(scenario: Scenario) {
-  rows.value = scenario.products.map((drug) => ({ id: nextId++, drug }))
+  rows.value = scenario.products.map((drug) => ({
+    id: nextId++,
+    drug: { ...drug, components: drug.components.map((component) => ({ ...component })) },
+    units: 1,
+  }))
   profile.age = scenario.profile.age
   profile.weight_kg = scenario.profile.weight_kg
   condition.value = scenario.profile.conditions[0] ?? ''
@@ -129,6 +162,27 @@ async function seniorProfile() {
   profile.age = 72
   profile.weight_kg = 50
   await checkCompatibility()
+}
+
+function setQuantity(drug: Drug, id: string, amount: number | null) {
+  const component = drug.components.find((component) => component.id === id)
+  if (component) component.amount_mg = amount
+}
+function selectProduct(rowId: number, drug: Drug | null) {
+  const row = rows.value.find((row) => row.id === rowId)
+  if (row) {
+    row.drug = drug
+    row.units = 1
+  }
+}
+async function doubleQuantities() {
+  for (const row of rows.value) row.units = Math.min(100, row.units * 2)
+  await checkCompatibility()
+}
+function amountLabel(value: number | null | undefined) {
+  return value == null
+    ? 'Quantité inconnue'
+    : `${value.toLocaleString('fr-FR', { maximumFractionDigits: 5 })} mg/j`
 }
 
 function cellLabel(cell: { status: Status; score: number | null } | null | undefined) {
@@ -198,13 +252,14 @@ onBeforeUnmount(() => controller?.abort())
                     "
                     :size="18" /></span
                 ><span>{{
-                  row.drug
+                  row.drug?.display_kind ??
+                  (row.drug
                     ? row.drug.kind === 'medicine'
                       ? 'Médicament'
                       : row.drug.kind === 'supplement'
                         ? 'Complément'
                         : 'Ingrédient'
-                    : `Produit ${index + 1}`
+                    : `Produit ${index + 1}`)
                 }}</span
                 ><button
                   v-if="rows.length > 2"
@@ -220,22 +275,22 @@ onBeforeUnmount(() => controller?.abort())
                 :id="`drug-${row.id}`"
                 :selected="row.drug"
                 :label="`Produit ${index + 1}`"
-                @select="row.drug = $event"
+                @select="selectProduct(row.id, $event)"
               />
-              <p v-if="row.drug" class="product-substance">
-                {{
-                  row.drug.active_substance ??
-                  row.drug.declared_ingredients ??
-                  'Ingrédient sélectionné'
-                }}
-              </p>
+              <CompositionEditor
+                v-if="row.drug"
+                :drug="row.drug"
+                :units="row.units"
+                @quantity="(id, amount) => setQuantity(row.drug!, id, amount)"
+                @units="row.units = $event"
+              />
             </div>
           </div>
           <button
             type="button"
             :disabled="rows.length >= 5"
             class="add-product"
-            @click="rows.push({ id: nextId++, drug: null })"
+            @click="rows.push({ id: nextId++, drug: null, units: 1 })"
           >
             <NexusIcon name="plus" :size="16" /> Ajouter un produit <span>Jusqu’à 5 produits</span>
           </button>
@@ -410,7 +465,26 @@ onBeforeUnmount(() => controller?.abort())
               <div class="point-track"><span :style="{ width: `${step.value}%` }"></span></div>
             </div>
           </div>
-          <div v-else class="unknown-message">
+          <p v-if="result.ingredient_relations.length" class="quantity-explanation">
+            {{ result.quantity_coverage.calculated_relations }} /
+            {{ result.quantity_coverage.total_relations }}
+            relations avec quantités pondérées. Pondération simulée ; une quantité inférieure ne
+            supprime pas l’alerte.
+          </p>
+          <button
+            v-if="result.quantity_coverage.calculated_relations"
+            type="button"
+            class="try-profile quantity-compare"
+            @click="doubleQuantities"
+          >
+            <span
+              ><NexusIcon name="spark" :size="17" /><span
+                >Variation des quantités<small>Comparer ×2 · simulation</small></span
+              ></span
+            >
+            <NexusIcon name="arrow" :size="20" />
+          </button>
+          <div v-if="!result.calculation.steps.length" class="unknown-message">
             <NexusIcon name="info" :size="18" /> Une relation non reconnue reste inconnue.
           </div>
           <button
@@ -430,6 +504,52 @@ onBeforeUnmount(() => controller?.abort())
     </div>
 
     <section v-if="result" class="details-section">
+      <details
+        v-if="result.ingredient_relations.length"
+        class="association-details ingredient-details"
+        open
+      >
+        <summary>
+          <span class="detail-icon lavender"><NexusIcon name="link" :size="20" /></span>
+          <span
+            >Les ingrédients en relation<small
+              >Quantités journalières et score de chaque relation.</small
+            ></span
+          >
+          <NexusIcon name="chevron" :size="18" class="details-chevron" />
+        </summary>
+        <div class="ingredient-edges">
+          <article
+            v-for="relation in result.ingredient_relations"
+            :key="relation.id"
+            class="ingredient-edge"
+          >
+            <div class="edge-pair">
+              <span
+                ><strong>{{ relation.substance.name }}</strong
+                ><small>{{ amountLabel(relation.substance.daily_mg) }}</small></span
+              >
+              <NexusIcon name="link" :size="20" />
+              <span
+                ><strong>{{ relation.ingredient.name }}</strong
+                ><small>{{ amountLabel(relation.ingredient.daily_mg) }}</small></span
+              >
+              <b :class="['edge-score', relation.status]"
+                >{{ relation.score }} <small>points</small></b
+              >
+            </div>
+            <p>{{ relation.mechanism }}</p>
+            <p class="edge-quantity">
+              {{
+                relation.quantity_complete
+                  ? `Quantités : +${relation.quantity_points} points · facteur d’exposition simulé ×${relation.exposure_factor}`
+                  : 'Quantités ou référence manquantes : pondération non calculée.'
+              }}
+            </p>
+            <small>{{ relation.rule_id }} · {{ relation.mapping_note }}</small>
+          </article>
+        </div>
+      </details>
       <details class="association-details" open>
         <summary>
           <span class="detail-icon lavender"><NexusIcon name="link" :size="20" /></span
@@ -528,6 +648,99 @@ onBeforeUnmount(() => controller?.abort())
 </template>
 
 <style scoped>
+.quantity-explanation {
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--muted);
+  margin: 12px 0;
+}
+.point-4 {
+  grid-column: 1 / -1;
+  background: #eee6fa;
+  color: #7551a8;
+}
+.point-4 .point-track > span {
+  background: #a775cc;
+}
+.quantity-compare {
+  margin-top: 12px;
+}
+.ingredient-details {
+  margin-bottom: 16px;
+}
+.ingredient-edges {
+  padding: 0 28px 24px;
+  display: grid;
+  gap: 12px;
+}
+.ingredient-edge {
+  padding: 18px;
+  border-radius: 16px;
+  background: #f8f7fc;
+  border: 1px solid #ece8f8;
+}
+.edge-pair {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.edge-pair > span {
+  flex: 1;
+}
+.edge-pair strong {
+  display: block;
+  font-size: 14px;
+}
+.edge-pair small {
+  display: block;
+  font-size: 11px;
+  margin-top: 5px;
+  color: var(--muted);
+}
+.edge-score {
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 22px;
+  background: #f9e9c8;
+  color: #835c13;
+  text-align: center;
+}
+.edge-score.critical {
+  background: #fee3da;
+  color: #ad4a30;
+}
+.edge-score small {
+  font-size: 10px;
+}
+.ingredient-edge p {
+  font-size: 12px;
+  line-height: 1.6;
+  margin: 12px 0 6px;
+}
+.ingredient-edge > small {
+  display: block;
+  font-size: 10px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.edge-quantity {
+  color: var(--purple);
+}
+@media (max-width: 600px) {
+  .ingredient-edges {
+    padding: 0 14px 16px;
+  }
+  .edge-pair {
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .edge-pair strong {
+    font-size: 12px;
+  }
+  .edge-score {
+    font-size: 18px;
+  }
+}
 .explorer {
   padding-top: 42px;
 }

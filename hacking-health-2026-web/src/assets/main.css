@@ -94,6 +94,8 @@ a svg {
   color: var(--muted);
 }
 .skip-link {
+  opacity: 0;
+  pointer-events: none;
   position: fixed;
   left: 20px;
   top: -80px;
@@ -103,6 +105,8 @@ a svg {
   padding: 14px;
 }
 .skip-link:focus {
+  opacity: 1;
+  pointer-events: auto;
   top: 10px;
 }
 .site-header {
