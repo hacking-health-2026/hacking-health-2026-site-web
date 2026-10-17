@@ -6,7 +6,7 @@
     <header class="header">
       <div class="container">
         <h1>Hacking Health Besançon 2026</h1>
-        <p class="subtitle">Défi n°4 : Sécurisation des mélanges de principes actifs</p>
+        <p class="subtitle">Défi n°4 : Explorer les interactions entre principes actifs</p>
       </div>
     </header>
 
@@ -14,17 +14,18 @@
       <section class="hero">
         <div class="container">
           <div class="hero-card">
-            <h2>Quel mélange de principe actif ?</h2>
+            <h2>Quels principes actifs sont pris ensemble ?</h2>
             <p>
-              Dans le milieu hospitalier, l'administration simultanée de plusieurs médicaments est une pratique courante, mais complexe. 
-              Certains principes actifs, lorsqu'ils sont mélangés, peuvent interagir de manière indésirable, perdant leur efficacité ou devenant toxiques.
+              La prise de plusieurs médicaments peut modifier leur efficacité ou leurs effets indésirables.
+              Ce prototype explore les interactions documentées dans les données publiques DDInter.
             </p>
             <p>
-              <strong>Notre mission :</strong> Développer un outil intuitif et rapide pour aider les soignants à vérifier la compatibilité des mélanges médicamenteux en un clin d'œil, garantissant ainsi la sécurité maximale des patients.
+              <strong>Notre mission :</strong> Rendre les alertes et leurs sources faciles à consulter.
+              L'absence d'alerte ne garantit pas la sécurité. Les mélanges physiques, les doses et le profil patient ne sont pas évalués.
             </p>
             <div class="cta-group">
-              <button class="btn-primary">En savoir plus</button>
-              <button class="btn-secondary">Voir le prototype</button>
+              <RouterLink to="/compatibility" class="btn-primary">Tester les interactions</RouterLink>
+              <a class="btn-secondary" href="https://ddinter2.scbdd.com/" target="_blank" rel="noopener noreferrer">Découvrir les données</a>
             </div>
           </div>
         </div>
@@ -34,18 +35,18 @@
         <div class="feature-grid">
           <div class="feature-item">
             <div class="icon">🧪</div>
-            <h3>Analyse de Compatibilité</h3>
-            <p>Vérification instantanée de la stabilité physico-chimique des mélanges.</p>
+            <h3>Matrice des interactions</h3>
+            <p>Comparez jusqu'à cinq ingrédients et visualisez les alertes par paire.</p>
           </div>
           <div class="feature-item">
             <div class="icon">⏱️</div>
-            <h3>Gain de Temps</h3>
-            <p>Une interface pensée pour l'urgence et le quotidien des services de soins.</p>
+            <h3>Sources accessibles</h3>
+            <p>Retrouvez le niveau DDInter et le fichier d'origine de chaque relation.</p>
           </div>
           <div class="feature-item">
             <div class="icon">🛡️</div>
-            <h3>Sécurité Patient</h3>
-            <p>Réduction drastique des risques d'erreurs médicamenteuses liées aux mélanges.</p>
+            <h3>Limites explicites</h3>
+            <p>Les relations inconnues restent visibles. Prototype de recherche à faire vérifier par un pharmacien.</p>
           </div>
         </div>
       </section>
@@ -132,6 +133,7 @@
 }
 
 .btn-primary {
+  text-decoration: none;
   background-color: #e63946;
   color: white;
   border: none;
@@ -148,6 +150,7 @@
 }
 
 .btn-secondary {
+  text-decoration: none;
   background-color: transparent;
   color: #1d3557;
   border: 2px solid #1d3557;

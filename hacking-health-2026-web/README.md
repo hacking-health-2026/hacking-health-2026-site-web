@@ -1,48 +1,50 @@
-# hacking-health-2026-web
+# Hacking Health 2026 — Vue frontend
 
-This template should help get you started developing with Vue 3 in Vite.
+Interaction checker connected to the FastAPI backend:
+https://github.com/hacking-health-2026/hacking-health-2026-backend.
+Requires Node 24.12+ (or the version supported by `package.json`).
 
-## Recommended IDE Setup
+## Development
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
-
-## Recommended Browser Setup
-
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
-
-## Type Support for `.vue` Imports in TS
-
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vite.dev/config/).
-
-## Project Setup
+Start the backend on port 8000 (see its README), then:
 
 ```sh
-npm install
-```
-
-### Compile and Hot-Reload for Development
-
-```sh
+npm ci
 npm run dev
 ```
 
-### Type-Check, Compile and Minify for Production
+Open the printed local URL and choose **Vérifier**. Vite proxies `/api` to
+`http://127.0.0.1:8000`. A pnpm lockfile is also provided; with pnpm use
+`pnpm install --frozen-lockfile` and `pnpm dev` instead.
+
+## Single-server demo
 
 ```sh
 npm run build
 ```
 
-### Lint with [ESLint](https://eslint.org/)
+The backend serves this `dist/` folder automatically when both repositories are
+cloned next to each other with their default names. Open
+http://127.0.0.1:8000/compatibility. Override its `FRONTEND_DIST` if necessary.
+For a separately hosted frontend set `VITE_API_BASE_URL` before building and
+allow the frontend origin in the backend's `CORS_ORIGINS`.
 
-```sh
-npm run lint
-```
+## Behavior
+
+- Search English ingredient names and select a DDInter result in each field.
+- Compare 2–5 distinct ingredients, with add/remove controls.
+- Display the symmetric pairwise matrix, raw source levels, source-file links,
+  source version/license and coverage of the submitted pairs.
+- Major/Moderate = danger flag. Minor = no major alert, not guaranteed safe.
+  Missing/Unknown stays unknown.
+- Editing any ingredient clears previous results and cancels pending analysis.
+- Search and analysis failures are visible; there is no hardcoded fallback.
+
+This checks co-administration interactions, not physical mixing or stability.
+Patient profiles, doses, brands, higher-order effects and exhaustive coverage of
+supplements/essential oils are outside this PoC.
+
+## Verification
+
+`npm run build` runs Vue/TypeScript checks and the production build.
+For individual checks use `npm run type-check` and `npm run build-only`.
