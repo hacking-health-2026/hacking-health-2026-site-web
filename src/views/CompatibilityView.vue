@@ -3,6 +3,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } 
 import DrugPicker from '@/components/DrugPicker.vue'
 import CompositionEditor from '@/components/CompositionEditor.vue'
 import NexusIcon from '@/components/NexusIcon.vue'
+import bundledPresets from '@/data/presets.json'
 import { useRoute } from 'vue-router'
 import { alertLabels, alertColors, severityStatus } from '@/services/alerts'
 import {
@@ -45,7 +46,7 @@ const profile = reactive<{ age: number | null; weight_kg: number | null }>({
 })
 const condition = ref('')
 const conditions = ref<string[]>([])
-const scenarios = ref<Scenario[]>([])
+const scenarios = ref<Scenario[]>(structuredClone(bundledPresets as Scenario[]))
 const result = ref<Assessment | null>(null)
 const error = ref('')
 const loading = ref(false)
@@ -111,14 +112,14 @@ watch(
 watch([profile, condition], clearResult, { deep: true, flush: 'sync' })
 
 onMounted(async () => {
-  try {
-    const [examples, options] = await Promise.all([fetchScenarios(), fetchProfileOptions()])
-    scenarios.value = examples
-    conditions.value = options.conditions
-    const initial = examples.find((example) => example.id === route.query.example)
-    if (initial) await loadScenario(initial)
-  } catch {
-    error.value = 'Les exemples sont momentanément indisponibles. Réessayez dans un instant.'
+  const initial = scenarios.value.find((example) => example.id === route.query.example)
+  if (initial) loadScenario(initial)
+  const [examples, options] = await Promise.allSettled([fetchScenarios(), fetchProfileOptions()])
+  if (examples.status === 'fulfilled' && examples.value.length) scenarios.value = examples.value
+  if (options.status === 'fulfilled') conditions.value = options.value.conditions
+  if (examples.status === 'rejected' && options.status === 'rejected') {
+    error.value =
+      'Le serveur d’analyse est indisponible. Les deux exemples restent consultables ; le calcul nécessite un backend connecté.'
   }
 })
 
@@ -196,7 +197,8 @@ async function checkCompatibility() {
   }
 }
 
-async function loadScenario(scenario: Scenario) {
+function loadScenario(scenario: Scenario) {
+  clearResult()
   rows.value = scenario.products.map((drug) => ({
     id: nextId++,
     drug: { ...drug, components: drug.components.map((component) => ({ ...component })) },
@@ -206,7 +208,6 @@ async function loadScenario(scenario: Scenario) {
   profile.weight_kg = scenario.profile.weight_kg
   condition.value = scenario.profile.conditions[0] ?? ''
   selectedScenario.value = scenario.id
-  await checkCompatibility()
 }
 
 async function seniorProfile() {

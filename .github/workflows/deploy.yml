@@ -37,7 +37,7 @@ jobs:
           VITE_BASE_PATH: ${{ steps.pages.outputs.base_path }}/
       - name: Report API configuration
         if: ${{ vars.VITE_API_BASE_URL == '' }}
-        run: echo "::warning::VITE_API_BASE_URL is empty. The static pages will deploy, but Explorer requires a separately hosted backend and matching CORS_ORIGINS."
+        run: echo "::warning::VITE_API_BASE_URL is empty. Pages and bundled presets will deploy, but product search and analysis require a separately hosted backend and matching CORS_ORIGINS."
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

@@ -1,0 +1,188 @@
+[
+  {
+    "id": "contraception",
+    "title": "Leeloo Gé + Millepertuis",
+    "description": "Une règle rouge du classeur → 80 points fictifs.",
+    "products": [
+      {
+        "id": "MED-005",
+        "name": "Leeloo Gé",
+        "kind": "medicine",
+        "active_substance": "Lévonorgestrel + éthinylestradiol",
+        "drug_class": "Contraceptifs œstroprogestatifs",
+        "note": "Pilule combinée 2e gén.",
+        "reference": {
+          "sheet": "Médicaments",
+          "row": 5,
+          "range": "A5:D5"
+        },
+        "components": [
+          {
+            "id": "MED-005:1",
+            "name": "Lévonorgestrel",
+            "amount_mg": 0.1,
+            "demo_reference_mg": 0.1,
+            "basis": "substance",
+            "quantity_origin": "bdpm"
+          },
+          {
+            "id": "MED-005:2",
+            "name": "Éthinylestradiol",
+            "amount_mg": 0.02,
+            "demo_reference_mg": 0.02,
+            "basis": "substance",
+            "quantity_origin": "bdpm"
+          }
+        ],
+        "display_kind": null,
+        "unit_label": "comprimé",
+        "formulation": "LEELOO 0,1 mg / 0,02 mg · comprimé",
+        "composition_source": {
+          "label": "BDPM · RCP LEELOO",
+          "url": "https://base-donnees-publique.medicaments.gouv.fr/medicament/66819566/extrait",
+          "formulation": "LEELOO 0,1 mg / 0,02 mg · comprimé",
+          "updated_at": "2025-05-14",
+          "accessed_at": "2026-10-17",
+          "unit_label": "comprimé"
+        },
+        "composition_note": "Présentation choisie pour l’exemple ; vérifier le dosage de la boîte.",
+        "composition_simulated": false
+      },
+      {
+        "id": "SUP-006",
+        "name": "Arkogélules Millepertuis",
+        "kind": "supplement",
+        "declared_ingredients": "Millepertuis (Hypericum perforatum)",
+        "matched_ingredients": ["Millepertuis"],
+        "note": "Mono-ingrédient — match direct",
+        "reference": {
+          "sheet": "Compléments",
+          "row": 6,
+          "range": "A6:E6"
+        },
+        "components": [
+          {
+            "id": "SUP-006:1",
+            "name": "Millepertuis",
+            "amount_mg": 175,
+            "demo_reference_mg": 175,
+            "basis": "plant_extract",
+            "quantity_origin": "bdpm"
+          }
+        ],
+        "display_kind": "Médicament à base de plantes",
+        "unit_label": "gélule",
+        "formulation": "ARKOGELULES MILLEPERTUIS · gélule à 175 mg d’extrait sec",
+        "composition_source": {
+          "label": "BDPM · RCP ARKOGELULES MILLEPERTUIS",
+          "url": "https://base-donnees-publique.medicaments.gouv.fr/medicament/60448702/extrait",
+          "formulation": "ARKOGELULES MILLEPERTUIS · gélule à 175 mg d’extrait sec",
+          "updated_at": "2026-07-03",
+          "accessed_at": "2026-10-17",
+          "unit_label": "gélule",
+          "note": "Présentation médicamenteuse de l’exemple, signalée indisponible dans la BDPM. Masse d’extrait sec, pas masse d’hyperforine."
+        },
+        "composition_note": "Présentation médicamenteuse de l’exemple, signalée indisponible dans la BDPM. Masse d’extrait sec, pas masse d’hyperforine.",
+        "composition_simulated": false
+      }
+    ],
+    "profile": {
+      "age": 30,
+      "weight_kg": 65,
+      "conditions": []
+    }
+  },
+  {
+    "id": "sleep",
+    "title": "Xanax + Sommeil Fort",
+    "description": "Deux ingrédients reconnus → 50 points fictifs. Essayez ensuite 72 ans et 50 kg → 65.",
+    "products": [
+      {
+        "id": "MED-041",
+        "name": "Xanax",
+        "kind": "medicine",
+        "active_substance": "Alprazolam",
+        "drug_class": "Sédatifs / benzodiazépines",
+        "note": "Anxiolytique",
+        "reference": {
+          "sheet": "Médicaments",
+          "row": 41,
+          "range": "A41:D41"
+        },
+        "components": [
+          {
+            "id": "MED-041:1",
+            "name": "Alprazolam",
+            "amount_mg": 0.25,
+            "demo_reference_mg": 0.25,
+            "basis": "substance",
+            "quantity_origin": "bdpm"
+          }
+        ],
+        "display_kind": null,
+        "unit_label": "comprimé",
+        "formulation": "XANAX 0,25 mg · comprimé sécable",
+        "composition_source": {
+          "label": "BDPM · RCP XANAX",
+          "url": "https://base-donnees-publique.medicaments.gouv.fr/medicament/69847791/extrait",
+          "formulation": "XANAX 0,25 mg · comprimé sécable",
+          "updated_at": "2025-04-30",
+          "accessed_at": "2026-10-17",
+          "unit_label": "comprimé"
+        },
+        "composition_note": "Présentation choisie pour l’exemple ; vérifier le dosage de la boîte.",
+        "composition_simulated": false
+      },
+      {
+        "id": "SUP-029",
+        "name": "Sommeil Fort Mélatonine+",
+        "kind": "supplement",
+        "declared_ingredients": "Mélatonine + Valériane + Mélisse",
+        "matched_ingredients": ["Mélatonine", "Valériane"],
+        "note": "2 ingrédients à risque",
+        "reference": {
+          "sheet": "Compléments",
+          "row": 29,
+          "range": "A29:E29"
+        },
+        "components": [
+          {
+            "id": "SUP-029:1",
+            "name": "Mélatonine",
+            "amount_mg": 1,
+            "demo_reference_mg": 1,
+            "basis": "declared_ingredient",
+            "quantity_origin": "simulated"
+          },
+          {
+            "id": "SUP-029:2",
+            "name": "Valériane",
+            "amount_mg": 200,
+            "demo_reference_mg": 200,
+            "basis": "plant_extract",
+            "quantity_origin": "simulated"
+          },
+          {
+            "id": "SUP-029:3",
+            "name": "Mélisse",
+            "amount_mg": 100,
+            "demo_reference_mg": 100,
+            "basis": "plant_extract",
+            "quantity_origin": "simulated"
+          }
+        ],
+        "display_kind": null,
+        "unit_label": "unité",
+        "formulation": "Sommeil Fort Mélatonine+",
+        "composition_source": null,
+        "composition_note": "Quantités d’exemple inventées ; composition qualitative issue du classeur.",
+        "composition_simulated": true
+      }
+    ],
+    "profile": {
+      "age": 35,
+      "weight_kg": 70,
+      "conditions": []
+    }
+  }
+]
