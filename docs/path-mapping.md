@@ -65,7 +65,7 @@ Source de configuration : [sorties officielles de configure-pages](https://githu
 | `searchDrugs()` | `GET /api/drugs?q=…` |
 | `assessDrugs()` | `POST /api/assess` |
 | `workbookUrl('/api/source/workbook')` | Même base API + fichier source XLSX servi par le backend |
-| Pages sans API (`VITE_STATIC_DEMO=true`) | Recherche et calcul navigateur limités aux quatre produits des deux exemples ; voir `docs/presets.md` |
+| Pages sans API (`VITE_STATIC_DEMO=true`) | Recherche et calcul navigateur sur les 100 produits du classeur ; voir `docs/presets.md` |
 | Pages : téléchargement du classeur | `public/demo-source.xlsx` → `dist/demo-source.xlsx`, préfixé avec `BASE_URL` |
 | Backend `DATA` | `data/herbal_nexus/dataset.json`, résolu depuis le dépôt backend |
 | Backend `WORKBOOK` | `data/herbal_nexus/Herbal_Nexus_Donnees_Agent1.xlsx` |
@@ -84,7 +84,7 @@ la structure actuelle, sans activer ce moteur.
 doit autoriser l’origine du site (sans le chemin du dépôt). Le lien
 `github.com/…/deployments/github-pages` est une page de suivi du déploiement du
 frontend, pas l’adresse de l’API. En l’absence de variable, le workflow active le
-calcul de présentation dans le navigateur pour les quatre produits des exemples.
+calcul de présentation dans le navigateur sur le catalogue du classeur.
 
 ## Refaire le contrôle
 

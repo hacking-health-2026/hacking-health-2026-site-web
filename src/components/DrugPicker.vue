@@ -1,22 +1,24 @@
 <script setup lang="ts">
-import { onBeforeUnmount, ref, watch } from 'vue'
-import { searchDrugs, type Drug } from '@/services/api'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { searchWorkbookProducts, type Drug } from '@/services/api'
+import NexusIcon from '@/components/NexusIcon.vue'
 
 const props = defineProps<{ id: string; selected: Drug | null; label: string }>()
 const emit = defineEmits<{ select: [drug: Drug | null] }>()
+const root = ref<HTMLElement>()
+const input = ref<HTMLInputElement>()
 const query = ref(props.selected?.name ?? '')
-const results = ref<Drug[]>([])
-const loading = ref(false)
-const error = ref('')
-const searched = ref(false)
-let timer: ReturnType<typeof setTimeout> | undefined
-let controller: AbortController | undefined
-
-function cancel() {
-  clearTimeout(timer)
-  controller?.abort()
-  loading.value = false
-}
+const open = ref(false)
+const activeIndex = ref(-1)
+const results = computed(() =>
+  searchWorkbookProducts(query.value === props.selected?.name ? '' : query.value),
+)
+const listId = computed(() => `${props.id}-options`)
+const activeId = computed(() =>
+  open.value && activeIndex.value >= 0 && results.value[activeIndex.value]
+    ? `${props.id}-option-${results.value[activeIndex.value]!.id}`
+    : undefined,
+)
 
 watch(
   () => props.selected,
@@ -24,79 +26,136 @@ watch(
     if (drug) query.value = drug.name
   },
 )
-
-watch(query, (value) => {
-  cancel()
-  results.value = []
-  error.value = ''
-  searched.value = false
-  if (props.selected?.name === value) return
-  if (props.selected) emit('select', null)
-  if (value.trim().length < 2) return
-  timer = setTimeout(async () => {
-    const active = new AbortController()
-    controller = active
-    loading.value = true
-    try {
-      const drugs = await searchDrugs(value.trim(), active.signal)
-      if (!active.signal.aborted) {
-        results.value = drugs
-        searched.value = true
-      }
-    } catch {
-      if (!active.signal.aborted)
-        error.value = 'La recherche est momentanément indisponible. Réessayez dans un instant.'
-    } finally {
-      if (!active.signal.aborted) loading.value = false
-    }
-  }, 200)
-})
-
-function select(drug: Drug) {
-  cancel()
-  emit('select', drug)
-  query.value = drug.name
-  results.value = []
-  searched.value = false
+function openMenu() {
+  open.value = true
+  activeIndex.value = -1
 }
-
-onBeforeUnmount(cancel)
+function onInput(event: Event) {
+  query.value = (event.target as HTMLInputElement).value
+  open.value = true
+  activeIndex.value = -1
+  if (props.selected) emit('select', null)
+}
+function select(drug: Drug) {
+  emit('select', structuredClone(drug))
+  query.value = drug.name
+  open.value = false
+  activeIndex.value = -1
+}
+function toggle() {
+  if (open.value) open.value = false
+  else {
+    input.value?.focus()
+    openMenu()
+  }
+}
+async function move(direction: number) {
+  open.value = true
+  if (!results.value.length) return
+  activeIndex.value =
+    activeIndex.value < 0
+      ? direction > 0
+        ? 0
+        : results.value.length - 1
+      : (activeIndex.value + direction + results.value.length) % results.value.length
+  await nextTick()
+  if (activeId.value) document.getElementById(activeId.value)?.scrollIntoView({ block: 'nearest' })
+}
+function chooseActive(event: KeyboardEvent) {
+  if (!open.value) return
+  event.preventDefault()
+  const product = results.value[Math.max(0, activeIndex.value)]
+  if (product) select(product)
+}
+function closeOutside(event: PointerEvent) {
+  if (!root.value?.contains(event.target as Node)) open.value = false
+}
+function closeOnBlur(event: FocusEvent) {
+  if (!root.value?.contains(event.relatedTarget as Node | null)) open.value = false
+}
+onMounted(() => document.addEventListener('pointerdown', closeOutside))
+onBeforeUnmount(() => document.removeEventListener('pointerdown', closeOutside))
 </script>
 
 <template>
-  <div class="picker">
+  <div ref="root" class="picker" @focusout="closeOnBlur">
     <label :for="id">{{ label }}</label>
-    <input
-      :id="id"
-      v-model="query"
-      type="search"
-      autocomplete="off"
-      placeholder="Rechercher un produit…"
-      :title="selected?.name"
-      :aria-describedby="`${id}-hint`"
-    />
+    <div class="picker-input">
+      <input
+        :id="id"
+        ref="input"
+        :value="query"
+        role="combobox"
+        type="text"
+        autocomplete="off"
+        aria-autocomplete="list"
+        aria-haspopup="listbox"
+        :aria-expanded="open"
+        :aria-controls="listId"
+        :aria-activedescendant="activeId"
+        :aria-describedby="`${id}-hint`"
+        placeholder="Choisir ou rechercher un produit…"
+        :title="selected?.name"
+        @input="onInput"
+        @focus="openMenu"
+        @click="openMenu"
+        @keydown.down.prevent="move(1)"
+        @keydown.up.prevent="move(-1)"
+        @keydown.enter="chooseActive"
+        @keydown.esc.stop.prevent="open = false"
+      />
+      <button
+        type="button"
+        class="dropdown-toggle"
+        :aria-label="`${open ? 'Fermer' : 'Ouvrir'} la liste ${label}`"
+        :aria-expanded="open"
+        :aria-controls="listId"
+        @click="toggle"
+      >
+        <NexusIcon name="chevron" :size="18" :class="{ rotated: open }" />
+      </button>
+    </div>
     <small :id="`${id}-hint`" class="hint">{{
-      selected ? 'Produit identifié' : 'Une marque, une plante ou un complément'
+      selected
+        ? 'Produit du classeur sélectionné'
+        : 'Médicaments et compléments du fichier Excel uniquement'
     }}</small>
-    <p v-if="loading" role="status">Recherche…</p>
-    <p v-if="error" role="alert" class="error">{{ error }}</p>
-    <ul v-if="results.length" class="suggestions" :aria-label="`Résultats pour ${label}`">
-      <li v-for="drug in results" :key="drug.id">
-        <button type="button" @click="select(drug)">
-          {{ drug.name }}
-          <small>{{
-            drug.kind === 'medicine'
-              ? 'Médicament'
-              : drug.kind === 'supplement'
-                ? 'Complément'
-                : 'Ingrédient'
-          }}</small>
-        </button>
-      </li>
-    </ul>
-    <p v-else-if="searched && !selected" role="status" class="hint">
-      Aucun produit trouvé dans le catalogue.
-    </p>
+    <div v-if="open" class="dropdown-panel">
+      <div class="dropdown-heading">
+        <NexusIcon name="book" :size="14" /><span>Produits du classeur</span
+        ><strong>{{ results.length }}</strong>
+      </div>
+      <ul
+        :id="listId"
+        role="listbox"
+        :aria-label="`Produits du classeur pour ${label}`"
+        class="suggestions"
+      >
+        <li
+          v-for="(drug, index) in results"
+          :id="`${id}-option-${drug.id}`"
+          :key="drug.id"
+          role="option"
+          :aria-selected="selected?.id === drug.id"
+          :class="{ highlighted: index === activeIndex, chosen: selected?.id === drug.id }"
+          @pointerdown.prevent
+          @click="select(drug)"
+        >
+          <span class="option-icon"
+            ><NexusIcon :name="drug.kind === 'medicine' ? 'pill' : 'leaf'" :size="16" /></span
+          ><span class="option-text"
+            ><strong>{{ drug.name }}</strong
+            ><small>{{ drug.active_substance || drug.declared_ingredients }}</small></span
+          ><span class="option-kind">{{
+            drug.display_kind || (drug.kind === 'medicine' ? 'Médicament' : 'Complément')
+          }}</span
+          ><NexusIcon v-if="selected?.id === drug.id" name="check" :size="16" />
+        </li>
+      </ul>
+      <p v-if="!results.length" class="empty-results" role="status">
+        Aucun produit correspondant dans le fichier Excel. Choisissez un nom présent dans la liste.
+      </p>
+    </div>
   </div>
 </template>
 
@@ -106,6 +165,9 @@ onBeforeUnmount(cancel)
   display: grid;
   gap: 4px;
   min-width: 0;
+}
+.picker:has(.dropdown-panel) {
+  z-index: 25;
 }
 label {
   position: absolute;
@@ -117,6 +179,12 @@ label {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+.picker-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
 }
 input {
   box-sizing: border-box;
@@ -144,60 +212,151 @@ input:focus {
 }
 .hint {
   font-size: 10px;
-  color: #aaa0b6;
+  color: #93849e;
   line-height: 1.6;
 }
-.error {
-  font-size: 10px;
-  line-height: 1.5;
-  color: #a04645;
-  margin: 5px 0;
+.dropdown-toggle {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  background: #ffffffa8;
+  border: 1px solid #dfd5ed;
+  color: #785b9b;
+  border-radius: 9px;
 }
-.picker > p[role='status'] {
+.dropdown-toggle:hover {
+  background: #eee6fa;
+}
+.dropdown-toggle svg {
+  transition: transform 0.2s;
+}
+.dropdown-toggle .rotated {
+  transform: rotate(180deg);
+}
+.dropdown-panel {
+  position: absolute;
+  left: -10px;
+  right: -10px;
+  top: calc(100% + 8px);
+  background: white;
+  border: 1px solid #ddd2eb;
+  box-shadow: 0 15px 40px #3c245b24;
+  border-radius: 14px;
+  overflow: hidden;
+  z-index: 40;
+}
+.dropdown-heading {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  padding: 12px 14px;
   font-size: 10px;
-  color: #94819e;
-  margin: 4px 0;
+  font-weight: 700;
+  color: #8a70a8;
+  border-bottom: 1px solid #f0eaf7;
+  background: #fcfaff;
+}
+.dropdown-heading strong {
+  margin-left: auto;
+  font-size: 10px;
+  background: #ede5f7;
+  padding: 3px 7px;
+  border-radius: 20px;
 }
 .suggestions {
-  position: absolute;
-  left: -8px;
-  right: -8px;
-  top: 100%;
-  z-index: 30;
-  list-style: none;
-  margin: 7px 0 0;
   padding: 5px;
-  border-radius: 12px;
-  background: #fff;
-  border: 1px solid #e4daee;
-  box-shadow: 0 14px 30px #38214f20;
-  max-height: 240px;
-  overflow-y: auto;
+  margin: 0;
+  list-style: none;
+  max-height: 310px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #cbb8df transparent;
 }
-.suggestions li + li {
-  border-top: 1px solid #f3eff7;
-}
-.suggestions button {
-  display: block;
-  background: transparent;
-  border: 0;
-  text-align: left;
-  width: 100%;
-  padding: 11px 10px;
+.suggestions li {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 9px;
   border-radius: 8px;
-  color: #51425e;
-  font: inherit;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+.suggestions li:hover,
+.suggestions li.highlighted {
+  background: #f1eafb;
+  border-color: #e0d0f0;
+}
+.suggestions li.chosen {
+  background: #f5f1fb;
+}
+.option-icon {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  background: #f0eafa;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  color: #9670be;
+}
+.option-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
+}
+.option-text strong {
   font-size: 12px;
+  line-height: 1.4;
+  font-weight: 650;
+  color: #50415f;
 }
-.suggestions button:hover,
-.suggestions button:focus-visible {
-  background: #f3edff;
-  outline: none;
+.option-text small {
+  font-size: 10px;
+  line-height: 1.5;
+  color: #9b8da7;
+  overflow-wrap: anywhere;
 }
-.suggestions small {
-  display: block;
+.option-kind {
   font-size: 9px;
-  color: #b09cbd;
-  margin-top: 4px;
+  line-height: 1.4;
+  max-width: 85px;
+  text-align: right;
+  color: #8a7b97;
+}
+.suggestions li > svg {
+  color: var(--purple);
+  flex-shrink: 0;
+}
+.empty-results {
+  font-size: 11px;
+  line-height: 1.7;
+  margin: 0;
+  padding: 18px;
+  color: #91849e;
+}
+@media (max-width: 600px) {
+  .dropdown-panel {
+    left: 0;
+    right: 0;
+  }
+  .suggestions {
+    max-height: 260px;
+  }
+  .option-kind {
+    display: none;
+  }
+  input {
+    font-size: 15px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dropdown-toggle svg {
+    transition: none;
+  }
 }
 </style>

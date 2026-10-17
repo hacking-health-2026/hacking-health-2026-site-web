@@ -102,6 +102,10 @@ export interface Scenario {
 const baseUrl = (import.meta.env.VITE_API_BASE_URL ?? '').trim().replace(/\/+$/, '')
 const staticDemo = import.meta.env.VITE_STATIC_DEMO === 'true' && !baseUrl
 
+export function searchWorkbookProducts(query: string) {
+  return searchStaticProducts(query)
+}
+
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const response = await fetch(`${baseUrl}/api${path}`, options)
   if (!response.ok)

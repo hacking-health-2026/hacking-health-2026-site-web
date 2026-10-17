@@ -11,12 +11,15 @@ L’analyse ne démarre qu’avec le bouton « Analyser cette association ».
 
 GitHub Pages ne lance pas FastAPI et rejette un POST `/api/assess` avec HTTP 405.
 Quand `VITE_API_BASE_URL` est vide, le workflow active `VITE_STATIC_DEMO=true` :
-recherche sur les quatre produits des exemples, calcul simulé, variations de profil
+recherche sur les 100 produits du classeur, calcul simulé, variations de profil
 et de quantités, résumé et téléchargement du classeur fonctionnent dans le navigateur.
-Les autres produits du catalogue ne sont pas disponibles dans cette version.
+Le dropdown contient uniquement les 50 médicaments et les 50 compléments des
+feuilles produits du fichier fourni. Il s’ouvre sans saisie, filtre les noms et
+principes actifs sans tenir compte des accents, et se pilote au clavier. Un texte
+libre non choisi dans la liste ne peut pas être analysé.
 
 `src/services/staticDemo.ts` applique le même calcul de présentation Python v3,
-avec les règles des six paires possibles entre ces quatre produits. Les règles
+avec les règles des 219 paires couvertes entre ces 100 produits. Les règles
 de profil sont exportées depuis le même classeur. Aucun lien absent n’est déclaré
 sans danger. Les coefficients et les limites de la simulation restent ceux du
 backend ; les nombres internes ne sont pas affichés comme un risque sur 100.
@@ -35,6 +38,7 @@ node --test scripts/static-demo.test.mjs scripts/game.test.mjs
 ```
 
 L’export produit `src/data/static-demo.json`, les presets, le classeur public et
-23 résultats Python de référence pour les tests de parité. Ces tests couvrent les
+124 résultats Python de référence et la matrice des 4 950 paires pour les tests de
+parité. Ces tests couvrent les
 deux exemples, leurs variations de quantités et de profil, les données manquantes,
 les règles de profil, les paires non classées et l’ordre inverse des produits.

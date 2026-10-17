@@ -21,7 +21,12 @@ type ProfileAlert = Assessment['profile_alerts'][number]
 interface DemoData {
   products: Drug[]
   conditions: string[]
-  pairs: Pair[]
+  pairs: {
+    product_a_id: string
+    product_b_id: string
+    rules: Rule[]
+    ingredient_relations: Edge[]
+  }[]
   profile_alerts: Record<string, ProfileAlert[]>
   algorithm: Assessment['algorithm'] & {
     formula: string
@@ -63,18 +68,19 @@ export function staticProfileOptions() {
 }
 export function searchStaticProducts(query: string): Drug[] {
   const term = normalize(query)
-  if (term.length < 2) return []
   return structuredClone(
-    data.products.filter((p) =>
-      normalize(
-        [
-          p.name,
-          p.active_substance,
-          p.declared_ingredients,
-          ...p.components.map((c) => c.name),
-        ].join(' '),
-      ).includes(term),
-    ),
+    data.products
+      .filter((p) =>
+        normalize(
+          [
+            p.name,
+            p.active_substance,
+            p.declared_ingredients,
+            ...p.components.map((c) => c.name),
+          ].join(' '),
+        ).includes(term),
+      )
+      .sort((a, b) => a.name.localeCompare(b.name, 'fr')),
   )
 }
 
@@ -149,7 +155,7 @@ function resolveProducts(ids: string[], intakes: Intake[]): Resolved[] {
   const selected = ids.map(
     (id) =>
       data.products.find((p) => p.id === id) ??
-      invalid('Cette présentation prend en charge les quatre produits des deux exemples.'),
+      invalid('Sélectionnez un produit présent dans le classeur Excel.'),
   )
   const seenProducts = new Set<string>()
   for (const intake of intakes) {
@@ -228,14 +234,14 @@ function updateEdge(template: Edge, products: Resolved[], rules: Rule[], profile
   }
 }
 
-/** Same simulated arithmetic as Python v3, restricted to the four exported products. */
+/** Same simulated arithmetic as Python v3, for the exported workbook catalogue. */
 export function assessStaticProducts(
   ids: string[],
   profile: Profile,
   intakes: Intake[] = [],
 ): Assessment {
-  if (ids.length < 2 || ids.length > data.products.length || new Set(ids).size !== ids.length)
-    invalid('Sélectionnez entre deux et quatre produits différents parmi les exemples.')
+  if (ids.length < 2 || ids.length > 20 || new Set(ids).size !== ids.length)
+    invalid('Sélectionnez des produits différents dans le classeur Excel.')
   if (
     !validNumber(profile.age, 18, 110) ||
     (profile.age !== null && !Number.isInteger(profile.age)) ||
@@ -254,11 +260,11 @@ export function assessStaticProducts(
     for (let j = i + 1; j < products.length; j++) {
       const a = products[i]!,
         b = products[j]!
-      const template =
-        data.pairs.find(
-          (p) =>
-            [p.drug_a.id, p.drug_b.id].includes(a.id) && [p.drug_a.id, p.drug_b.id].includes(b.id),
-        ) ?? invalid('Association absente des données de présentation.')
+      const template = data.pairs.find(
+        (p) =>
+          [p.product_a_id, p.product_b_id].includes(a.id) &&
+          [p.product_a_id, p.product_b_id].includes(b.id),
+      ) ?? { rules: [], ingredient_relations: [] }
       const edges = template.ingredient_relations.map((edge) =>
         updateEdge(edge, products, template.rules, profile),
       )
@@ -268,9 +274,9 @@ export function assessStaticProducts(
         Math.max(0, ...edges.map((edge) => edge.quantity_points)),
       )
       pairs.push({
-        ...structuredClone(template),
         drug_a: a,
         drug_b: b,
+        rules: structuredClone(template.rules),
         ingredient_relations: edges,
         dangerous: calculation.score === null ? null : calculation.status === 'critical',
         status: calculation.status,

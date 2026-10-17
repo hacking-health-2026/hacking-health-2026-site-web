@@ -39,7 +39,7 @@ jobs:
           VITE_BASE_PATH: ${{ steps.pages.outputs.base_path }}/
       - name: Report API configuration
         if: ${{ vars.VITE_API_BASE_URL == '' }}
-        run: echo "::notice::No remote API configured. Pages uses the browser PoC for the four products in the two presets. Configure VITE_API_BASE_URL for the full backend catalogue."
+        run: echo "::notice::No remote API configured. Pages uses the browser PoC and the 100 product rows of the supplied workbook."
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
