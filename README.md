@@ -31,6 +31,12 @@ http://127.0.0.1:8000/compatibility. Set its `FRONTEND_DIST` for another locatio
 For separate hosting set frontend `VITE_API_BASE_URL` before building and allow
 that origin in backend `CORS_ORIGINS`.
 
+See [the complete path mapping](docs/path-mapping.md) for source aliases, static
+assets, routes, API endpoints and GitHub Pages prefixes. Run `npm run check:paths`
+after building. CI runs the same check before publishing. GitHub Pages only hosts
+the frontend: set the repository variable `VITE_API_BASE_URL` to a deployed HTTPS
+backend for search and scoring to work there.
+
 ## Demo script
 
 The **Accueil** page presents three documented interaction cases with direct

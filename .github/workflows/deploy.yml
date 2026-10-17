@@ -19,13 +19,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Read GitHub Pages paths
+        id: pages
+        uses: actions/configure-pages@v5
       - uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: npm
       - run: npm ci
       - run: npm run build
-      - run: cp dist/index.html dist/404.html
+        env:
+          VITE_BASE_PATH: ${{ steps.pages.outputs.base_path }}/
+          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+      - name: Check static path mappings
+        run: node scripts/check-paths.mjs
+        env:
+          VITE_BASE_PATH: ${{ steps.pages.outputs.base_path }}/
+      - name: Report API configuration
+        if: ${{ vars.VITE_API_BASE_URL == '' }}
+        run: echo "::warning::VITE_API_BASE_URL is empty. The static pages will deploy, but Explorer requires a separately hosted backend and matching CORS_ORIGINS."
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
