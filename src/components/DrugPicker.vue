@@ -27,8 +27,9 @@ const activeId = computed(() =>
 
 watch(
   () => props.selected,
-  (drug) => {
-    query.value = drug?.name ?? ''
+  (drug, previous) => {
+    if (drug) query.value = drug.name
+    else if (query.value === previous?.name) query.value = ''
   },
 )
 function openMenu() {
