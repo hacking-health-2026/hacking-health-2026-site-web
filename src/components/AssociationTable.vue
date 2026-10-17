@@ -37,26 +37,30 @@ const cells = computed(() =>
   >
     <table>
       <caption>
-        Chaque case décrit la relation entre le produit de la ligne et celui de la colonne. Une
-        relation absente ne signifie pas une absence de danger.
+        Chaque association apparaît une seule fois, au croisement de ses deux produits. Une relation
+        absente ne signifie pas une absence de danger.
       </caption>
       <thead>
         <tr>
           <th scope="col" class="corner">Vos produits</th>
-          <th v-for="drug in result.drugs" :key="drug.id" scope="col">{{ drug.name }}</th>
+          <th v-for="drug in result.drugs.slice(1)" :key="drug.id" scope="col">{{ drug.name }}</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-for="(drug, i) in result.drugs" :key="drug.id">
+        <tr v-for="(drug, i) in result.drugs.slice(0, -1)" :key="drug.id">
           <th scope="row">{{ drug.name }}</th>
-          <td v-for="(other, j) in result.drugs" :key="other.id" :class="{ diagonal: i === j }">
-            <span v-if="i === j" class="dash" aria-label="Même produit">—</span>
+          <td
+            v-for="(other, j) in result.drugs.slice(1)"
+            :key="other.id"
+            :class="{ diagonal: i >= j + 1 }"
+          >
+            <span v-if="i >= j + 1" class="dash" aria-label="Association déjà affichée">—</span>
             <template v-else>
-              <span :class="['alert', cells[i]?.[j]?.pair?.status ?? 'unknown']">{{
-                alertLabels[cells[i]?.[j]?.pair?.status ?? 'unknown']
+              <span :class="['alert', cells[i]?.[j + 1]?.pair?.status ?? 'unknown']">{{
+                alertLabels[cells[i]?.[j + 1]?.pair?.status ?? 'unknown']
               }}</span>
               <article
-                v-for="relation in cells[i]?.[j]?.relations"
+                v-for="relation in cells[i]?.[j + 1]?.relations"
                 :key="relation.id"
                 class="relation"
               >
@@ -70,18 +74,24 @@ const cells = computed(() =>
                 <p>{{ relation.mechanism }}</p>
                 <p
                   v-if="
-                    cells[i]?.[j]?.pair?.rules.find((r) => r.id === relation.rule_id)?.consequence
+                    cells[i]?.[j + 1]?.pair?.rules.find((r) => r.id === relation.rule_id)
+                      ?.consequence
                   "
                   class="consequence"
                 >
                   {{
-                    cells[i]?.[j]?.pair?.rules.find((r) => r.id === relation.rule_id)?.consequence
+                    cells[i]?.[j + 1]?.pair?.rules.find((r) => r.id === relation.rule_id)
+                      ?.consequence
                   }}
                 </p>
                 <small>{{ relation.rule_id }} · {{ relation.mapping_note }}</small>
               </article>
-              <template v-if="!cells[i]?.[j]?.relations.length">
-                <article v-for="rule in cells[i]?.[j]?.pair?.rules" :key="rule.id" class="relation">
+              <template v-if="!cells[i]?.[j + 1]?.relations.length">
+                <article
+                  v-for="rule in cells[i]?.[j + 1]?.pair?.rules"
+                  :key="rule.id"
+                  class="relation"
+                >
                   <strong>{{ rule.ingredient }} ↔ {{ rule.target }}</strong>
                   <p>{{ rule.mechanism }}</p>
                   <p class="consequence">{{ rule.consequence }}</p>
@@ -90,7 +100,7 @@ const cells = computed(() =>
                     {{ rule.reference.row }}</small
                   >
                 </article>
-                <p v-if="!cells[i]?.[j]?.pair?.rules.length" class="missing">
+                <p v-if="!cells[i]?.[j + 1]?.pair?.rules.length" class="missing">
                   Aucune relation documentée dans les données disponibles.
                 </p>
               </template>
