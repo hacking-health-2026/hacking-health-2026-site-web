@@ -16,7 +16,7 @@ npm ci
 npm run dev
 ```
 
-Open the local URL and choose **Vérifier**. Vite proxies `/api` to
+Open the local URL and choose **Explorer**. Vite proxies `/api` to
 `http://127.0.0.1:8000`. With pnpm, use `pnpm install --frozen-lockfile`
 and `pnpm dev` instead.
 
@@ -32,6 +32,10 @@ For separate hosting set frontend `VITE_API_BASE_URL` before building and allow
 that origin in backend `CORS_ORIGINS`.
 
 ## Demo script
+
+The **Accueil** page presents three documented interaction cases with direct
+primary-source links and contextual limitations; see `docs/homepage-sources.md`.
+The team page has been removed. The Vue app now lives at the repository root.
 
 1. Click **Leeloo Gé + Millepertuis**: 80 fictional points, simulated red.
 2. Click **Xanax + Sommeil Fort**: 50 points, simulated orange.

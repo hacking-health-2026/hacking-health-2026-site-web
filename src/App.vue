@@ -15,11 +15,10 @@ import NexusIcon from '@/components/NexusIcon.vue'
         ></RouterLink
       >
       <nav class="main-nav" aria-label="Navigation principale">
-        <RouterLink to="/" exact-active-class="nav-current">Découvrir</RouterLink>
+        <RouterLink to="/" exact-active-class="nav-current">Accueil</RouterLink>
         <RouterLink to="/compatibility" active-class="nav-current"
           ><NexusIcon name="spark" :size="16" /> Explorer</RouterLink
         >
-        <RouterLink to="/team" active-class="nav-current">L’équipe</RouterLink>
       </nav>
       <span class="event-tag"><span></span> Hacking Health 2026</span>
     </div>

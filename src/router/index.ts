@@ -1,7 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import CompatibilityView from '../views/CompatibilityView.vue'
-import TeamView from '../views/TeamView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -21,8 +20,7 @@ const router = createRouter({
     },
     {
       path: '/team',
-      name: 'team',
-      component: TeamView,
+      redirect: '/',
     },
   ],
 })
