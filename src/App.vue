@@ -16,6 +16,7 @@ import NexusIcon from '@/components/NexusIcon.vue'
       >
       <nav class="main-nav" aria-label="Navigation principale">
         <RouterLink to="/" exact-active-class="nav-current">Accueil</RouterLink>
+        <RouterLink to="/jeu" active-class="nav-current">Jeu</RouterLink>
         <RouterLink to="/utilisation" active-class="nav-current" class="nav-use"
           >Utiliser <NexusIcon name="arrow" :size="16"
         /></RouterLink>
