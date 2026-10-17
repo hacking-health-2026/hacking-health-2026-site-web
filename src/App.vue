@@ -22,7 +22,6 @@ import NexusIcon from '@/components/NexusIcon.vue'
           >Utiliser <NexusIcon name="arrow" :size="16"
         /></RouterLink>
       </nav>
-      <BillyMascot class="header-mascot" :size="72" />
       <span class="event-tag"><span></span> Hacking Health 2026</span>
     </div>
   </header>

@@ -160,12 +160,12 @@ const cases = [
             ><span>{{ item.unit }}</span>
           </div>
           <h3>{{ item.title }}</h3>
-          <p class="case-observation">{{ item.observation }}</p>
           <div class="case-outcome">
             <NexusIcon name="info" :size="17" /><span>{{ item.outcome }}</span>
           </div>
           <details class="case-context">
-            <summary>Le contexte de ce cas <NexusIcon name="chevron" :size="16" /></summary>
+            <summary>Lire les faits et le contexte <NexusIcon name="chevron" :size="16" /></summary>
+            <p class="case-observation">{{ item.observation }}</p>
             <p>{{ item.context }}</p>
           </details>
           <a
@@ -191,37 +191,6 @@ const cases = [
       </div>
     </section>
 
-    <section class="reading-section" aria-labelledby="reading-title">
-      <div class="reading-title">
-        <span class="eyebrow">Comprendre les sources</span>
-        <h2 id="reading-title">Un cas réel mérite<br />d’être lu avec son contexte.</h2>
-        <NexusFlower class="reading-flower" :size="92" />
-      </div>
-      <div class="reading-points">
-        <div>
-          <span>01</span>
-          <p>
-            <strong>Ce qui a été observé</strong>Un événement médical ou une mesure biologique
-            rapportés chez une personne.
-          </p>
-        </div>
-        <div>
-          <span>02</span>
-          <p>
-            <strong>Ce qui reste à interpréter</strong>La part de l’interaction, des autres
-            traitements et du contexte. Un signalement seul n’établit pas une causalité certaine.
-          </p>
-        </div>
-        <div>
-          <span>03</span>
-          <p>
-            <strong>Le réflexe à garder</strong>Partager la liste de ses médicaments, plantes et
-            compléments avec son médecin ou son pharmacien avant d’ajouter un produit.
-          </p>
-        </div>
-      </div>
-    </section>
-
     <section class="bottom-invitation">
       <div>
         <span>Vos produits aussi méritent une vue d’ensemble.</span>
@@ -238,7 +207,7 @@ const cases = [
 
 <style scoped>
 .hero-copy > .billy-guide {
-  margin: 22px 0;
+  margin: 14px 0;
 }
 .home-hero {
   display: grid;
@@ -252,7 +221,7 @@ const cases = [
   letter-spacing: -3px;
   font-weight: 650;
   line-height: 1.1;
-  margin: 22px 0;
+  margin: 14px 0;
 }
 .hero-copy h1 > span {
   color: var(--purple);
@@ -480,7 +449,7 @@ const cases = [
   flex-wrap: wrap;
   gap: 7px;
   align-items: center;
-  margin: 22px 0;
+  margin: 14px 0;
   font-size: 15px;
 }
 .case-association > span {
@@ -500,13 +469,13 @@ const cases = [
   display: flex;
   align-items: center;
   gap: 15px;
-  padding: 18px;
+  padding: 12px 14px;
   background: var(--case-soft);
   border-radius: 14px;
-  min-height: 100px;
+  min-height: 0;
 }
 .case-figure strong {
-  font-size: 48px;
+  font-size: 34px;
   font-weight: 650;
   line-height: 1;
   letter-spacing: -2px;
@@ -522,8 +491,8 @@ const cases = [
   font-size: 21px;
   line-height: 1.35;
   letter-spacing: -0.6px;
-  margin: 24px 0 13px;
-  min-height: 57px;
+  margin: 16px 0 12px;
+
   font-weight: 650;
 }
 .case-observation {
@@ -531,7 +500,6 @@ const cases = [
   line-height: 1.8;
   color: #686573;
   margin-bottom: 20px;
-  min-height: 164px;
 }
 .case-outcome {
   display: flex;
@@ -540,9 +508,8 @@ const cases = [
   color: var(--case-accent);
   font-size: 15px;
   font-weight: 600;
-  padding-bottom: 19px;
+  padding-bottom: 12px;
   border-bottom: 1px solid var(--line);
-  min-height: 52px;
 }
 .case-outcome svg {
   flex-shrink: 0;
@@ -554,7 +521,7 @@ const cases = [
   display: flex;
   justify-content: space-between;
   gap: 10px;
-  padding: 18px 0;
+  padding: 12px 0;
   cursor: pointer;
   font-size: 16px;
   list-style: none;
@@ -576,7 +543,7 @@ const cases = [
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding-top: 16px;
+  padding-top: 12px;
   border-top: 1px solid var(--line);
   color: var(--case-accent);
 }
@@ -613,58 +580,6 @@ const cases = [
   text-align: right;
   flex-shrink: 0;
   font-size: 15px;
-}
-.reading-section {
-  display: grid;
-  grid-template-columns: 1fr 1.3fr;
-  gap: 60px;
-  background: #f0edef;
-  border-radius: 24px;
-  padding: 36px 40px;
-  margin-bottom: 36px;
-}
-.reading-title h2 {
-  font-size: 27px;
-  line-height: 1.3;
-  letter-spacing: -0.8px;
-  font-weight: 650;
-  margin: 17px 0 20px;
-}
-.reading-flower {
-  color: var(--coral);
-  --flower-center: #f0edef;
-}
-.reading-points > div {
-  display: flex;
-  gap: 17px;
-  padding: 16px 0;
-  border-bottom: 1px solid #ded9e2;
-}
-.reading-points > div:first-child {
-  padding-top: 0;
-}
-.reading-points > div:last-child {
-  border: 0;
-  padding-bottom: 0;
-}
-.reading-points > div > span {
-  color: var(--purple);
-  font-size: 15px;
-  font-weight: 700;
-  padding-top: 3px;
-}
-.reading-points p {
-  font-size: 16px;
-  line-height: 1.8;
-  color: #6c6676;
-  margin: 0;
-}
-.reading-points strong {
-  display: block;
-  color: var(--ink);
-  font-weight: 600;
-  font-size: 18px;
-  margin-bottom: 4px;
 }
 .bottom-invitation {
   position: relative;
@@ -742,17 +657,17 @@ const cases = [
     padding: 18px;
   }
   .case-association {
-    min-height: 82px;
+    min-height: 0;
   }
   .case-figure {
     padding: 12px;
     gap: 10px;
   }
   .case-figure strong {
-    font-size: 39px;
+    font-size: 34px;
   }
   .case-observation {
-    min-height: 220px;
+    min-height: 0;
   }
 }
 @media (max-width: 760px) {
@@ -798,17 +713,6 @@ const cases = [
     display: block;
     text-align: left;
     margin-top: 10px;
-  }
-  .reading-section {
-    grid-template-columns: 1fr;
-    gap: 24px;
-    padding: 26px;
-  }
-  .reading-flower {
-    display: none;
-  }
-  .reading-title h2 {
-    margin-bottom: 0;
   }
   .bottom-invitation {
     padding: 25px;
