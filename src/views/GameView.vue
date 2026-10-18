@@ -7,7 +7,7 @@ import { workbookUrl } from '@/services/api'
 import { clearIncorrectPairs, connectPair, createGame, shuffle, type GameId } from '@/data/game'
 
 const gameCases = ref(createGame())
-const selected = ref<GameId>(gameCases.value[0]!.id)
+const selected = ref<GameId | null>(null)
 const errorCount = ref(0)
 const coachDismissed = ref(false)
 const pairs = ref<Partial<Record<GameId, GameId>>>({})
@@ -52,7 +52,7 @@ const wires = ref<
 let resizeObserver: ResizeObserver | undefined
 const components = computed(() => order.value.map((i) => gameCases.value[i]!))
 const pairCount = computed(() => gameCases.value.filter((c) => pairs.value[c.id] === c.id).length)
-const selectedCase = computed(() => gameCases.value.find((c) => c.id === selected.value)!)
+const selectedCase = computed(() => gameCases.value.find((c) => c.id === selected.value))
 const feedback = computed(() => {
   if (!lastAttempt.value) return undefined
   return {
@@ -138,12 +138,12 @@ function selectSample(id: GameId) {
 }
 function link(id: GameId) {
   const medicine = selected.value
+  if (!medicine) return
   coachDismissed.value = false
   if (medicine !== id) errorCount.value += 1
   pairs.value = connectPair(clearIncorrectPairs(pairs.value), medicine, medicine)
   lastAttempt.value = { medicine, ingredient: id }
-  const remaining = gameCases.value.find((c) => pairs.value[c.id] !== c.id)
-  if (remaining) selected.value = remaining.id
+  selected.value = null
 }
 function restart() {
   victory.value?.close()
@@ -151,7 +151,7 @@ function restart() {
   pairs.value = {}
   lastAttempt.value = undefined
   gameCases.value = createGame(gameCases.value)
-  selected.value = gameCases.value[0]!.id
+  selected.value = null
   order.value = shuffle([0, 1, 2, 3, 4])
 }
 </script>
@@ -187,7 +187,7 @@ function restart() {
       </button>
       <p class="instructions">
         Sélectionnez un échantillon dans le labo, puis un fruit de l’arbre. Retrouvez les cinq liens
-        verts !
+        violets !
       </p>
       <p class="mobile-hint">
         <NexusIcon name="arrow" :size="14" /> Tournez votre téléphone à l’horizontale pour jouer
@@ -396,7 +396,12 @@ function restart() {
                 :data-component="item.id"
                 class="fruit-card"
                 :class="[fruitState(item.id), `fruit-${index}`]"
-                :aria-label="`Relier ${item.ingredient} à ${selectedCase.medicine}`"
+                :aria-label="
+                  selectedCase
+                    ? `Relier ${item.ingredient} à ${selectedCase.medicine}`
+                    : `${item.ingredient} : choisissez d’abord un échantillon`
+                "
+                :disabled="!selectedCase"
                 @click="link(item.id)"
               >
                 <span class="fruit-leaf" aria-hidden="true"></span
@@ -465,7 +470,7 @@ function restart() {
       </div>
       <div class="game-actions">
         <p>
-          <span class="legend-green"></span> Juste <span class="legend-red"></span> À réessayer
+          <span class="legend-purple"></span> Juste <span class="legend-red"></span> À réessayer
           <small>Les couleurs valident la réponse au jeu, pas la sécurité d’une association.</small>
         </p>
         <button class="game-primary" @click="restart">
@@ -616,8 +621,8 @@ function restart() {
   background: #e7dff5;
 }
 .progress i.solved {
-  background: #39a45e;
-  box-shadow: 0 0 0 3px #39a45e15;
+  background: #7155e8;
+  box-shadow: 0 0 0 3px #7155e815;
 }
 .instructions {
   font-size: 20px;
@@ -1091,7 +1096,7 @@ function restart() {
   stroke-linecap: round;
 }
 .wire-correct {
-  color: #299454;
+  color: #7155e8;
 }
 .wire-incorrect {
   color: #d44949;
@@ -1115,10 +1120,10 @@ function restart() {
 }
 .sample-card.correct,
 .fruit-card.correct {
-  background: #e5f5d9;
-  border-color: #52a36a;
-  color: #2f7348;
-  box-shadow: 0 5px 0 #9acb96;
+  background: #eee7ff;
+  border-color: #9171db;
+  color: #6244a3;
+  box-shadow: 0 5px 0 #c2afe8;
 }
 .sample-card.incorrect,
 .fruit-card.incorrect {
@@ -1129,14 +1134,14 @@ function restart() {
 }
 .sample-card.correct::after,
 .fruit-card.correct::after {
-  border-color: #299454;
+  border-color: #7155e8;
 }
 .sample-card.incorrect::after,
 .fruit-card.incorrect::after {
   border-color: #d44949;
 }
 .finished .lab-lights i {
-  background: #54aa70;
+  background: #9171db;
 }
 .feedback-slot {
   margin-top: 18px;
@@ -1167,9 +1172,9 @@ function restart() {
   flex-shrink: 0;
 }
 .instant-feedback.correct {
-  background: #edf8ef;
-  border-color: #afd2b8;
-  color: #27673d;
+  background: #f1ebff;
+  border-color: #c8b4ee;
+  color: #6244a3;
 }
 .instant-feedback.incorrect {
   background: #fff1ed;
@@ -1211,8 +1216,8 @@ function restart() {
   border-radius: 50%;
   margin-right: 5px;
 }
-.legend-green {
-  background: #299454;
+.legend-purple {
+  background: #7155e8;
 }
 .game-actions .legend-red {
   background: #d44949;
@@ -1696,5 +1701,14 @@ function restart() {
   .victory-dialog::backdrop {
     backdrop-filter: none;
   }
+}
+</style>
+
+<style scoped>
+.fruit-card:disabled {
+  cursor: default;
+}
+.fruit-card:disabled:hover {
+  transform: none;
 }
 </style>

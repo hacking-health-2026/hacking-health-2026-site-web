@@ -31,7 +31,36 @@ import NexusIcon from '@/components/NexusIcon.vue'
       <span class="footer-signature"
         ><BillyMascot :size="70" /> Herbal Nexus <span>· Besançon 2026</span></span
       >
+      <nav class="footer-contact" aria-label="Contact et réseaux sociaux">
+        <RouterLink to="/contact">Contact</RouterLink>
+        <a
+          href="https://www.linkedin.com/in/charl%C3%A8ne-pernot/"
+          target="_blank"
+          rel="noopener noreferrer"
+          >Charlène Pernot · LinkedIn ↗</a
+        >
+      </nav>
       <p>Prototype de présentation · Évaluation simulée, non validée pour un usage médical.</p>
     </div>
   </footer>
 </template>
+
+<style scoped>
+.footer-inner {
+  flex-wrap: wrap;
+}
+.footer-contact {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 22px;
+}
+.footer-contact a {
+  color: #6244a3;
+  font-weight: 650;
+  text-decoration: none;
+}
+.footer-contact a:hover {
+  text-decoration: underline;
+}
+</style>
