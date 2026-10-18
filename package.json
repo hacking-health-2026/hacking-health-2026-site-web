@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "build-only": "vite build && node scripts/prepare-static-routes.mjs",
     "check:paths": "node scripts/check-paths.mjs",
-    "test:demo": "node --test scripts/game.test.mjs scripts/static-demo.test.mjs scripts/analysis-share.test.mjs scripts/drug-picker.test.mjs",
+    "test:demo": "node --test scripts/game.test.mjs scripts/static-demo.test.mjs scripts/analysis-share.test.mjs scripts/drug-picker.test.mjs scripts/game-interaction.test.mjs",
     "type-check": "vue-tsc --build",
     "lint": "run-s \"lint:*\"",
     "lint:oxlint": "oxlint . --fix",

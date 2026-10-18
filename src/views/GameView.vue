@@ -144,7 +144,8 @@ function link(id: GameId) {
   if (medicine !== id) errorCount.value += 1
   pairs.value = connectPair(clearIncorrectPairs(pairs.value), medicine, id)
   lastAttempt.value = { medicine, ingredient: id }
-  selected.value = null
+  // Keep the user's sample active after a mistake so another fruit can be tried immediately.
+  if (medicine === id) selected.value = null
 }
 function restart() {
   victory.value?.close()
@@ -1109,10 +1110,10 @@ function restart() {
 }
 .sample-card.correct,
 .fruit-card.correct {
-  background: #eee7ff;
-  border-color: #9171db;
-  color: #6244a3;
-  box-shadow: 0 5px 0 #c2afe8;
+  background: #efedf1;
+  border-color: #c2bccb;
+  color: #756b81;
+  box-shadow: 0 5px 0 #d1cadb;
 }
 .sample-card.incorrect,
 .fruit-card.incorrect {
@@ -1694,9 +1695,11 @@ function restart() {
 </style>
 
 <style scoped>
+.sample-card:disabled,
 .fruit-card:disabled {
   cursor: default;
 }
+.sample-card:disabled:hover,
 .fruit-card:disabled:hover {
   transform: none;
 }
