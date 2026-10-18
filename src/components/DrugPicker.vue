@@ -43,7 +43,8 @@ function onInput(event: Event) {
   if (props.selected) emit('select', null)
 }
 function select(drug: Drug) {
-  emit('select', structuredClone(drug))
+  // Products are JSON data. This also accepts Vue proxies and older WebKit versions.
+  emit('select', JSON.parse(JSON.stringify(drug)) as Drug)
   query.value = drug.name
   open.value = false
   activeIndex.value = -1
@@ -68,23 +69,31 @@ async function move(direction: number) {
   if (activeId.value) document.getElementById(activeId.value)?.scrollIntoView({ block: 'nearest' })
 }
 function chooseActive(event: KeyboardEvent) {
-  if (!open.value) return
+  if (!open.value || event.isComposing) return
   event.preventDefault()
   const product = results.value[Math.max(0, activeIndex.value)]
   if (product) select(product)
 }
-function closeOutside(event: PointerEvent) {
+function closeOutside(event: Event) {
   if (!root.value?.contains(event.target as Node)) open.value = false
 }
 function closeOnBlur(event: FocusEvent) {
-  if (!root.value?.contains(event.relatedTarget as Node | null)) open.value = false
+  // iOS can report a null destination while tapping an option. Removing the
+  // list here would discard the subsequent click before it can select a product.
+  if (event.relatedTarget && !root.value?.contains(event.relatedTarget as Node)) open.value = false
 }
-onMounted(() => document.addEventListener('pointerdown', closeOutside))
-onBeforeUnmount(() => document.removeEventListener('pointerdown', closeOutside))
+onMounted(() => {
+  document.addEventListener('pointerdown', closeOutside, true)
+  document.addEventListener('click', closeOutside, true)
+})
+onBeforeUnmount(() => {
+  document.removeEventListener('pointerdown', closeOutside, true)
+  document.removeEventListener('click', closeOutside, true)
+})
 </script>
 
 <template>
-  <div ref="root" class="picker" @focusout="closeOnBlur">
+  <div ref="root" class="picker" :class="{ 'picker-open': open }" @focusout="closeOnBlur">
     <label :for="id">{{ label }}</label>
     <div class="picker-input">
       <input
@@ -94,6 +103,8 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', closeOutside))
         role="combobox"
         type="text"
         autocomplete="off"
+        autocapitalize="none"
+        :spellcheck="false"
         aria-autocomplete="list"
         aria-haspopup="listbox"
         :aria-expanded="open && results.length > 0"
@@ -109,6 +120,7 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', closeOutside))
         @keydown.up.prevent="move(-1)"
         @keydown.enter="chooseActive"
         @keydown.esc.stop.prevent="open = false"
+        @keydown.tab="open = false"
       />
       <button
         type="button"
@@ -139,25 +151,27 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', closeOutside))
         :aria-label="`Produits du classeur pour ${label}`"
         class="suggestions"
       >
-        <li
-          v-for="(drug, index) in results"
-          :id="`${id}-option-${drug.id}`"
-          :key="drug.id"
-          role="option"
-          :aria-selected="selected?.id === drug.id"
-          :class="{ highlighted: index === activeIndex, chosen: selected?.id === drug.id }"
-          @pointerdown.prevent
-          @click="select(drug)"
-        >
-          <span class="option-icon"
-            ><NexusIcon :name="drug.kind === 'medicine' ? 'pill' : 'leaf'" :size="16" /></span
-          ><span class="option-text"
-            ><strong>{{ drug.name }}</strong
-            ><small>{{ drug.active_substance || drug.declared_ingredients }}</small></span
-          ><span class="option-kind">{{
-            drug.display_kind || (drug.kind === 'medicine' ? 'Médicament' : 'Complément')
-          }}</span
-          ><NexusIcon v-if="selected?.id === drug.id" name="check" :size="16" />
+        <li v-for="(drug, index) in results" :key="drug.id" role="presentation">
+          <button
+            :id="`${id}-option-${drug.id}`"
+            type="button"
+            role="option"
+            tabindex="-1"
+            :aria-selected="selected?.id === drug.id"
+            :class="{ highlighted: index === activeIndex, chosen: selected?.id === drug.id }"
+            @mousedown.prevent
+            @click="select(drug)"
+          >
+            <span class="option-icon"
+              ><NexusIcon :name="drug.kind === 'medicine' ? 'pill' : 'leaf'" :size="16" /></span
+            ><span class="option-text"
+              ><strong>{{ drug.name }}</strong
+              ><small>{{ drug.active_substance || drug.declared_ingredients }}</small></span
+            ><span class="option-kind">{{
+              drug.display_kind || (drug.kind === 'medicine' ? 'Médicament' : 'Complément')
+            }}</span
+            ><NexusIcon v-if="selected?.id === drug.id" name="check" :size="16" />
+          </button>
         </li>
       </ul>
     </div>
@@ -171,7 +185,7 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', closeOutside))
   gap: 4px;
   min-width: 0;
 }
-.picker:has(.dropdown-panel) {
+.picker-open {
   z-index: 25;
 }
 label {
@@ -224,8 +238,8 @@ input:focus {
   display: grid;
   place-items: center;
   flex-shrink: 0;
-  width: 30px;
-  height: 30px;
+  width: 44px;
+  height: 44px;
   background: #ffffffa8;
   border: 1px solid #dfd5ed;
   color: #785b9b;
@@ -279,9 +293,17 @@ input:focus {
   overscroll-behavior: contain;
   scrollbar-width: thin;
   scrollbar-color: #cbb8df transparent;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
 }
-.suggestions li {
+.suggestions [role='option'] {
   display: flex;
+  width: 100%;
+  min-height: 48px;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  background: transparent;
   align-items: center;
   gap: 9px;
   padding: 10px 9px;
@@ -289,12 +311,12 @@ input:focus {
   cursor: pointer;
   border: 1px solid transparent;
 }
-.suggestions li:hover,
-.suggestions li.highlighted {
+.suggestions [role='option']:hover,
+.suggestions [role='option'].highlighted {
   background: #f1eafb;
   border-color: #e0d0f0;
 }
-.suggestions li.chosen {
+.suggestions [role='option'].chosen {
   background: #f5f1fb;
 }
 .option-icon {
@@ -333,7 +355,7 @@ input:focus {
   text-align: right;
   color: #8a7b97;
 }
-.suggestions li > svg {
+.suggestions [role='option'] > svg {
   color: var(--purple);
   flex-shrink: 0;
 }
