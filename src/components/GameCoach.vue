@@ -21,8 +21,8 @@ const cheer = computed(() => cheers[(props.attempt - 1) % cheers.length])
       </button>
       <strong>{{ cheer }}</strong>
       <p>
-        Ce duo ne correspond à aucune des associations documentées pour cette partie. Essaie un
-        autre composant !
+        Ce n’est pas la relation recherchée : nous n’avons pas d’information sur ce duo dans les
+        données du jeu. Essaie un autre composant !
       </p>
       <small>{{ component.ingredient }} : à retrouver dans {{ component.foundIn }}.</small>
     </div>
@@ -46,10 +46,10 @@ const cheer = computed(() => cheers[(props.attempt - 1) % cheers.length])
   position: relative;
   flex: 1;
   padding: 16px 44px 16px 20px;
-  border: 1px solid #efc391;
-  background: #fff4e7;
+  border: 1px solid #d4cfd9;
+  background: #f4f2f5;
   border-radius: 18px;
-  color: #834c28;
+  color: #625d6b;
   line-height: 1.5;
 }
 .coach-bubble::before {
@@ -59,9 +59,9 @@ const cheer = computed(() => cheers[(props.attempt - 1) % cheers.length])
   top: 38px;
   width: 12px;
   height: 12px;
-  border-left: 1px solid #efc391;
-  border-bottom: 1px solid #efc391;
-  background: #fff4e7;
+  border-left: 1px solid #d4cfd9;
+  border-bottom: 1px solid #d4cfd9;
+  background: #f4f2f5;
   transform: rotate(45deg);
 }
 strong {
@@ -86,12 +86,12 @@ button {
   height: 30px;
   border: 0;
   background: transparent;
-  color: #834c28;
+  color: #625d6b;
   border-radius: 50%;
   cursor: pointer;
 }
 button:focus-visible {
-  outline: 2px solid #834c28;
+  outline: 2px solid #625d6b;
 }
 @media (max-width: 600px) {
   .coach {

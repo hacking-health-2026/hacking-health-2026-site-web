@@ -324,7 +324,7 @@ function restart() {
                       ? 'Choisir'
                       : connectionState(item.id) === 'correct'
                         ? componentName(pairs[item.id])
-                        : 'À réessayer'
+                        : 'Autre lien'
                   }}</span
                 >
               </button>
@@ -468,7 +468,8 @@ function restart() {
       </div>
       <div class="game-actions">
         <p>
-          <span class="legend-purple"></span> Juste <span class="legend-red"></span> À réessayer
+          <span class="legend-purple"></span> Juste <span class="legend-gray"></span> Ce n’est pas
+          la relation recherchée
           <small>Les couleurs valident la réponse au jeu, pas la sécurité d’une association.</small>
         </p>
         <button class="game-primary" @click="restart">
@@ -1087,7 +1088,7 @@ function restart() {
   color: #7155e8;
 }
 .wire-incorrect {
-  color: #d44949;
+  color: #85818d;
 }
 .wire-halo {
   stroke: #fcfcf1 !important;
@@ -1115,10 +1116,10 @@ function restart() {
 }
 .sample-card.incorrect,
 .fruit-card.incorrect {
-  background: #ffe1d9;
-  border-color: #d77470;
-  color: #a34440;
-  box-shadow: 0 5px 0 #e1a69a;
+  background: #efedf1;
+  border-color: #aaa5b0;
+  color: #625d6b;
+  box-shadow: 0 5px 0 #c9c5ce;
 }
 .sample-card.correct::after,
 .fruit-card.correct::after {
@@ -1126,7 +1127,7 @@ function restart() {
 }
 .sample-card.incorrect::after,
 .fruit-card.incorrect::after {
-  border-color: #d44949;
+  border-color: #85818d;
 }
 .finished .lab-lights i {
   background: #9171db;
@@ -1165,9 +1166,9 @@ function restart() {
   color: #6244a3;
 }
 .instant-feedback.incorrect {
-  background: #fff1ed;
-  border-color: #e2afa5;
-  color: #98493c;
+  background: #f4f2f5;
+  border-color: #d4cfd9;
+  color: #625d6b;
 }
 .instant-feedback strong {
   font-size: 21px;
@@ -1207,8 +1208,8 @@ function restart() {
 .legend-purple {
   background: #7155e8;
 }
-.game-actions .legend-red {
-  background: #d44949;
+.game-actions .legend-gray {
+  background: #85818d;
   margin-left: 12px;
 }
 .game-actions small {
