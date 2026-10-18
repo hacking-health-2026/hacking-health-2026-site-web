@@ -11,6 +11,7 @@ The product picker uses the same workbook catalogue and relation filters on ever
 - Keep the keyboard combobox interaction; ignore Enter during IME composition.
 - Clone JSON catalogue data without depending on `structuredClone` or exposing shared mutable compositions.
 - Use an explicit open class instead of CSS `:has`; controls have at least 44px touch targets.
+- If the preceding selections have no documented interaction neighbours, explain the missing correspondence and allow other workbook products to be selected (excluding products already chosen). This does not create an interaction rule or classify an undocumented pair as safe. An unmatched search alone does not disable a working relation filter.
 
 ## Automated verification
 

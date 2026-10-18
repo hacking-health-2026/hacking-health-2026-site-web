@@ -20,7 +20,10 @@ const cheer = computed(() => cheers[(props.attempt - 1) % cheers.length])
         <NexusIcon name="close" :size="18" />
       </button>
       <strong>{{ cheer }}</strong>
-      <p>Ce lien n’est pas le bon. Réessaie !</p>
+      <p>
+        Ce duo ne correspond à aucune des associations documentées pour cette partie. Essaie un
+        autre composant !
+      </p>
       <small>{{ component.ingredient }} : à retrouver dans {{ component.foundIn }}.</small>
     </div>
   </aside>

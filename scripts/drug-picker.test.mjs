@@ -229,3 +229,42 @@ test('the following picker keeps only workbook products related to the previous 
   await picker.type('Leeloo')
   assert.equal(picker.options().length, 0)
 })
+
+test('no documented interaction displays an explanation and lets the user choose another catalogue product', async () => {
+  const picker = mountPicker({ relatedTo: ['SUP-038'] })
+  await picker.type('')
+  assert.match(picker.host.querySelector('.no-relations').textContent, /Aucune correspondance/)
+  assert.match(
+    picker.host.querySelector('.no-relations').textContent,
+    /sélectionner d’autres produits/,
+  )
+  assert.match(
+    picker.host.querySelector('.no-relations').textContent,
+    /ne signifie pas une absence de danger/,
+  )
+  assert.equal(
+    picker.options().length,
+    99,
+    'the previous product is excluded from the full catalogue',
+  )
+  await picker.type('Aloe Vera jus à boire')
+  assert.equal(picker.options().length, 0, 'the same product cannot be chosen twice')
+  assert.ok(picker.host.querySelector('.no-results'))
+  await picker.type('Leeloo')
+  picker.options()[0].click()
+  await nextTick()
+  assert.equal(picker.state.selected.id, 'MED-005')
+})
+
+test('changing to a product with documented interactions restores the related-product filter', async () => {
+  const picker = mountPicker({ relatedTo: ['SUP-038'] })
+  await picker.type('Leeloo')
+  assert.equal(picker.options().length, 1)
+  picker.state.relatedTo = ['MED-005']
+  await nextTick()
+  assert.equal(picker.host.querySelector('.no-relations'), null)
+  assert.equal(picker.options().length, 0)
+  await picker.type('Millepertuis')
+  assert.ok(picker.options().length > 0)
+  assert.equal(picker.host.querySelector('.no-results'), null)
+})

@@ -15,8 +15,14 @@ const input = ref<HTMLInputElement>()
 const query = ref(props.selected?.name ?? '')
 const open = ref(false)
 const activeIndex = ref(-1)
+const noRelatedProducts = computed(
+  () => props.relatedTo.length > 0 && searchWorkbookProducts('', props.relatedTo).length === 0,
+)
 const results = computed(() =>
-  searchWorkbookProducts(query.value === props.selected?.name ? '' : query.value, props.relatedTo),
+  searchWorkbookProducts(
+    query.value === props.selected?.name ? '' : query.value,
+    noRelatedProducts.value ? [] : props.relatedTo,
+  ).filter((drug) => !props.relatedTo.includes(drug.id)),
 )
 const listId = computed(() => `${props.id}-options`)
 const activeId = computed(() =>
@@ -110,7 +116,7 @@ onBeforeUnmount(() => {
         :aria-expanded="open && results.length > 0"
         :aria-controls="listId"
         :aria-activedescendant="activeId"
-        :aria-describedby="`${id}-hint`"
+        :aria-describedby="noRelatedProducts ? `${id}-hint ${id}-no-relations` : `${id}-hint`"
         placeholder="Choisir ou rechercher un produit…"
         :title="selected?.name"
         @input="onInput"
@@ -137,9 +143,21 @@ onBeforeUnmount(() => {
       selected
         ? 'Produit du classeur sélectionné'
         : relatedTo.length
-          ? 'Produits avec une interaction renseignée avec votre sélection'
+          ? noRelatedProducts
+            ? 'Autres produits du classeur disponibles'
+            : 'Produits avec une interaction renseignée avec votre sélection'
           : 'Médicaments et compléments du fichier Excel uniquement'
     }}</small>
+    <p v-if="noRelatedProducts" :id="`${id}-no-relations`" class="no-relations" role="status">
+      Aucune correspondance d’interaction n’est renseignée avec votre sélection. Vous pouvez
+      sélectionner d’autres produits du catalogue pour poursuivre. L’absence de données ne signifie
+      pas une absence de danger.
+    </p>
+    <p v-if="open && !results.length" class="no-results" role="status">
+      Aucun produit ne correspond à cette recherche{{
+        relatedTo.length && !noRelatedProducts ? ' parmi les associations renseignées' : ''
+      }}. Essayez un autre nom.
+    </p>
     <div v-if="open && results.length" class="dropdown-panel">
       <div class="dropdown-heading">
         <NexusIcon name="book" :size="14" /><span>Produits du classeur</span
@@ -233,6 +251,22 @@ input:focus {
   font-size: 15px;
   color: #93849e;
   line-height: 1.6;
+}
+.no-relations {
+  margin: 8px 0 0;
+  padding: 12px 14px;
+  border: 1px solid #efd2a7;
+  border-radius: 12px;
+  background: #fff5e5;
+  color: #805629;
+  font-size: 15px;
+  line-height: 1.55;
+}
+.no-results {
+  margin: 8px 0 0;
+  color: #73647e;
+  font-size: 15px;
+  line-height: 1.5;
 }
 .dropdown-toggle {
   display: grid;
