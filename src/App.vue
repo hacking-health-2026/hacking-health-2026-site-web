@@ -18,6 +18,7 @@ import NexusIcon from '@/components/NexusIcon.vue'
       <nav class="main-nav" aria-label="Navigation principale">
         <RouterLink to="/" exact-active-class="nav-current">Accueil</RouterLink>
         <RouterLink to="/jeu" active-class="nav-current">Jeu</RouterLink>
+        <RouterLink to="/contact" active-class="nav-current">Contact</RouterLink>
         <RouterLink to="/utilisation" active-class="nav-current" class="nav-use"
           >Utiliser <NexusIcon name="arrow" :size="16"
         /></RouterLink>
@@ -62,5 +63,14 @@ import NexusIcon from '@/components/NexusIcon.vue'
 }
 .footer-contact a:hover {
   text-decoration: underline;
+}
+@media (max-width: 420px) {
+  .main-nav a {
+    padding: 9px 10px;
+    font-size: 15px;
+  }
+  .main-nav .nav-use {
+    padding: 10px 11px;
+  }
 }
 </style>

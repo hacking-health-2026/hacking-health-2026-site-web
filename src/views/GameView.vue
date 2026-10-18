@@ -132,16 +132,17 @@ onBeforeUnmount(() => {
   window.removeEventListener('resize', resizeBoard)
 })
 function selectSample(id: GameId) {
+  if (pairs.value[id] === id) return
   pairs.value = clearIncorrectPairs(pairs.value)
   lastAttempt.value = undefined
   selected.value = id
 }
 function link(id: GameId) {
   const medicine = selected.value
-  if (!medicine) return
+  if (!medicine || pairs.value[medicine] === medicine || owner(id)?.id === id) return
   coachDismissed.value = false
   if (medicine !== id) errorCount.value += 1
-  pairs.value = connectPair(clearIncorrectPairs(pairs.value), medicine, medicine)
+  pairs.value = connectPair(clearIncorrectPairs(pairs.value), medicine, id)
   lastAttempt.value = { medicine, ingredient: id }
   selected.value = null
 }
@@ -293,6 +294,7 @@ function restart() {
                 class="sample-card"
                 :class="[connectionState(item.id), { selected: selected === item.id }]"
                 :aria-pressed="selected === item.id"
+                :disabled="pairs[item.id] === item.id"
                 :aria-label="`Sélectionner l’échantillon ${item.medicine}`"
                 @click="selectSample(item.id)"
               >
@@ -401,7 +403,7 @@ function restart() {
                     ? `Relier ${item.ingredient} à ${selectedCase.medicine}`
                     : `${item.ingredient} : choisissez d’abord un échantillon`
                 "
-                :disabled="!selectedCase"
+                :disabled="!selectedCase || fruitState(item.id) === 'correct'"
                 @click="link(item.id)"
               >
                 <span class="fruit-leaf" aria-hidden="true"></span
@@ -436,27 +438,23 @@ function restart() {
       </div>
 
       <div class="feedback-slot" aria-live="polite" aria-atomic="true">
-        <div
-          v-if="feedback"
-          class="instant-feedback"
-          :class="feedback.correct ? 'correct' : 'incorrect'"
-          role="status"
-        >
-          <NexusIcon :name="feedback.correct ? 'check' : 'close'" :size="23" />
+        <GameCoach
+          v-if="coachVisible && feedback"
+          :key="errorCount"
+          :component="feedback.component"
+          :attempt="errorCount"
+          @dismiss="coachDismissed = true"
+        />
+        <div v-else-if="feedback?.correct" class="instant-feedback correct" role="status">
+          <NexusIcon name="check" :size="23" />
           <div>
-            <strong>{{
-              feedback.correct ? 'Une connexion de plus !' : 'Nexus a tracé le bon lien pour vous !'
-            }}</strong>
+            <strong>Une connexion de plus !</strong>
             <p>
-              {{ feedback.medicine.medicine }} + {{ feedback.component.ingredient }} :
-              {{
-                feedback.correct
-                  ? 'ce lien correspond à l’indice.'
-                  : 'ce lien ne correspondait pas à l’indice. La bonne association a été reliée automatiquement.'
-              }}
+              {{ feedback.medicine.medicine }} + {{ feedback.component.ingredient }} : ce lien
+              correspond à l’indice.
             </p>
             <p><b>Où le trouver ?</b> {{ feedback.component.foundIn }}</p>
-            <p v-if="feedback.correct">{{ feedback.medicine.explanation }}</p>
+            <p>{{ feedback.medicine.explanation }}</p>
             <small>{{ feedback.component.source }}</small>
             <a :href="workbookUrl('/api/source/workbook')" target="_blank" rel="noopener noreferrer"
               >Consulter le classeur <NexusIcon name="arrow" :size="13"
@@ -478,16 +476,6 @@ function restart() {
         </button>
       </div>
     </section>
-
-    <GameCoach
-      v-if="coachVisible && feedback"
-      :key="errorCount"
-      :medicine="feedback.medicine"
-      :component="feedback.component"
-      :attempt="errorCount"
-      @dismiss="coachDismissed = true"
-      @retry="coachDismissed = true"
-    />
 
     <dialog
       ref="victory"
