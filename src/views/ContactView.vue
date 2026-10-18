@@ -22,6 +22,10 @@ import BillyMascot from '@/components/BillyMascot.vue'
           Son ambition : aider à repérer les interactions entre produits naturels et médicaments, et
           encourager le dialogue avec les professionnels de santé.
         </p>
+        <p class="contact-email">
+          <strong>E-mail :</strong>
+          <a href="mailto:cpernot86@gmail.com">cpernot86@gmail.com</a>
+        </p>
         <a
           class="primary-button"
           href="https://www.linkedin.com/in/charl%C3%A8ne-pernot/"
@@ -123,6 +127,11 @@ h2 {
 }
 .source a {
   color: #6244a3;
+}
+.contact-email a {
+  color: #6244a3;
+  font-weight: 650;
+  overflow-wrap: anywhere;
 }
 @media (max-width: 760px) {
   .contact-card {
